@@ -28,6 +28,11 @@ jobs:
         uses: withastro/action@v3
         with:
           node-version: 22
+        env:
+          PUBLIC_GA_MEASUREMENT_ID: ${{ vars.PUBLIC_GA_MEASUREMENT_ID }}
+          PUBLIC_NEWSLETTER_FORM_ACTION: ${{ vars.PUBLIC_NEWSLETTER_FORM_ACTION }}
+          PUBLIC_CONTACT_FORM_ACTION: ${{ vars.PUBLIC_CONTACT_FORM_ACTION }}
+          PUBLIC_GUMROAD_URL: ${{ vars.PUBLIC_GUMROAD_URL }}
 
   deploy:
     needs: build
