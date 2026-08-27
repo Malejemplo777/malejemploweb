@@ -1,0 +1,138 @@
+---
+import { NEWSLETTER_FORM_ACTION } from '../data/social';
+
+const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
+---
+
+<form
+  class="newsletter-form"
+  data-ajax-form
+  action={isConfigured ? NEWSLETTER_FORM_ACTION : undefined}
+  method="POST"
+>
+  <label for="newsletter-email">Get notified about new releases</label>
+  <div class="row">
+    <input
+      id="newsletter-email"
+      name="email"
+      type="email"
+      placeholder="you@email.com"
+      required
+      disabled={!isConfigured}
+    />
+    <button type="submit" class="btn btn-primary" disabled={!isConfigured}>Notify me</button>
+  </div>
+  <p class="status" data-status role="status" hidden></p>
+  {!isConfigured && (
+    <p class="hint">
+      Form not wired up yet -- set <code>PUBLIC_NEWSLETTER_FORM_ACTION</code> in <code>.env</code>
+      (see GATE24_Web_Brief_v2.md section 7).
+    </p>
+  )}
+</form>
+
+<style>
+  .newsletter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-fg);
+  }
+
+  .row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  input {
+    flex: 1;
+    min-width: 12rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
+    color: var(--color-fg);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+  }
+
+  input:focus {
+    outline: 2px solid var(--color-fg);
+    outline-offset: 2px;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--color-fg-muted);
+    max-width: none;
+  }
+
+  .hint code {
+    color: var(--color-fg);
+  }
+
+  .status {
+    font-size: 0.85rem;
+    max-width: none;
+    margin: 0;
+  }
+
+  .status[data-state='success'] {
+    color: var(--color-fg);
+  }
+
+  .status[data-state='error'] {
+    color: #e08a8a;
+  }
+
+  button:disabled,
+  input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<script>
+  // Submits via fetch so visitors stay on the page instead of landing on
+  // Formspree's generic thank-you page -- see GATE24_Web_Brief_v2.md section 7.
+  document.querySelectorAll<HTMLFormElement>('form[data-ajax-form]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const status = form.querySelector<HTMLElement>('[data-status]');
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (!status || !button) return;
+
+      button.disabled = true;
+      status.hidden = false;
+      status.textContent = 'Sending...';
+      status.removeAttribute('data-state');
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+
+        if (response.ok) {
+          status.textContent = "Thanks — you're on the list.";
+          status.setAttribute('data-state', 'success');
+          form.reset();
+        } else {
+          status.textContent = 'Something went wrong. Try again in a moment.';
+          status.setAttribute('data-state', 'error');
+          button.disabled = false;
+        }
+      } catch {
+        status.textContent = 'Something went wrong. Try again in a moment.';
+        status.setAttribute('data-state', 'error');
+        button.disabled = false;
+      }
+    });
+  });
+</script>

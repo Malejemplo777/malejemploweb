@@ -1,0 +1,106 @@
+---
+import NewsletterForm from './NewsletterForm.astro';
+import { social } from '../data/social';
+
+const socialLinks = [
+  { key: 'youtube', label: 'YouTube', href: social.youtube },
+  { key: 'instagram', label: 'Instagram', href: social.instagram },
+  { key: 'tiktok', label: 'TikTok', href: social.tiktok },
+  { key: 'x', label: 'X', href: social.x },
+].filter((s) => s.href);
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container grid">
+    <div>
+      <p class="eyebrow">Malejemplo</p>
+      <p class="tagline">Film tools for DaVinci Resolve, made by one person.</p>
+      {socialLinks.length > 0 && (
+        <ul class="social">
+          {socialLinks.map((s) => (
+            <li><a href={s.href!} target="_blank" rel="noopener noreferrer">{s.label}</a></li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div>
+      <p class="eyebrow">Stay in the loop</p>
+      <NewsletterForm />
+    </div>
+
+    <div>
+      <p class="eyebrow">Contact &amp; legal</p>
+      <ul class="legal-links">
+        <li><a href="/about#contact">Contact</a></li>
+        <li><a href="/privacy">Privacy policy</a></li>
+        <li><a href="/cookies">Cookie policy</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container bottom">
+    <p>&copy; {year} Malejemplo. GATE.24 is a product by Malejemplo.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--color-border);
+    padding-block: var(--space-5) var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .tagline {
+    font-size: 0.9rem;
+  }
+
+  .social,
+  .legal-links {
+    list-style: none;
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .social a,
+  .legal-links a {
+    text-decoration: none;
+    color: var(--color-fg-muted);
+    font-size: 0.85rem;
+  }
+
+  .social a:hover,
+  .legal-links a:hover {
+    color: var(--color-fg);
+  }
+
+  .bottom {
+    margin-top: var(--space-5);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .bottom p {
+    font-size: 0.75rem;
+    color: var(--color-fg-muted);
+    max-width: none;
+  }
+
+  @media (max-width: 800px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+  }
+</style>

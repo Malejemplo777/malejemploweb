@@ -1,0 +1,324 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FilmPerforations from '../../components/FilmPerforations.astro';
+import PresetShowcase from '../../components/PresetShowcase.tsx';
+import LivePresetPlayground from '../../components/LivePresetPlayground.tsx';
+import PresetGallery from '../../components/PresetGallery.tsx';
+import ResolvePanel from '../../components/ResolvePanel.astro';
+import { Image } from 'astro:assets';
+import wordmark from '../../assets/brand/gate24-wordmark.png';
+import { GUMROAD_URL } from '../../data/social';
+
+const hasGumroad = GUMROAD_URL.length > 0;
+
+const comparison = [
+  { feature: 'Price', dehancer: '$500+', flc: 'Free', gate24: 'Pay what you want (can be free)' },
+  { feature: 'Multi-format crop bars', dehancer: 'No', flc: 'No', gate24: 'Yes' },
+  { feature: 'Vignette tied to lens character', dehancer: 'Generic', flc: 'Generic', gate24: 'Yes' },
+  { feature: 'Grain by camera stock', dehancer: 'Yes (60+ stocks)', flc: 'One generic grain', gate24: 'Yes (8/16/35/65mm)' },
+  { feature: 'Skin-tone protection', dehancer: 'Not the focus', flc: 'No', gate24: 'Yes, with per-shot eyedropper' },
+  { feature: 'Ready-made presets', dehancer: 'Few, build your own', flc: '7 generic', gate24: '13 (Essentials + Genre)' },
+  { feature: 'Learning curve', dehancer: 'High', flc: 'Medium', gate24: 'One click, still hand-adjustable' },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'GATE.24',
+  applicationCategory: 'MultimediaApplication',
+  operatingSystem: 'Windows',
+  description:
+    'One-click cinematic finishing plugin for DaVinci Resolve: multi-format crop bars, lens-tied vignette, film grain by camera stock, and skin-safe contrast.',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+    description: 'Pay what you want',
+  },
+};
+---
+
+<BaseLayout
+  title="GATE.24"
+  description="GATE.24 is a one-click cinematic finishing plugin for DaVinci Resolve: multi-format crop bars, lens-tied vignette, film grain by camera stock, and skin-safe contrast. 13 presets included."
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+
+  <section class="hero section">
+    <FilmPerforations />
+    <div class="container hero-inner">
+      <Image src={wordmark} alt="GATE.24" width={180} height={180} class="hero-mark" />
+      <p class="eyebrow">by Malejemplo &middot; DaVinci Resolve OFX plugin</p>
+      <h1>Everything a $500+ plugin does for your grade — without the price tag.</h1>
+      <p class="lede">
+        One effect for crop, lens-tied vignette, stock-matched grain, and skin-safe contrast —
+        13 presets included, and every parameter still adjustable by hand. Pay what you want,
+        including free.
+      </p>
+      <div class="cta-row">
+        {hasGumroad ? (
+          <a class="btn btn-primary" href={GUMROAD_URL} target="_blank" rel="noopener noreferrer">Get GATE.24</a>
+        ) : (
+          <span class="btn btn-primary" aria-disabled="true">Download link coming soon</span>
+        )}
+        <a class="btn btn-ghost" href="#comparison">See how it compares</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>Pick a mood, see the difference</h2>
+      <p>Same plugin, five very different results. Choose a preset, then drag to compare.</p>
+      <PresetShowcase client:visible />
+    </div>
+  </section>
+
+  <section class="section" id="screencast">
+    <div class="container">
+      <h2>See it in Resolve</h2>
+      <video
+        class="screencast"
+        src="/screencast.mp4"
+        poster="/screencast-poster.jpg"
+        controls
+        preload="none"
+        playsinline
+        aria-label="GATE.24 panel walkthrough inside DaVinci Resolve"
+      />
+      <p class="fine-print">Real screen capture, not a mockup — presets, live parameter changes, and the diagnostic preview mode.</p>
+    </div>
+  </section>
+
+  <section class="section" id="panel">
+    <div class="container">
+      <h2>Inside the panel</h2>
+      <p>
+        A recreation of the real GATE.24 controls, section by section — click a section to open it,
+        hover a control to see what it does. Drag the sliders; they're just not wired to a real
+        image here (that math only runs inside Resolve).
+      </p>
+      <ResolvePanel />
+    </div>
+  </section>
+
+  <section class="section" id="presets">
+    <div class="container">
+      <h2>13 presets, two groups</h2>
+      <p>
+        <strong>Essentials</strong> for everyday cine and editorial/social formats. <strong>Genre</strong>
+        for a strong, deliberate mood. Every preset is a starting point — nothing is locked after
+        you apply one.
+      </p>
+      <PresetGallery client:visible />
+    </div>
+  </section>
+
+  <section class="section" id="comparison">
+    <div class="container">
+      <h2>How it compares</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">Dehancer</th>
+              <th scope="col">Film Look Creator</th>
+              <th scope="col">GATE.24</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparison.map((row) => (
+              <tr>
+                <th scope="row">{row.feature}</th>
+                <td>{row.dehancer}</td>
+                <td>{row.flc}</td>
+                <td class="highlight">{row.gate24}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p><a href="/guides/gate24-vs-dehancer-vs-film-look-creator">Read the full comparison &rarr;</a></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>What else it does</h2>
+      <ul class="feature-list">
+        <li>
+          <h3>Diagnostic preview</h3>
+          <p>Overlay modes for vignette, grain, and skin-tone detection show exactly where and how hard each effect is acting — no more guessing.</p>
+        </li>
+        <li>
+          <h3>Per-shot skin-tone calibration</h3>
+          <p>Sample the real skin tone in a shot with a native color picker instead of relying on one fixed hue assumption.</p>
+        </li>
+        <li>
+          <h3>GPU-accelerated</h3>
+          <p>Runs on OpenCL — real-time preview, no render-to-check.</p>
+        </li>
+        <li>
+          <h3>9 crop formats</h3>
+          <p>From 2.39:1 anamorphic cinema down to 9:16 vertical for social.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="playground">
+    <div class="container">
+      <h2>Try all 13 yourself</h2>
+      <p>
+        Pick a photo, pick a preset, see it live. This runs on CSS in your browser as a rough
+        <strong>approximation</strong> of the real recipe values from each preset — a quick feel for
+        the range, not GATE.24's actual color engine (that's C++/OpenCL pixel math that only runs
+        inside Resolve). For the real thing, see the before/after examples and the panel above.
+      </p>
+      <LivePresetPlayground client:visible />
+    </div>
+  </section>
+
+  <section class="section" id="requirements">
+    <div class="container">
+      <h2>Requirements</h2>
+      <dl class="requirements">
+        <div>
+          <dt>DaVinci Resolve</dt>
+          <dd>Free version works — no Studio license required.</dd>
+        </div>
+        <div>
+          <dt>Operating system</dt>
+          <dd>Windows only for now. Mac support is blocked on hardware access, not ruled out.</dd>
+        </div>
+        <div>
+          <dt>Language</dt>
+          <dd>Plugin panel is in English. Installer runs in English or Spanish.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: var(--space-5);
+    text-align: center;
+  }
+
+  .hero-inner {
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+
+  .hero-mark {
+    margin-inline: auto;
+    margin-bottom: var(--space-2);
+  }
+
+  /* .eyebrow (global.css) has no margin-inline: auto, since it stays
+     left-aligned everywhere else it's used (home, about, guides). Inside
+     this centered hero it needs its own centering or it hugs the left edge
+     of its max-width: 60ch box instead of the hero's true center. */
+  .hero .eyebrow {
+    margin-inline: auto;
+  }
+
+  .lede {
+    font-size: 1.1rem;
+    margin-inline: auto;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: var(--space-3);
+  }
+
+  .fine-print {
+    font-size: 0.75rem;
+    color: var(--color-fg-muted);
+    margin-top: var(--space-2);
+  }
+
+  .screencast {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border: 1px solid var(--color-border);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: var(--space-3);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 40rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.9rem;
+  }
+
+  thead th {
+    color: var(--color-fg-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  tbody th {
+    font-weight: 600;
+    color: var(--color-fg);
+  }
+
+  td.highlight {
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+
+  .feature-list {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .feature-list h3 {
+    font-size: 1.1rem;
+  }
+
+  .requirements {
+    margin-top: var(--space-3);
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .requirements dt {
+    font-weight: 600;
+    color: var(--color-fg);
+    margin-bottom: 0.25rem;
+  }
+
+  .requirements dd {
+    margin: 0;
+    color: var(--color-fg-muted);
+    max-width: 48rem;
+  }
+</style>

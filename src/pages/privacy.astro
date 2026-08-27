@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Privacy policy" description="How Malejemplo handles data collected on this site.">
+  <section class="section">
+    <div class="container narrow">
+      <p class="eyebrow">Legal</p>
+      <h1>Privacy policy</h1>
+      <p class="fine-print">
+        Draft starting point, not legal advice — have this reviewed before the site goes live with a
+        real domain (see GATE24_Web_Brief_v2.md section 8).
+      </p>
+
+      <h2>What we collect</h2>
+      <p>
+        If you accept cookies via the banner, we use Google Analytics to understand traffic to this
+        site (pages visited, approximate location, device type). No analytics run before you accept.
+      </p>
+      <p>
+        If you submit the newsletter or contact form, we collect the email address and message you
+        provide, to reply to you or to notify you about new products. We don't sell or share this
+        data with third parties beyond the form/email providers used to operate the site.
+      </p>
+
+      <h2>Downloads</h2>
+      <p>
+        GATE.24 downloads are handled by a third-party platform (Gumroad), not this site directly.
+        That platform has its own privacy policy governing the download/payment process.
+      </p>
+
+      <h2>Your rights</h2>
+      <p>
+        You can decline analytics cookies at any time from the cookie banner, and can request your
+        contact/newsletter data be deleted by reaching out via the <a href="/about#contact">contact form</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .narrow {
+    max-width: 40rem;
+  }
+
+  .fine-print {
+    font-size: 0.8rem;
+    color: var(--color-fg-muted);
+    border-left: 2px solid var(--color-border);
+    padding-left: var(--space-2);
+  }
+</style>

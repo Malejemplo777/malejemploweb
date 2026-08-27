@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { social } from '../data/social';
+---
+
+<BaseLayout
+  title="About"
+  description="Malejemplo is the personal brand of a DaVinci Resolve editor and YouTube creator building finishing tools, starting with GATE.24."
+>
+  <section class="section">
+    <div class="container narrow">
+      <p class="eyebrow">About</p>
+      <h1>Malejemplo</h1>
+      <p>
+        Malejemplo is a one-person shop building finishing tools for DaVinci Resolve — plugins made
+        by someone who edits and colors real footage, not a plugin studio working from a spec sheet.
+        GATE.24 is the first release; more tools are planned.
+      </p>
+      {social.youtube ? (
+        <p><a class="btn btn-ghost" href={social.youtube} target="_blank" rel="noopener noreferrer">Watch on YouTube</a></p>
+      ) : (
+        <p class="fine-print">YouTube link pending.</p>
+      )}
+    </div>
+  </section>
+
+  <section class="section" id="contact">
+    <div class="container narrow">
+      <h2>Contact</h2>
+      <p>Questions, bug reports, feature requests — use the form below.</p>
+      <ContactForm />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .narrow {
+    max-width: 40rem;
+  }
+
+  .fine-print {
+    font-size: 0.8rem;
+    color: var(--color-fg-muted);
+  }
+</style>

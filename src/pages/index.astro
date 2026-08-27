@@ -1,0 +1,127 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FilmPerforations from '../components/FilmPerforations.astro';
+import { Image } from 'astro:assets';
+import wordmark from '../assets/brand/gate24-wordmark.png';
+import { products } from '../data/products';
+---
+
+<BaseLayout
+  title="Malejemplo"
+  description="Film tools for DaVinci Resolve, made by Malejemplo. Starting with GATE.24, a one-click cinematic finishing plugin."
+>
+  <section class="hero section">
+    <FilmPerforations />
+    <div class="container hero-inner">
+      <p class="eyebrow">Malejemplo</p>
+      <h1>Film tools, made by one person who edits too.</h1>
+      <p class="lede">
+        Malejemplo builds finishing tools for DaVinci Resolve — starting with GATE.24, a
+        one-click cinematic look plugin. More products are on the way.
+      </p>
+    </div>
+  </section>
+
+  <section class="section products">
+    <div class="container">
+      <h2>Products</h2>
+      <div class="product-grid">
+        {products.map((product) => (
+          <a class="product-card" href={product.href}>
+            {product.slug === 'gate24' && (
+              <Image src={wordmark} alt="GATE.24" width={280} height={280} />
+            )}
+            <div class="product-card-body">
+              <h3>{product.name}</h3>
+              <p>{product.tagline}</p>
+              <span class="status">{product.status === 'available' ? 'Available now' : 'Coming soon'}</span>
+            </div>
+          </a>
+        ))}
+        <div class="product-card product-card-placeholder" aria-hidden="true">
+          <div class="placeholder-icon">+</div>
+          <div class="product-card-body">
+            <h3>Next product</h3>
+            <p>More finishing tools are in the works.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: var(--space-6);
+  }
+
+  .hero-inner {
+    max-width: 42rem;
+  }
+
+  .lede {
+    font-size: 1.1rem;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+  }
+
+  .product-card:hover {
+    border-color: var(--color-fg);
+  }
+
+  .product-card :global(img) {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: #000;
+    padding: var(--space-3);
+  }
+
+  .product-card-body {
+    padding: var(--space-3);
+  }
+
+  .product-card-body h3 {
+    margin-bottom: 0.25rem;
+  }
+
+  .status {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg-muted);
+  }
+
+  .product-card-placeholder {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--color-fg-muted);
+    border-style: dashed;
+  }
+
+  .placeholder-icon {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    padding-top: var(--space-4);
+  }
+</style>
