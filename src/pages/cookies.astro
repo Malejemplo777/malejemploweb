@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Cookie policy" description="Which cookies this site uses and why.">
+  <section class="section">
+    <div class="container narrow">
+      <p class="eyebrow">Legal</p>
+      <h1>Cookie policy</h1>
+      <p class="fine-print">
+        Draft starting point, not legal advice — have this reviewed before the site goes live with a
+        real domain.
+      </p>
+
+      <h2>Analytics cookies (optional)</h2>
+      <p>
+        We use Google Analytics to see which pages get traffic and where visitors come from. These
+        cookies are <strong>not</strong> set until you click "Accept" on the cookie banner. You can
+        decline, or accept and later clear your browser cookies to withdraw consent.
+      </p>
+
+      <h2>No advertising or tracking cookies</h2>
+      <p>We don't run ads and don't use third-party tracking/retargeting cookies on this site.</p>
+
+      <h2>Forms</h2>
+      <p>
+        The newsletter and contact forms submit directly to a third-party form provider; no cookie is
+        set by those forms on this site.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .narrow {
+    max-width: 40rem;
+  }
+
+  .fine-print {
+    font-size: 0.8rem;
+    color: var(--color-fg-muted);
+    border-left: 2px solid var(--color-border);
+    padding-left: var(--space-2);
+  }
+</style>

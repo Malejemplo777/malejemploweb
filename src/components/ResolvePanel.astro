@@ -1,0 +1,439 @@
+---
+// Recreation of the real GATE.24 panel inside DaVinci Resolve, built with
+// real HTML controls instead of screenshots (crisp at any size, sliders
+// genuinely drag). Visual style, row layout, and default values matched
+// against the user's real screenshots (2026-08-25). Hint text is paraphrased
+// from the plugin's own setHint() calls in Gate24Plugin.cpp, not invented.
+type Row =
+  | { type: 'select'; label: string; value: string; options: string[]; hint: string }
+  | { type: 'check'; label: string; checked: boolean; hint: string }
+  | { type: 'slider'; label: string; value: number; min: number; max: number; step: number; hint: string }
+  | { type: 'color'; label: string; value: string; hint: string; eyedropper?: boolean };
+
+const essentialsPresets = ['Custom / Manual', 'Cinema 35', 'Cinema 65', 'Editorial 4:3', 'Urban Editorial', 'Social 9:16', 'Social 1:1', 'Social 4:5'];
+const genrePresets = ['Custom / Manual', 'Dusty Western', 'Romance / Reverie', 'Homegrown VHS', 'Classic Horror', 'Worn-Out VHS', 'Terror Found Footage'];
+
+const sections: { title: string; rows: Row[] }[] = [
+  {
+    title: 'General',
+    rows: [
+      { type: 'select', label: 'Essentials', value: 'Cinema 35', options: essentialsPresets, hint: 'Everyday presets — cinema/editorial and social platform formats. Sets Crop + Vignette + Grain + Contrast all at once. Reframe and Crop Offset are left untouched, always manual.' },
+      { type: 'select', label: 'By Genre', value: 'Custom / Manual', options: genrePresets, hint: 'Presets with a strong, deliberate genre/mood identity. Sets Crop + Vignette + Grain + Contrast all at once. Every parameter can still be tweaked by hand after applying one.' },
+      { type: 'check', label: 'Advanced', checked: true, hint: 'Off: only Preset, each section’s ‘Enable’ toggle, and its Intensity. On: every fine control in each section.' },
+      { type: 'select', label: 'Preview', value: 'Normal', options: ['Normal', 'Vignette', 'Grain', 'Skin/Midtones'], hint: 'Normal: the image as usual. Vignette: a color tint showing where/how much it darkens. Grain: neutral gray + pure grain, to judge size/texture. Skin/Midtones: shows where contrast protection is kicking in.' },
+      { type: 'check', label: 'Enable Bars', checked: false, hint: 'Turns the crop bars on or off.' },
+      { type: 'check', label: 'Enable Vignette', checked: true, hint: 'Turns on the radial vignette, calculated over the visible window (never under the bars).' },
+      { type: 'check', label: 'Enable Grain', checked: true, hint: 'Turns on the procedural film grain, limited to the visible area.' },
+      { type: 'check', label: 'Enable Contrast', checked: true, hint: 'Turns on the final contrast curve — an S-curve over Rec.709.' },
+    ],
+  },
+  {
+    title: 'Crop',
+    rows: [
+      { type: 'select', label: 'Format', value: '2.39:1', options: ['Custom', '2.39:1', '2.20:1', '2:1', '1.85:1', '4:3', '1:1', '4:5', '9:16'], hint: 'Calculates the V/H bar thickness for this aspect ratio. You can adjust the sliders by hand afterward.' },
+      { type: 'slider', label: 'V', value: 12.5, min: 0, max: 40, step: 0.01, hint: 'Thickness of the top/bottom bar (letterbox), in % of frame height.' },
+      { type: 'slider', label: 'H', value: 0, min: 0, max: 40, step: 0.01, hint: 'Thickness of the left/right bar (pillarbox), in % of frame width.' },
+      { type: 'slider', label: 'X', value: 0, min: -0.5, max: 0.5, step: 0.001, hint: 'Shifts the crop window horizontally, as a fraction of frame width (does not change the window size).' },
+      { type: 'slider', label: 'Y', value: 0, min: -0.5, max: 0.5, step: 0.001, hint: 'Shifts the crop window vertically, as a fraction of frame height (does not change the window size).' },
+      { type: 'slider', label: 'Feather', value: 0.2, min: 0, max: 5, step: 0.01, hint: 'Soft transition between the image and the bar, in % of frame height/width. 0 = hard cut.' },
+      { type: 'slider', label: 'Roundness', value: 0, min: 0, max: 100, step: 0.1, hint: 'Rounds the corners of the visible window. 0 = sharp corner; at maximum it becomes an oval/capsule shape, never breaks.' },
+      { type: 'color', label: 'Color', value: '#000000', hint: 'Color of the crop bars.' },
+      { type: 'slider', label: 'Opacity', value: 1, min: 0, max: 1, step: 0.001, hint: 'Opacity of the crop bars.' },
+    ],
+  },
+  {
+    title: 'Reframe',
+    rows: [
+      { type: 'slider', label: 'X', value: 0, min: -1, max: 1, step: 0.001, hint: 'Shifts the source image horizontally underneath the crop, as a fraction of frame width. The crop itself doesn’t move.' },
+      { type: 'slider', label: 'Y', value: 0, min: -1, max: 1, step: 0.001, hint: 'Shifts the source image vertically underneath the crop, as a fraction of frame height. The crop itself doesn’t move.' },
+      { type: 'slider', label: 'Zoom', value: 1, min: 1, max: 4, step: 0.001, hint: 'Zooms into the source image (magnify only), useful when panning alone isn’t enough to recompose the shot.' },
+    ],
+  },
+  {
+    title: 'Vignette',
+    rows: [
+      { type: 'select', label: 'Optics', value: 'Anamorphic / Scope', options: ['Anamorphic / Scope', 'Spherical / Standard', 'Tele / Subtle'], hint: 'Shape and starting point of the falloff, based on the type of optics you want to evoke.' },
+      { type: 'slider', label: 'Intensity', value: 0.2, min: -1, max: 1, step: 0.001, hint: 'Positive darkens (classic vignette); negative brightens — a ‘light leak’/veil effect that lifts the edge shadows far more than the highlights. 0 = no effect.' },
+      { type: 'slider', label: 'Softness', value: 0.62, min: 0, max: 1, step: 0.001, hint: 'Edge hardness: 0 = narrow/hard transition, 1 = wide/soft falloff.' },
+    ],
+  },
+  {
+    title: 'Grain',
+    rows: [
+      { type: 'select', label: 'Stock', value: '35mm', options: ['8mm', '16mm', '35mm', '65mm'], hint: 'A fixed recipe of size and texture per negative format — not a continuous scale.' },
+      { type: 'slider', label: 'Intensity', value: 0.126, min: 0, max: 1, step: 0.001, hint: 'How much the grain blends over the image. 0 = invisible, 1 = full Overlay blend.' },
+      { type: 'slider', label: 'Size', value: 1, min: 0, max: 3, step: 0.001, hint: 'Multiplier on the base grain size of the chosen stock. 1.0 = that stock’s natural size.' },
+      { type: 'slider', label: 'Color', value: 0, min: 0, max: 1, step: 0.001, hint: '0 = monochrome grain (recommended, like real film negative), 1 = grain with independent color noise per channel.' },
+      { type: 'slider', label: 'Animation', value: 1, min: 0, max: 1, step: 0.001, hint: '0 = static grain (no flicker), 1 = a new pattern every frame. In-between values change more slowly.' },
+    ],
+  },
+  {
+    title: 'Contrast',
+    rows: [
+      { type: 'slider', label: 'Intensity', value: 0.24, min: 0, max: 1, step: 0.001, hint: 'Strength of the S-curve: deeper shadows, more open highlights.' },
+      { type: 'slider', label: 'Shadow Lift', value: 0.035, min: 0, max: 1, step: 0.001, hint: 'Lifts the black floor for a negative/film-like touch instead of pure digital black. Independent of Intensity — raise it gradually.' },
+      { type: 'select', label: 'Protection', value: 'Both', options: ['None', 'Midtones (luminance)', 'Skin (hue)', 'Both'], hint: 'Dampens contrast so it doesn’t ‘clip’ certain areas. Midtones: by luminance range. Skin: by hue, isolating real skin tone. Both: combines the two.' },
+      { type: 'color', label: 'Skin Tone', value: '#c98462', eyedropper: true, hint: 'Use the eyedropper to sample a real skin tone from this shot — Skin (hue) recalibrates automatically instead of assuming a generic hue.' },
+      { type: 'slider', label: 'Hue Tolerance', value: 0.3, min: 0, max: 1, step: 0.001, hint: 'How wide the Skin detection opens around the sampled tone. Wider covers real skin variation better; narrower separates from similar colors like wood.' },
+      { type: 'slider', label: 'Saturation Range', value: 0.3, min: 0, max: 1, step: 0.001, hint: 'Same as Hue Tolerance, but for the saturation band — excludes near-neutral grays on one side and very vivid colors on the other.' },
+    ],
+  },
+];
+
+const totalRows = sections.reduce((sum, s) => sum + s.rows.length, 0);
+
+// Generates the CSS that swaps the visible caption based on which row (by
+// global index, r0..rN) is hovered/focused within its own .dv-section
+// ancestor -- scoped per section via :has() so sections don't cross-talk.
+const panelHotspotCss = Array.from({ length: totalRows }, (_, i) => `
+  .dv-section:has(.r${i}:hover) .dv-caption-default,
+  .dv-section:has(.r${i}:focus-visible) .dv-caption-default { opacity: 0; }
+  .dv-section:has(.r${i}:hover) .c${i},
+  .dv-section:has(.r${i}:focus-visible) .c${i} { opacity: 1; }
+`).join('\n');
+
+let rowCounter = 0;
+---
+
+<div class="resolve-panel">
+  {sections.map((section, si) => (
+    <details class="dv-section" open={si === 0}>
+      <summary>
+        <span class="dv-chevron" aria-hidden="true">&rsaquo;</span>
+        {section.title}
+      </summary>
+      <div class="dv-body">
+        <div class="dv-rows">
+          {section.rows.map((row) => {
+            const idx = rowCounter++;
+            return (
+              <div class={`dv-row r${idx}`} tabindex="0">
+                <span class="dv-label">{row.type === 'check' ? '' : row.label}</span>
+                <span class="dv-control">
+                  {row.type === 'select' && (
+                    <span class="dv-select">
+                      <select aria-label={row.label}>
+                        {row.options.map((opt) => <option selected={opt === row.value}>{opt}</option>)}
+                      </select>
+                      <span class="dv-caret" aria-hidden="true">&#9662;</span>
+                    </span>
+                  )}
+                  {row.type === 'check' && (
+                    <label class="dv-check-field">
+                      <input class="dv-check" type="checkbox" checked={row.checked} />
+                      <span>{row.label}</span>
+                    </label>
+                  )}
+                  {row.type === 'slider' && (
+                    <span class="dv-slider">
+                      <input type="range" min={row.min} max={row.max} step={row.step} value={row.value} aria-label={row.label} />
+                      <input class="dv-value" type="text" readonly value={row.value.toFixed(row.step < 0.01 ? 3 : 2)} tabindex="-1" />
+                    </span>
+                  )}
+                  {row.type === 'color' && (
+                    <span class="dv-color-field">
+                      <span class="dv-swatch" style={{ background: row.value }}></span>
+                      {row.eyedropper && <span class="dv-eyedrop" aria-hidden="true">&#9711;</span>}
+                    </span>
+                  )}
+                </span>
+                {row.type !== 'check' && (
+                  <>
+                    <span class="dv-diamond" aria-hidden="true">&#9670;</span>
+                    <span class="dv-reset" aria-hidden="true">&#8635;</span>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div class="dv-caption-slot">
+          <p class="dv-caption-default">Hover a control to see what it does.</p>
+          {section.rows.map((row, ri) => {
+            const idx = rowCounter - section.rows.length + ri;
+            return <p class={`dv-caption c${idx}`}><strong>{row.label}</strong> — {row.hint}</p>;
+          })}
+        </div>
+      </div>
+    </details>
+  ))}
+</div>
+
+<style set:html={panelHotspotCss}></style>
+
+<style>
+  .resolve-panel {
+    border-top: 1px solid var(--color-border);
+    font-family: var(--font-body);
+  }
+
+  .dv-section {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 0;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--color-fg);
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .dv-chevron {
+    display: inline-block;
+    font-size: 1.3rem;
+    color: var(--color-fg-muted);
+    transition: transform 0.15s ease;
+  }
+
+  details[open] .dv-chevron {
+    transform: rotate(90deg);
+  }
+
+  .dv-body {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) 1fr;
+    gap: var(--space-3);
+    align-items: start;
+    padding-bottom: var(--space-4);
+  }
+
+  .dv-rows {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .dv-row {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr 1rem 1rem;
+    align-items: center;
+    gap: 0.5rem;
+    height: 1.7rem;
+    outline: none;
+  }
+
+  .dv-row:hover,
+  .dv-row:focus-visible {
+    background: rgba(245, 243, 239, 0.06);
+  }
+
+  .dv-label {
+    font-size: 0.72rem;
+    color: #b0b0b0;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dv-control {
+    min-width: 0;
+  }
+
+  .dv-diamond,
+  .dv-reset {
+    font-size: 0.6rem;
+    color: #666;
+    text-align: center;
+  }
+
+  /* Select */
+  .dv-select {
+    position: relative;
+    display: block;
+  }
+
+  .dv-select select {
+    width: 100%;
+    appearance: none;
+    background: #2b2b2b;
+    border: 1px solid #3d3d3d;
+    color: #d8d8d8;
+    font-size: 0.72rem;
+    font-family: var(--font-body);
+    padding: 0.2rem 1.4rem 0.2rem 0.5rem;
+    height: 1.4rem;
+  }
+
+  .dv-caret {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.6rem;
+    color: #888;
+    pointer-events: none;
+  }
+
+  /* Checkbox */
+  .dv-check {
+    appearance: none;
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 1px solid #555;
+    background: #2b2b2b;
+    position: relative;
+    cursor: pointer;
+    margin: 0;
+    justify-self: start;
+  }
+
+  .dv-check:checked {
+    background: #3d3d3d;
+    border-color: #888;
+  }
+
+  .dv-check:checked::after {
+    content: '';
+    position: absolute;
+    left: 0.18rem;
+    top: 0.02rem;
+    width: 0.22rem;
+    height: 0.42rem;
+    border: solid #e8e8e8;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .dv-check-field {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+  }
+
+  .dv-check-field span {
+    font-size: 0.72rem;
+    color: #d8d8d8;
+  }
+
+  /* Slider */
+  .dv-slider {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .dv-slider input[type='range'] {
+    flex: 1;
+    appearance: none;
+    height: 1px;
+    background: #4a4a4a;
+    min-width: 0;
+  }
+
+  .dv-slider input[type='range']::-webkit-slider-thumb {
+    appearance: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: #ababab;
+    cursor: grab;
+  }
+
+  .dv-slider input[type='range']::-moz-range-thumb {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: #ababab;
+    border: none;
+    cursor: grab;
+  }
+
+  .dv-slider input[type='range']:active::-webkit-slider-thumb {
+    background: var(--color-fg);
+    cursor: grabbing;
+  }
+
+  .dv-value {
+    width: 3.4rem;
+    flex-shrink: 0;
+    background: #232323;
+    border: 1px solid #3d3d3d;
+    color: #d8d8d8;
+    font-size: 0.7rem;
+    font-family: var(--font-body);
+    text-align: right;
+    padding: 0.15rem 0.35rem;
+  }
+
+  /* Color / eyedropper */
+  .dv-color-field {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .dv-swatch {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid #4a4a4a;
+  }
+
+  .dv-eyedrop {
+    font-size: 0.75rem;
+    color: #999;
+  }
+
+  /* Shared caption slot -- same technique as before, now anchored to real
+     rows instead of an image overlay, so alignment can't drift. */
+  .dv-caption-slot {
+    position: relative;
+    min-height: 4.5rem;
+  }
+
+  .dv-caption-slot p {
+    margin: 0;
+    max-width: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .dv-caption-default {
+    position: absolute;
+    inset: 0;
+    opacity: 1;
+    color: var(--color-fg-muted);
+    transition: opacity 0.12s ease;
+  }
+
+  .dv-caption {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    color: var(--color-fg);
+  }
+
+  .dv-caption strong {
+    color: var(--color-fg);
+  }
+
+  @media (max-width: 720px) {
+    .dv-body {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLDivElement>('.resolve-panel .dv-row').forEach((row) => {
+    const range = row.querySelector<HTMLInputElement>('input[type="range"]');
+    const value = row.querySelector<HTMLInputElement>('.dv-value');
+    if (range && value) {
+      const decimals = Number(range.step) < 0.01 ? 3 : 2;
+      range.addEventListener('input', () => {
+        value.value = Number(range.value).toFixed(decimals);
+      });
+    }
+  });
+</script>
