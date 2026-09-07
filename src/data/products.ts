@@ -14,6 +14,6 @@ export const products: Product[] = [
     name: 'GATE.24',
     tagline: 'One-click cinematic finish for DaVinci Resolve.',
     status: 'available',
-    href: '/gate24',
+    href: '/gate24/',
   },
 ];
