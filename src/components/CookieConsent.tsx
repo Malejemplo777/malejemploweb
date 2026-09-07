@@ -45,7 +45,7 @@ export default function CookieConsent() {
     <div className="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
       <p>
         This site uses Google Analytics to understand traffic. No data is collected until you accept.{' '}
-        <a href="/cookies">Cookie policy</a>
+        <a href="/cookies/">Cookie policy</a>
       </p>
       <div className="actions">
         <button type="button" className="btn btn-ghost" onClick={() => decide('denied')}>

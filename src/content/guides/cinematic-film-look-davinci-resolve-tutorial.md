@@ -28,6 +28,6 @@ The easiest way to ruin an otherwise good finishing pass is a contrast curve tha
 
 ## Doing this in one pass
 
-Every step above is a real, separate technical decision — which is exactly why it's slow to do by hand on every clip. This is the workflow [GATE.24](/gate24) is built around: it bundles all four steps (crop, lens-tied vignette, stock-matched grain, and skin-safe contrast) into 13 ready-made presets, each one a starting point you can still fine-tune by hand. It runs on the free version of DaVinci Resolve, Windows only for now.
+Every step above is a real, separate technical decision — which is exactly why it's slow to do by hand on every clip. This is the workflow [GATE.24](/gate24/) is built around: it bundles all four steps (crop, lens-tied vignette, stock-matched grain, and skin-safe contrast) into 13 ready-made presets, each one a starting point you can still fine-tune by hand. It runs on the free version of DaVinci Resolve, Windows only for now.
 
 <!-- TODO: embed the before/after slider or a short screencast once footage exists -->

@@ -20,7 +20,7 @@ const entries = (await getCollection('guides')).sort(
       <ul class="guide-list">
         {entries.map((entry) => (
           <li>
-            <a href={`/guides/${entry.id}`}>
+            <a href={`/guides/${entry.id}/`}>
               <h2>{entry.data.title}</h2>
               <p>{entry.data.description}</p>
             </a>
