@@ -24,37 +24,69 @@ function loadGoogleAnalytics(measurementId: string) {
 
 export default function CookieConsent() {
   const [choice, setChoice] = useState<'granted' | 'denied' | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored === 'granted' || stored === 'denied') {
       setChoice(stored);
       if (stored === 'granted' && GA_ID) loadGoogleAnalytics(GA_ID);
+    } else if (GA_ID) {
+      // Only interrupt visitors with a consent choice when there's an
+      // actual optional cookie (analytics) to ask about.
+      setOpen(true);
     }
+
+    // Lets the "Cookie settings" link in the footer reopen this panel at any
+    // time, so changing your mind never requires clearing browser cookies.
+    const reopen = () => setOpen(true);
+    window.addEventListener('open-cookie-settings', reopen);
+    return () => window.removeEventListener('open-cookie-settings', reopen);
   }, []);
 
-  if (choice !== null || !GA_ID) return null;
+  if (!open) return null;
 
   const decide = (value: 'granted' | 'denied') => {
     window.localStorage.setItem(STORAGE_KEY, value);
     setChoice(value);
-    if (value === 'granted') loadGoogleAnalytics(GA_ID);
+    setOpen(false);
+    if (value === 'granted' && GA_ID) loadGoogleAnalytics(GA_ID);
+    if (value === 'denied') {
+      // Reloading drops any analytics script already running this session.
+      if (document.getElementById('ga-script')) window.location.reload();
+    }
   };
 
   return (
     <div className="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
-      <p>
-        This site uses Google Analytics to understand traffic. No data is collected until you accept.{' '}
-        <a href="/cookies/">Cookie policy</a>
-      </p>
-      <div className="actions">
-        <button type="button" className="btn btn-ghost" onClick={() => decide('denied')}>
-          Decline
-        </button>
-        <button type="button" className="btn btn-primary" onClick={() => decide('granted')}>
-          Accept
-        </button>
-      </div>
+      {GA_ID ? (
+        <>
+          <p>
+            This site uses Google Analytics to understand traffic. No data is collected until you
+            accept. <a href="/cookies/">Cookie policy</a>
+          </p>
+          <div className="actions">
+            <button type="button" className="btn btn-ghost" onClick={() => decide('denied')}>
+              Decline
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => decide('granted')}>
+              Accept
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p>
+            This site doesn't set any optional cookies right now — nothing to choose. See the{' '}
+            <a href="/cookies/">cookie policy</a> for details.
+          </p>
+          <div className="actions">
+            <button type="button" className="btn btn-primary" onClick={() => setOpen(false)}>
+              Close
+            </button>
+          </div>
+        </>
+      )}
       <style>{`
         .cookie-banner {
           position: fixed;

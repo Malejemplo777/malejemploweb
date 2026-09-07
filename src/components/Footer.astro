@@ -37,6 +37,7 @@ const year = new Date().getFullYear();
         <li><a href="/about/#contact">Contact</a></li>
         <li><a href="/privacy/">Privacy policy</a></li>
         <li><a href="/cookies/">Cookie policy</a></li>
+        <li><button type="button" id="cookie-settings-btn" class="link-button">Cookie settings</button></li>
       </ul>
     </div>
   </div>
@@ -45,6 +46,12 @@ const year = new Date().getFullYear();
     <p>&copy; {year} Malejemplo. GATE.24 is a product by Malejemplo.</p>
   </div>
 </footer>
+
+<script>
+  document.getElementById('cookie-settings-btn')?.addEventListener('click', () => {
+    window.dispatchEvent(new CustomEvent('open-cookie-settings'));
+  });
+</script>
 
 <style>
   .site-footer {
@@ -82,6 +89,21 @@ const year = new Date().getFullYear();
 
   .social a:hover,
   .legal-links a:hover {
+    color: var(--color-fg);
+  }
+
+  .link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: var(--color-fg-muted);
+    font-size: 0.85rem;
+  }
+
+  .link-button:hover {
     color: var(--color-fg);
   }
 
