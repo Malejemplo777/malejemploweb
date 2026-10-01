@@ -22,7 +22,7 @@ export const products: Product[] = [
     tagline: 'Real film halation and glow for DaVinci Resolve, calibrated to real footage.',
     description:
       'Independent Edge Halation and General Glow, each with its own threshold and live preview — not one generic bloom over everything bright.',
-    status: 'coming-soon',
+    status: 'available',
     href: '/aureole/',
     theme: 'aureole',
     carouselDuration: 7000,

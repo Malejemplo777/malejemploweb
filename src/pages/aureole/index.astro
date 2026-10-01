@@ -19,18 +19,38 @@ const comparison = [
   { feature: 'GPU-accelerated', dehancer: 'Yes', flc: 'Yes', aureole: 'Yes (OpenCL)' },
   { feature: 'Runs on', dehancer: 'Resolve, Premiere, AE, FCP', flc: 'Resolve, Premiere, AE, FCP', aureole: 'DaVinci Resolve (free or Studio)' },
 ];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'AUREOLE.650',
+  applicationCategory: 'MultimediaApplication',
+  operatingSystem: 'Windows',
+  description:
+    'DaVinci Resolve plugin bringing real film halation and glow, calibrated against real footage, with independent Edge Halation and General Glow controls.',
+  offers: {
+    '@type': 'Offer',
+    price: '15',
+    priceCurrency: 'USD',
+    availability: 'https://schema.org/InStock',
+  },
+};
 ---
 
 <BaseLayout
   title="AUREOLE.650"
-  description="AUREOLE.650 is an upcoming DaVinci Resolve plugin bringing real film halation and glow, calibrated against real footage, with independent Edge Halation and General Glow controls."
+  description="AUREOLE.650 is a DaVinci Resolve plugin bringing real film halation and glow, calibrated against real footage, with independent Edge Halation and General Glow controls. $15 beta."
   theme="aureole"
 >
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+
   <section class="hero section">
     <FilmPerforations />
     <div class="container hero-inner">
       <Image src={wordmark} alt="AUREOLE.650" width={180} height={180} class="hero-mark" />
-      <p class="eyebrow">by Malejemplo &middot; DaVinci Resolve OFX plugin &middot; coming soon</p>
+      <p class="eyebrow">by Malejemplo &middot; DaVinci Resolve OFX plugin &middot; beta</p>
       <h1>Halation and glow, calibrated to real film.</h1>
       <p class="lede">
         AUREOLE.650 runs two independent effects — Edge Halation and General Glow — each with
@@ -177,10 +197,10 @@ const comparison = [
 
   <section class="section">
     <div class="container narrow">
-      <h2>Get notified when it's ready</h2>
+      <h2>Get notified about updates</h2>
       <p>
-        AUREOLE.650 is in its final testing and tuning pass. Leave your email and you'll be the
-        first to know when it's out.
+        AUREOLE.650 is out now as a beta. Leave your email to hear about new builds, GPU support,
+        and when it's out of beta.
       </p>
       <NewsletterForm />
     </div>
