@@ -74,7 +74,7 @@ export default function BeforeAfterSlider({
     >
       <div className="ba-pane ba-after">
         {afterSrc ? (
-          <img src={afterSrc} alt={afterLabel} draggable={false} style={{ transform: `scale(${zoom})`, transformOrigin: zoomOrigin }} />
+          <img src={afterSrc} alt={afterLabel} draggable={false} loading="lazy" style={{ transform: `scale(${zoom})`, transformOrigin: zoomOrigin }} />
         ) : (
           <div
             className="ba-fallback ba-fallback-after"
@@ -90,7 +90,7 @@ export default function BeforeAfterSlider({
 
       <div className="ba-pane ba-before" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
         {beforeSrc ? (
-          <img src={beforeSrc} alt={beforeLabel} draggable={false} style={{ transform: `scale(${zoom})`, transformOrigin: zoomOrigin }} />
+          <img src={beforeSrc} alt={beforeLabel} draggable={false} loading="lazy" style={{ transform: `scale(${zoom})`, transformOrigin: zoomOrigin }} />
         ) : (
           <div className="ba-fallback ba-fallback-before" />
         )}
