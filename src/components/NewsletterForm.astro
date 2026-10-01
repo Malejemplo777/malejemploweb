@@ -23,7 +23,7 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
     <button type="submit" class="btn btn-primary" disabled={!isConfigured}>Notify me</button>
   </div>
   <p class="status" data-status role="status" hidden></p>
-  {!isConfigured && (
+  {!isConfigured && import.meta.env.DEV && (
     <p class="hint">
       Form not wired up yet -- set <code>PUBLIC_NEWSLETTER_FORM_ACTION</code> in <code>.env</code>
       (see GATE24_Web_Brief_v2.md section 7).
