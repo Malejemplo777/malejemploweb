@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AUREOLE.650 Field Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  :root{
+    --paper:#f1f0ee;
+    --paper-raised:#ffffff;
+    --ink:#1a1714;
+    --ink-soft:#57524a;
+    --line:#cac4ba;
+    --accent:#b8501e;
+    --accent-soft:#eeddc9;
+    --accent-ink:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#16130f;
+      --paper-raised:#1e1a15;
+      --ink:#f0ece4;
+      --ink-soft:#ab9f8e;
+      --line:#3a3226;
+      --accent:#ff8c4a;
+      --accent-soft:#3a2314;
+      --accent-ink:#16130f;
+    }
+  }
+
+  body{ background:var(--paper); }
+
+  .doc{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    display:grid;
+    grid-template-columns: 22px minmax(0,1fr) 22px;
+    max-width:900px;
+    margin:0 auto;
+  }
+
+  .sprockets{
+    background-image: radial-gradient(circle at center, var(--line) 0 3.5px, transparent 3.6px);
+    background-size: 100% 30px;
+    background-position: center 14px;
+    background-repeat: repeat-y;
+  }
+
+  main{ padding: 40px 28px 20px; min-width:0; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:34px; }
+  .kicker{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .langtoggle{
+    display:inline-flex; border:1px solid var(--line); border-radius:999px;
+    overflow:hidden; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    font-weight:600; letter-spacing:.04em;
+  }
+  .langtoggle button{
+    appearance:none; border:0; background:transparent; color:var(--ink-soft);
+    padding:6px 14px; cursor:pointer; font:inherit;
+  }
+  .langtoggle button[aria-pressed="true"]{ background:var(--ink); color:var(--paper); }
+  .langtoggle button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+
+  .cover{ margin-bottom:56px; }
+  .wordmark{
+    font-family:'Playfair Display', Georgia, serif;
+    font-weight:900; line-height:.86;
+    font-size: clamp(52px, 11vw, 92px);
+    letter-spacing:-.01em;
+  }
+  .wordmark small{ display:block; font-size:.42em; font-weight:700; }
+  .cover .sub{ margin-top:18px; max-width:48ch; font-size:17px; color:var(--ink-soft); text-wrap:balance; }
+  .cover .by{ margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); letter-spacing:.04em; }
+
+  .frame{ border-top:1px solid var(--line); padding: 30px 0 40px; }
+  .frame:last-of-type{ border-bottom:1px solid var(--line); }
+  .frame-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:18px; }
+  .frame-num{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.1em;
+    color:var(--accent); font-weight:600; white-space:nowrap;
+  }
+  h2{ font-family:'Playfair Display', Georgia, serif; font-weight:900; font-size:28px; margin:0; text-wrap:balance; }
+  .lede{ max-width:60ch; color:var(--ink-soft); font-size:15px; margin: 0 0 22px; }
+
+  figure{ margin:0; }
+  figcaption{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; max-width:64ch; }
+  svg{ display:block; max-width:100%; height:auto; }
+  .icon{ color:var(--ink); }
+
+  .placement-good{ margin-bottom:22px; }
+  .placement-bad{
+    display:flex; align-items:center; gap:14px;
+    background:var(--paper-raised); border:1px solid var(--line);
+    border-radius:4px; padding:14px 16px; max-width:560px;
+  }
+  .placement-bad svg{ flex:none; width:40px; height:40px; color:var(--accent); }
+  .placement-bad .txt b{ display:block; font-size:13.5px; }
+  .placement-bad .txt span{ font-size:12.5px; color:var(--ink-soft); }
+
+  .steps{ display:grid; grid-template-columns: repeat(3, 1fr); gap:0; }
+  .step{ padding: 4px 18px 0 0; border-right:1px solid var(--line); }
+  .step:last-child{ border-right:none; padding-right:0; }
+  .step:first-child{ padding-left:0; }
+  .step-badge{
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px;
+    width:26px; height:26px; border-radius:50%;
+    border:1.5px solid var(--ink); display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .step svg{ width:56px; height:56px; color:var(--ink); margin-bottom:12px; }
+  .step b{ display:block; font-size:14.5px; margin-bottom:3px; }
+  .step span{ font-size:12.5px; color:var(--ink-soft); }
+
+  .contact-sheet{ display:grid; grid-template-columns: repeat(2, 1fr); border-top:1px solid var(--line); border-left:1px solid var(--line); }
+  .tile{ border-right:1px solid var(--line); border-bottom:1px solid var(--line); padding:20px 16px; min-width:0; }
+  .tile svg{ width:40px; height:40px; color:var(--ink); margin-bottom:12px; }
+  .tile b{ display:block; font-family:'IBM Plex Mono',monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; }
+  .tile span{ font-size:12.5px; color:var(--ink-soft); }
+  .tile ul{ margin:8px 0 0; padding-left:16px; font-size:12px; color:var(--ink-soft); }
+  .tile li{ margin-bottom:3px; }
+
+  .remember{ display:grid; gap:18px; }
+  .rem-item{ display:flex; gap:14px; align-items:flex-start; }
+  .rem-item svg{ flex:none; width:34px; height:34px; color:var(--accent); margin-top:2px; }
+  .rem-item b{ display:block; font-size:14.5px; }
+  .rem-item span{ font-size:13px; color:var(--ink-soft); }
+
+  .colophon{ padding: 26px 0 46px; display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .colophon .mark{ font-family:'Playfair Display',serif; font-weight:900; font-size:20px; }
+  .colophon .contact{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); text-align:right; }
+
+  @media (max-width: 620px){
+    main{ padding: 28px 16px 10px; }
+    .wordmark{ font-size:48px; }
+    .steps{ grid-template-columns: 1fr; }
+    .step{ border-right:none; border-bottom:1px solid var(--line); padding:0 0 20px; margin-bottom:20px; }
+    .step:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0;}
+    .contact-sheet{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc">
+  <div class="sprockets" aria-hidden="true"></div>
+
+  <main>
+
+    <div class="topbar">
+      <span class="kicker" data-en="Quick-start guide" data-es="Guía rápida">Quick-start guide</span>
+      <div class="langtoggle" role="group" aria-label="Language">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang-btn="es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+
+    <section class="cover">
+      <div class="wordmark">AUREOLE<small>.650</small></div>
+      <p class="sub" data-en="Real film halation for DaVinci Resolve — a soft contour bleed on marked edges, and a diffuse glow around bright sources, in one node."
+                     data-es="Halation real de película para DaVinci Resolve — un sangrado de contorno en bordes marcados, y un resplandor difuso alrededor de fuentes brillantes, en un solo nodo.">
+        Real film halation for DaVinci Resolve — a soft contour bleed on marked edges, and a diffuse glow around bright sources, in one node.
+      </p>
+      <p class="by">by Malejemplo</p>
+    </section>
+
+    <!-- ===================== 01 PLACEMENT ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">01</span>
+        <h2 data-en="Put it in the right space" data-es="Colócalo en el espacio correcto">Put it in the right space</h2>
+      </div>
+      <p class="lede" data-en="AUREOLE does its math on scene-referred light, in DaVinci Wide Gamut Intermediate — never on Rec.709 or any already-tonemapped image. One node, one fixed spot in the chain."
+                       data-es="AUREOLE hace su matemática sobre luz escena-referida, en DaVinci Wide Gamut Intermediate — nunca sobre Rec.709 o una imagen ya convertida. Un nodo, un sitio fijo en la cadena.">
+        AUREOLE does its math on scene-referred light, in DaVinci Wide Gamut Intermediate — never on Rec.709 or any already-tonemapped image. One node, one fixed spot in the chain.
+      </p>
+
+      <figure class="placement-good" role="img"
+        aria-label="Diagram: CST or DCTL to DaVinci Wide Gamut Intermediate, then your grade, then AUREOLE, then the output conversion.">
+        <svg viewBox="0 0 900 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g class="icon" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="20" width="164" height="80" rx="4" stroke-dasharray="4 4"/>
+            <text x="86" y="55" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" stroke="none">CST / DCTL</text>
+            <text x="86" y="74" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="currentColor" stroke="none" data-en="to DWGI" data-es="a DWGI">to DWGI</text>
+
+            <line x1="168" y1="60" x2="214" y2="60" marker-end="url(#arrowhead)"/>
+
+            <rect x="218" y="34" width="132" height="52" rx="4"/>
+            <text x="284" y="65" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="currentColor" stroke="none" data-en="YOUR GRADE" data-es="TU GRADO">YOUR GRADE</text>
+
+            <line x1="350" y1="60" x2="396" y2="60" marker-end="url(#arrowhead)"/>
+
+            <rect x="400" y="28" width="150" height="64" rx="4" fill="var(--accent)" stroke="var(--accent)"/>
+            <text x="475" y="66" text-anchor="middle" font-family="Playfair Display, serif" font-weight="900" font-size="15" fill="var(--accent-ink)" stroke="none">AUREOLE</text>
+
+            <line x1="550" y1="60" x2="596" y2="60" marker-end="url(#arrowhead)"/>
+
+            <rect x="600" y="20" width="164" height="80" rx="4" stroke-dasharray="4 4"/>
+            <text x="682" y="55" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" stroke="none" data-en="OUTPUT CONVERSION" data-es="CONVERSIÓN DE SALIDA">OUTPUT CONVERSION</text>
+            <text x="682" y="74" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="currentColor" stroke="none" data-en="CST or DCTL, to Rec.709" data-es="CST o DCTL, a Rec.709">CST or DCTL, to Rec.709</text>
+
+            <line x1="764" y1="60" x2="810" y2="60" marker-end="url(#arrowhead)"/>
+
+            <rect x="814" y="34" width="82" height="52" rx="4"/>
+            <text x="855" y="65" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="currentColor" stroke="none" data-en="OUT" data-es="SALE">OUT</text>
+          </g>
+        </svg>
+        <figcaption data-en="Right order: convert to DWGI (any method) → your full grade, in DWGI → AUREOLE → output conversion → deliver."
+                    data-es="Orden correcto: convierte a DWGI (cualquier método) → tu grado completo, en DWGI → AUREOLE → conversión de salida → entrega.">
+          Right order: convert to DWGI (any method) → your full grade, in DWGI → AUREOLE → output conversion → deliver.
+        </figcaption>
+      </figure>
+
+      <div class="placement-bad">
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Not allowed">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="currentColor" stroke-width="4"/>
+          <line x1="16" y1="16" x2="48" y2="48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div class="txt">
+          <b data-en="Never after the output conversion." data-es="Nunca después de la conversión de salida.">Never after the output conversion.</b>
+          <span data-en="Once the image is tonemapped to Rec.709, the real brightness AUREOLE needs is already gone." data-es="Una vez la imagen está convertida a Rec.709, el brillo real que AUREOLE necesita ya no está.">Once the image is tonemapped to Rec.709, the real brightness AUREOLE needs is already gone.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 02 APPLYING IT ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">02</span>
+        <h2 data-en="Applying it" data-es="Aplicarlo">Applying it</h2>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-badge">1</div>
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="8" width="48" height="48" rx="5"/>
+            <circle cx="32" cy="32" r="15"/>
+            <line x1="32" y1="17" x2="32" y2="32"/>
+            <line x1="32" y1="32" x2="43.5" y2="39.5"/>
+            <line x1="32" y1="32" x2="20.5" y2="39.5"/>
+          </svg>
+          <b data-en="Color page" data-es="Página Color">Color page</b>
+          <span data-en="Open the clip, already converted to DWGI." data-es="Abre el plano, ya convertido a DWGI.">Open the clip, already converted to DWGI.</span>
+        </div>
+
+        <div class="step">
+          <div class="step-badge">2</div>
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="10" width="30" height="44" rx="3"/>
+            <line x1="12" y1="20" x2="30" y2="20"/>
+            <rect x="10" y="27" width="22" height="9" rx="1.5" fill="currentColor" stroke="none"/>
+            <line x1="12" y1="44" x2="24" y2="44"/>
+            <path d="M38 32 Q48 32 54 32" stroke-dasharray="3 4"/>
+            <circle cx="56" cy="32" r="5"/>
+          </svg>
+          <b data-en="OpenFX → Malejemplo" data-es="OpenFX → Malejemplo">OpenFX → Malejemplo</b>
+          <span data-en="Find AUREOLE.650 in the effects list." data-es="Busca AUREOLE.650 en la lista de efectos.">Find AUREOLE.650 in the effects list.</span>
+        </div>
+
+        <div class="step">
+          <div class="step-badge">3</div>
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6" y1="32" x2="58" y2="32"/>
+            <circle cx="14" cy="32" r="5"/>
+            <circle cx="34" cy="32" r="5"/>
+            <circle cx="52" cy="32" r="9" fill="var(--accent)" stroke="var(--accent)"/>
+            <path d="M47.5 32 L51 35.5 L57 28.5" stroke="var(--accent-ink)" stroke-width="2.6"/>
+          </svg>
+          <b data-en="Drop it right after DWGI" data-es="Suéltalo justo tras el DWGI">Drop it right after DWGI</b>
+          <span data-en="Before your output conversion, see 01." data-es="Antes de tu conversión de salida, ver 01.">Before your output conversion, see 01.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 03 THE PANEL ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">03</span>
+        <h2 data-en="The panel" data-es="El panel">The panel</h2>
+      </div>
+      <p class="lede" data-en="Four groups, top to bottom in the order you actually use them. Preview first — calibrate without guessing."
+                       data-es="Cuatro grupos, de arriba a abajo en el orden en que se usan de verdad. Preview primero — calibra sin adivinar.">
+        Four groups, top to bottom in the order you actually use them. Preview first — calibrate without guessing.
+      </p>
+
+      <div class="contact-sheet">
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 32 C 14 16, 50 16, 58 32 C 50 48, 14 48, 6 32 Z"/>
+            <circle cx="32" cy="32" r="9"/>
+          </svg>
+          <b data-en="Preview" data-es="Preview">Preview</b>
+          <span data-en="Halation Mask, Glow Mask and Affected Zone — see what counts as source before you trust the result." data-es="Halation Mask, Glow Mask y Affected Zone — mira qué cuenta como fuente antes de fiarte del resultado.">Halation Mask, Glow Mask and Affected Zone — see what counts as source before you trust the result.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3">
+            <circle cx="32" cy="32" r="8" fill="currentColor" stroke="none"/>
+            <circle cx="32" cy="32" r="16" opacity=".55"/>
+            <circle cx="32" cy="32" r="24" opacity=".3"/>
+          </svg>
+          <b data-en="General Glow" data-es="General Glow">General Glow</b>
+          <span data-en="A wide, diffuse halo around extended bright areas — its own threshold, intensity and size." data-es="Un halo difuso y amplio alrededor de zonas brillantes extendidas — su propio umbral, intensidad y tamaño.">A wide, diffuse halo around extended bright areas — its own threshold, intensity and size.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 46 L26 14 L42 46 Z"/>
+            <path d="M6 46 L30 8 L54 46" stroke="var(--accent)" opacity=".7"/>
+          </svg>
+          <b data-en="Edge Halation" data-es="Edge Halation">Edge Halation</b>
+          <span data-en="A contour ring along marked edges — its own threshold, strength, size and detail." data-es="Un anillo de contorno en bordes marcados — su propio umbral, fuerza, tamaño y detalle.">A contour ring along marked edges — its own threshold, strength, size and detail.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="32" cy="32" r="8"/>
+            <path d="M32 6 v8 M32 50 v8 M6 32 h8 M50 32 h8 M13 13 l5.7 5.7 M45.3 45.3 L51 51 M51 13 l-5.7 5.7 M18.7 45.3 L13 51"/>
+          </svg>
+          <b data-en="Advanced" data-es="Advanced">Advanced</b>
+          <span data-en="Hue and Saturation of the Edge Halation color — closed by default, only for when Standard doesn't fit." data-es="Hue y Saturation del color de Edge Halation — cerrado por defecto, solo para cuando Standard no encaja.">Hue and Saturation of the Edge Halation color — closed by default, only for when Standard doesn't fit.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 04 REMEMBER ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">04</span>
+        <h2 data-en="Remember" data-es="Recuerda">Remember</h2>
+      </div>
+
+      <div class="remember">
+        <div class="rem-item">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round">
+            <circle cx="24" cy="32" r="14"/>
+            <circle cx="40" cy="32" r="14"/>
+          </svg>
+          <div>
+            <b data-en="General Glow and Edge Halation never share a threshold." data-es="General Glow y Edge Halation nunca comparten umbral.">General Glow and Edge Halation never share a threshold.</b>
+            <span data-en="Calibrate each in its own Preview mode — fixing one never breaks the other." data-es="Calibra cada uno en su propio modo de Preview — arreglar uno nunca rompe el otro.">Calibrate each in its own Preview mode — fixing one never breaks the other.</span>
+          </div>
+        </div>
+        <div class="rem-item">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 44 Q 16 36, 24 44 T 40 44 T 56 44" />
+            <path d="M8 34 Q 16 26, 24 34 T 40 34 T 56 34" opacity=".5"/>
+            <circle cx="44" cy="16" r="7"/>
+          </svg>
+          <div>
+            <b data-en="Go easy on Glow Intensity over dense water glitter." data-es="Ve con cuidado con Glow Intensity sobre destello denso de agua.">Go easy on Glow Intensity over dense water glitter.</b>
+            <span data-en="AUREOLE protects near-white highlights, but very busy sparkle can still pick up a touch of warmth. Check the result at full size." data-es="AUREOLE protege las altas luces casi blancas, pero un destello muy denso aún puede coger algo de calidez. Revisa el resultado a tamaño real.">AUREOLE protects near-white highlights, but very busy sparkle can still pick up a touch of warmth. Check the result at full size.</span>
+          </div>
+        </div>
+        <div class="rem-item">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="14" width="48" height="36" rx="2"/>
+            <line x1="8" y1="24" x2="56" y2="24"/>
+            <line x1="8" y1="34" x2="56" y2="34" opacity=".3"/>
+            <line x1="8" y1="42" x2="56" y2="42" opacity=".3"/>
+          </svg>
+          <div>
+            <b data-en="Keep one video track active while you work." data-es="Mantén una sola pista de vídeo activa mientras trabajas.">Keep one video track active while you work.</b>
+            <span data-en="Resolve still evaluates stacked tracks below even when hidden — turn off what you're not looking at." data-es="Resolve sigue calculando las pistas apiladas debajo aunque no se vean — desactiva las que no estés mirando.">Resolve still evaluates stacked tracks below even when hidden — turn off what you're not looking at.</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="lede" style="margin-top:22px" data-en="Full control-by-control reference: see the enclosed PDF."
+                       data-es="Referencia completa, control por control: en el PDF adjunto.">
+        Full control-by-control reference: see the enclosed PDF.
+      </p>
+    </section>
+
+    <div class="colophon">
+      <div class="mark">AUREOLE<small>.650</small></div>
+      <div class="contact">
+        by Malejemplo<br>youtube.com/@Malejemplo
+      </div>
+    </div>
+
+  </main>
+
+  <div class="sprockets" aria-hidden="true"></div>
+</div>
+
+<script>
+(function(){
+  var saved = null;
+  try { saved = localStorage.getItem('aureole-guide-lang'); } catch(e) {}
+  var lang = saved || (navigator.language && navigator.language.slice(0,2) === 'es' ? 'es' : 'en');
+
+  function apply(l){
+    lang = l;
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      var v = el.getAttribute('data-' + l);
+      if (v !== null) el.textContent = v;
+    });
+    document.querySelectorAll('[data-lang-btn]').forEach(function(btn){
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-lang-btn') === l ? 'true' : 'false');
+    });
+    document.documentElement.lang = l;
+    try { localStorage.setItem('aureole-guide-lang', l); } catch(e) {}
+  }
+
+  document.querySelectorAll('[data-lang-btn]').forEach(function(btn){
+    btn.addEventListener('click', function(){ apply(btn.getAttribute('data-lang-btn')); });
+  });
+
+  apply(lang);
+})();
+</script>
+</body>
+</html>

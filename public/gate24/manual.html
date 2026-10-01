@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GATE.24 Field Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  :root{
+    --paper:#f1f3f2;
+    --paper-raised:#ffffff;
+    --ink:#17181b;
+    --ink-soft:#53564f;
+    --line:#c7cac5;
+    --accent:#b23a2c;
+    --accent-soft:#ecd6cf;
+    --accent-ink:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#141517;
+      --paper-raised:#1b1c1f;
+      --ink:#eeeeea;
+      --ink-soft:#a7a9a2;
+      --line:#35372f;
+      --accent:#e0604e;
+      --accent-soft:#3c261f;
+      --accent-ink:#141517;
+    }
+  }
+
+  body{ background:var(--paper); }
+
+  .doc{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    display:grid;
+    grid-template-columns: 22px minmax(0,1fr) 22px;
+    max-width:900px;
+    margin:0 auto;
+  }
+
+  .sprockets{
+    background-image: radial-gradient(circle at center, var(--line) 0 3.5px, transparent 3.6px);
+    background-size: 100% 30px;
+    background-position: center 14px;
+    background-repeat: repeat-y;
+  }
+
+  main{ padding: 40px 28px 20px; min-width:0; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:34px; }
+  .kicker{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .langtoggle{
+    display:inline-flex; border:1px solid var(--line); border-radius:999px;
+    overflow:hidden; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    font-weight:600; letter-spacing:.04em;
+  }
+  .langtoggle button{
+    appearance:none; border:0; background:transparent; color:var(--ink-soft);
+    padding:6px 14px; cursor:pointer; font:inherit;
+  }
+  .langtoggle button[aria-pressed="true"]{ background:var(--ink); color:var(--paper); }
+  .langtoggle button:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+
+  .cover{ margin-bottom:56px; }
+  .wordmark{
+    font-family:'Playfair Display', Georgia, serif;
+    font-weight:900; line-height:.86;
+    font-size: clamp(64px, 14vw, 108px);
+    letter-spacing:-.01em;
+  }
+  .wordmark small{ display:block; font-size:.46em; font-weight:700; }
+  .cover .sub{ margin-top:18px; max-width:46ch; font-size:17px; color:var(--ink-soft); text-wrap:balance; }
+  .cover .by{ margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); letter-spacing:.04em; }
+
+  .frame{ border-top:1px solid var(--line); padding: 30px 0 40px; }
+  .frame:last-of-type{ border-bottom:1px solid var(--line); }
+  .frame-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:18px; }
+  .frame-num{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.1em;
+    color:var(--accent); font-weight:600; white-space:nowrap;
+  }
+  h2{ font-family:'Playfair Display', Georgia, serif; font-weight:900; font-size:28px; margin:0; text-wrap:balance; }
+  .lede{ max-width:60ch; color:var(--ink-soft); font-size:15px; margin: 0 0 22px; }
+
+  figure{ margin:0; }
+  figcaption{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; max-width:60ch; }
+  svg{ display:block; max-width:100%; height:auto; }
+  .icon{ color:var(--ink); }
+
+  .placement-good{ margin-bottom:22px; }
+  .placement-bad{
+    display:flex; align-items:center; gap:14px;
+    background:var(--paper-raised); border:1px solid var(--line);
+    border-radius:4px; padding:14px 16px; max-width:520px;
+  }
+  .placement-bad svg{ flex:none; width:40px; height:40px; color:var(--accent); }
+  .placement-bad .txt b{ display:block; font-size:13.5px; }
+  .placement-bad .txt span{ font-size:12.5px; color:var(--ink-soft); }
+
+  .steps{ display:grid; grid-template-columns: repeat(3, 1fr); gap:0; }
+  .step{ padding: 4px 18px 0 0; border-right:1px solid var(--line); }
+  .step:last-child{ border-right:none; padding-right:0; }
+  .step:first-child{ padding-left:0; }
+  .step-badge{
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px;
+    width:26px; height:26px; border-radius:50%;
+    border:1.5px solid var(--ink); display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .step svg{ width:56px; height:56px; color:var(--ink); margin-bottom:12px; }
+  .step b{ display:block; font-size:14.5px; margin-bottom:3px; }
+  .step span{ font-size:12.5px; color:var(--ink-soft); }
+
+  .contact-sheet{ display:grid; grid-template-columns: repeat(3, 1fr); border-top:1px solid var(--line); border-left:1px solid var(--line); }
+  .tile{ border-right:1px solid var(--line); border-bottom:1px solid var(--line); padding:20px 16px; min-width:0; }
+  .tile svg{ width:40px; height:40px; color:var(--ink); margin-bottom:12px; }
+  .tile b{ display:block; font-family:'IBM Plex Mono',monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; }
+  .tile span{ font-size:12.5px; color:var(--ink-soft); }
+
+  .remember{ display:grid; gap:18px; }
+  .rem-item{ display:flex; gap:14px; align-items:flex-start; }
+  .rem-item svg{ flex:none; width:34px; height:34px; color:var(--accent); margin-top:2px; }
+  .rem-item b{ display:block; font-size:14.5px; }
+  .rem-item span{ font-size:13px; color:var(--ink-soft); }
+
+  .colophon{ padding: 26px 0 46px; display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .colophon .mark{ font-family:'Playfair Display',serif; font-weight:900; font-size:20px; }
+  .colophon .contact{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); text-align:right; }
+
+  @media (max-width: 620px){
+    main{ padding: 28px 16px 10px; }
+    .wordmark{ font-size:56px; }
+    .steps{ grid-template-columns: 1fr; }
+    .step{ border-right:none; border-bottom:1px solid var(--line); padding:0 0 20px; margin-bottom:20px; }
+    .step:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0;}
+    .contact-sheet{ grid-template-columns: repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc">
+  <div class="sprockets" aria-hidden="true"></div>
+
+  <main>
+
+    <div class="topbar">
+      <span class="kicker" data-en="Quick-start guide" data-es="Guía rápida">Quick-start guide</span>
+      <div class="langtoggle" role="group" aria-label="Language">
+        <button type="button" data-lang-btn="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang-btn="es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+
+    <section class="cover">
+      <div class="wordmark">GATE<small>.24</small></div>
+      <p class="sub" data-en="The cinematic finish for DaVinci Resolve — crop, vignette, film grain and contrast, in one node."
+                     data-es="El acabado cinematográfico para DaVinci Resolve — crop, viñeta, grano fílmico y contraste, en un solo nodo.">
+        The cinematic finish for DaVinci Resolve — crop, vignette, film grain and contrast, in one node.
+      </p>
+      <p class="by">by Malejemplo</p>
+    </section>
+
+    <!-- ===================== 01 PLACEMENT ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">01</span>
+        <h2 data-en="Put it last" data-es="Colócalo el último">Put it last</h2>
+      </div>
+      <p class="lede" data-en="GATE.24 does its math on real, developed color — never on Log or a wide gamut. One node, one fixed spot in the chain."
+                       data-es="GATE.24 hace su matemática sobre color ya revelado — nunca sobre Log o un espacio amplio. Un nodo, un sitio fijo en la cadena.">
+        GATE.24 does its math on real, developed color — never on Log or a wide gamut. One node, one fixed spot in the chain.
+      </p>
+
+      <figure class="placement-good" role="img"
+        aria-label="Diagram: Your grade, then a CST to Rec.709 if needed, then GATE.24, then the output.">
+        <svg viewBox="0 0 720 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g class="icon" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="34" width="132" height="52" rx="4"/>
+            <text x="70" y="65" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="currentColor" stroke="none" data-en="YOUR GRADE" data-es="TU GRADO">YOUR GRADE</text>
+
+            <line x1="136" y1="60" x2="182" y2="60" marker-end="url(#arrowhead)"/>
+
+            <rect x="186" y="20" width="164" height="80" rx="4" stroke-dasharray="4 4"/>
+            <text x="268" y="55" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" stroke="none">CST → REC.709</text>
+            <text x="268" y="74" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="currentColor" stroke="none" data-en="only if Log / ACES" data-es="solo si Log / ACES">only if Log / ACES</text>
+
+            <line x1="350" y1="60" x2="396" y2="60" marker-end="url(#arrowhead)"/>
+
+            <rect x="400" y="28" width="140" height="64" rx="4" fill="var(--accent)" stroke="var(--accent)"/>
+            <text x="470" y="66" text-anchor="middle" font-family="Playfair Display, serif" font-weight="900" font-size="16" fill="var(--accent-ink)" stroke="none">GATE.24</text>
+
+            <line x1="540" y1="60" x2="586" y2="60" marker-end="url(#arrowhead)"/>
+
+            <rect x="590" y="34" width="126" height="52" rx="4"/>
+            <text x="653" y="65" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="currentColor" stroke="none" data-en="OUTPUT" data-es="SALIDA">OUTPUT</text>
+          </g>
+        </svg>
+        <figcaption data-en="Right order: full grade → Rec.709 conversion if you shot Log/ACES → GATE.24 → deliver."
+                    data-es="Orden correcto: grado completo → conversión a Rec.709 si vienes de Log/ACES → GATE.24 → entrega.">
+          Right order: full grade → Rec.709 conversion if you shot Log/ACES → GATE.24 → deliver.
+        </figcaption>
+      </figure>
+
+      <div class="placement-bad">
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Not allowed">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="currentColor" stroke-width="4"/>
+          <line x1="16" y1="16" x2="48" y2="48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div class="txt">
+          <b data-en="Not before the grade, not on Log." data-es="Nunca antes del grado, ni sobre Log.">Not before the grade, not on Log.</b>
+          <span data-en="Skin protection and grain both read the wrong values." data-es="La protección de piel y el grano leen valores equivocados.">Skin protection and grain both read the wrong values.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 02 APPLYING IT ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">02</span>
+        <h2 data-en="Applying it" data-es="Aplicarlo">Applying it</h2>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-badge">1</div>
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="8" width="48" height="48" rx="5"/>
+            <circle cx="32" cy="32" r="15"/>
+            <line x1="32" y1="17" x2="32" y2="32"/>
+            <line x1="32" y1="32" x2="43.5" y2="39.5"/>
+            <line x1="32" y1="32" x2="20.5" y2="39.5"/>
+          </svg>
+          <b data-en="Color page" data-es="Página Color">Color page</b>
+          <span data-en="Open the clip you already graded." data-es="Abre el plano que ya has gradeado.">Open the clip you already graded.</span>
+        </div>
+
+        <div class="step">
+          <div class="step-badge">2</div>
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="10" width="30" height="44" rx="3"/>
+            <line x1="12" y1="20" x2="30" y2="20"/>
+            <rect x="10" y="27" width="22" height="9" rx="1.5" fill="currentColor" stroke="none"/>
+            <line x1="12" y1="44" x2="24" y2="44"/>
+            <path d="M38 32 Q48 32 54 32" stroke-dasharray="3 4"/>
+            <circle cx="56" cy="32" r="5"/>
+          </svg>
+          <b data-en="OpenFX → Malejemplo" data-es="OpenFX → Malejemplo">OpenFX → Malejemplo</b>
+          <span data-en="Find GATE.24 in the effects list." data-es="Busca GATE.24 en la lista de efectos.">Find GATE.24 in the effects list.</span>
+        </div>
+
+        <div class="step">
+          <div class="step-badge">3</div>
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6" y1="32" x2="58" y2="32"/>
+            <circle cx="14" cy="32" r="5"/>
+            <circle cx="34" cy="32" r="5"/>
+            <circle cx="52" cy="32" r="9" fill="var(--accent)" stroke="var(--accent)"/>
+            <path d="M47.5 32 L51 35.5 L57 28.5" stroke="var(--accent-ink)" stroke-width="2.6"/>
+          </svg>
+          <b data-en="Drop on your last node" data-es="Suéltalo en tu último nodo">Drop on your last node</b>
+          <span data-en="Or a fresh one right after it." data-es="O uno nuevo justo después.">Or a fresh one right after it.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 03 THE PANEL ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">03</span>
+        <h2 data-en="The panel" data-es="El panel">The panel</h2>
+      </div>
+      <p class="lede" data-en="Six sections. Simple mode shows only Preset + Enable + Intensity for each — flip on Advanced for everything below."
+                       data-es="Seis secciones. El modo Simple solo muestra Preset + Enable + Intensity de cada una — activa Advanced para verlo todo.">
+        Six sections. Simple mode shows only Preset + Enable + Intensity for each — flip on Advanced for everything below.
+      </p>
+
+      <div class="contact-sheet">
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="10" y="18" width="44" height="16" rx="8"/>
+            <path d="M46 26 l4 0 l-2 3.6 z" fill="currentColor" stroke="none"/>
+            <path d="M32 40 l4 9 l-8 0 z" fill="currentColor" stroke="none" stroke-linejoin="round"/>
+          </svg>
+          <b>Presets</b>
+          <span data-en="Pick a look, tweak anything after." data-es="Elige un look, ajusta lo que quieras después.">Pick a look, tweak anything after.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="8" width="48" height="48" rx="3"/>
+            <rect x="8" y="8" width="48" height="11" fill="currentColor" stroke="none"/>
+            <rect x="8" y="45" width="48" height="11" fill="currentColor" stroke="none"/>
+          </svg>
+          <b>Crop</b>
+          <span data-en="Bars, any format." data-es="Barras, cualquier formato.">Bars, any format.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="8" width="48" height="48" rx="3"/>
+            <rect x="18" y="18" width="34" height="26" rx="2" stroke-dasharray="3 3"/>
+            <line x1="4" y1="32" x2="14" y2="32"/>
+            <path d="M9 28 l-5 4 l5 4" />
+          </svg>
+          <b>Reframe</b>
+          <span data-en="Move the shot, not the frame." data-es="Mueve el plano, no el encuadre.">Move the shot, not the frame.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3">
+            <circle cx="32" cy="32" r="24" opacity=".35"/>
+            <circle cx="32" cy="32" r="16" opacity=".65"/>
+            <circle cx="32" cy="32" r="8"/>
+          </svg>
+          <b>Vignette</b>
+          <span data-en="Darkens or lifts the edges." data-es="Oscurece o aclara los bordes.">Darkens or lifts the edges.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3">
+            <rect x="8" y="8" width="48" height="48" rx="3"/>
+            <g fill="currentColor" stroke="none">
+              <circle cx="16" cy="17" r="1.6"/><circle cx="27" cy="14" r="1.3"/><circle cx="38" cy="19" r="1.7"/>
+              <circle cx="48" cy="15" r="1.3"/><circle cx="19" cy="27" r="1.4"/><circle cx="31" cy="25" r="1.7"/>
+              <circle cx="44" cy="28" r="1.3"/><circle cx="14" cy="37" r="1.3"/><circle cx="25" cy="36" r="1.6"/>
+              <circle cx="36" cy="39" r="1.3"/><circle cx="49" cy="37" r="1.7"/><circle cx="20" cy="47" r="1.3"/>
+              <circle cx="32" cy="46" r="1.6"/><circle cx="42" cy="49" r="1.3"/><circle cx="12" cy="49" r="1.4"/>
+            </g>
+          </svg>
+          <b>Grain</b>
+          <span data-en="Real stocks: 8/16/35/65mm." data-es="Stocks reales: 8/16/35/65mm.">Real stocks: 8/16/35/65mm.</span>
+        </div>
+        <div class="tile">
+          <svg viewBox="0 0 64 64" class="icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <line x1="12" y1="12" x2="12" y2="52"/>
+            <line x1="12" y1="52" x2="52" y2="52"/>
+            <path d="M14 46 C 24 46, 24 18, 50 16" fill="none"/>
+          </svg>
+          <b>Contrast</b>
+          <span data-en="S-curve with skin protection." data-es="Curva S con protección de piel.">S-curve with skin protection.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 04 REMEMBER ===================== -->
+    <section class="frame">
+      <div class="frame-head">
+        <span class="frame-num">04</span>
+        <h2 data-en="Remember" data-es="Recuerda">Remember</h2>
+      </div>
+
+      <div class="remember">
+        <div class="rem-item">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round">
+            <path d="M24 32 a10 10 0 0 1 0-14 l4-4 a10 10 0 0 1 14 14 l-2 2"/>
+            <path d="M40 32 a10 10 0 0 1 0 14 l-4 4 a10 10 0 0 1-14-14 l2-2"/>
+            <line x1="20" y1="44" x2="44" y2="20" stroke-dasharray="1 6"/>
+          </svg>
+          <div>
+            <b data-en="Presets apply once." data-es="Un preset se aplica una vez.">Presets apply once.</b>
+            <span data-en="Change values by hand afterward — they stay exactly as you leave them." data-es="Cambia valores a mano después — se quedan tal cual los dejes.">Change values by hand afterward — they stay exactly as you leave them.</span>
+          </div>
+        </div>
+        <div class="rem-item">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 32 a18 18 0 1 1 5 12.5" />
+            <path d="M8 40 l6 6 l7-4" />
+          </svg>
+          <div>
+            <b data-en="Updates don't reach old clips." data-es="Actualizar no toca clips antiguos.">Updates don't reach old clips.</b>
+            <span data-en="Re-pick the preset on a clip to bring it the new values." data-es="Vuelve a elegir el preset en ese clip para traer los valores nuevos.">Re-pick the preset on a clip to bring it the new values.</span>
+          </div>
+        </div>
+        <div class="rem-item">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="12" y="16" width="40" height="32" rx="2"/>
+            <path d="M40 40 L50 50 M50 50 h-8 M50 50 v-8"/>
+            <path d="M24 24 L14 14 M14 14 h8 M14 14 v8"/>
+          </svg>
+          <div>
+            <b data-en="Any resolution, proxies included." data-es="Cualquier resolución, con proxies.">Any resolution, proxies included.</b>
+            <span data-en="720p, 1080p, 4K — same math, same look." data-es="720p, 1080p, 4K — misma matemática, mismo look.">720p, 1080p, 4K — same math, same look.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="colophon">
+      <div class="mark">GATE<small>.24</small></div>
+      <div class="contact">
+        by Malejemplo<br>youtube.com/@Malejemplo
+      </div>
+    </div>
+
+  </main>
+
+  <div class="sprockets" aria-hidden="true"></div>
+</div>
+
+<script>
+(function(){
+  var saved = null;
+  try { saved = localStorage.getItem('gate24-guide-lang'); } catch(e) {}
+  var lang = saved || (navigator.language && navigator.language.slice(0,2) === 'es' ? 'es' : 'en');
+
+  function apply(l){
+    lang = l;
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      var v = el.getAttribute('data-' + l);
+      if (v !== null) el.textContent = v;
+    });
+    document.querySelectorAll('[data-lang-btn]').forEach(function(btn){
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-lang-btn') === l ? 'true' : 'false');
+    });
+    document.documentElement.lang = l;
+    try { localStorage.setItem('gate24-guide-lang', l); } catch(e) {}
+  }
+
+  document.querySelectorAll('[data-lang-btn]').forEach(function(btn){
+    btn.addEventListener('click', function(){ apply(btn.getAttribute('data-lang-btn')); });
+  });
+
+  apply(lang);
+})();
+</script>
+</body>
+</html>
