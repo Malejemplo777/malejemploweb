@@ -1,0 +1,305 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FilmPerforations from '../../components/FilmPerforations.astro';
+import NewsletterForm from '../../components/NewsletterForm.astro';
+import AureoleShowcase from '../../components/AureoleShowcase.tsx';
+import AureoleSizeDemo from '../../components/AureoleSizeDemo.tsx';
+import AureoleResolvePanel from '../../components/AureoleResolvePanel.astro';
+import { aureoleSizeDemos } from '../../data/aureole-sizes';
+import { Image } from 'astro:assets';
+import wordmark from '../../assets/brand/aureole650-wordmark.png';
+import { GUMROAD_URL_AUREOLE } from '../../data/social';
+
+const hasGumroad = GUMROAD_URL_AUREOLE.length > 0;
+
+// Prices/features verified Oct 2026 -- re-check before launch, this market moves fast.
+const comparison = [
+  { feature: 'Price', dehancer: '$29/mo billed annually, or $999 lifetime (video)', flc: '$59 add-on + $119+ for Nitrate', aureole: '$15 one-time (beta)' },
+  { feature: 'Halation vs. glow/bloom', dehancer: 'Bundled with grain as one look', flc: 'One mechanism — bloom is halation desaturated to zero', aureole: 'Two independent effects, each its own threshold' },
+  { feature: 'GPU-accelerated', dehancer: 'Yes', flc: 'Yes', aureole: 'Yes (OpenCL)' },
+  { feature: 'Runs on', dehancer: 'Resolve, Premiere, AE, FCP', flc: 'Resolve, Premiere, AE, FCP', aureole: 'DaVinci Resolve (free or Studio)' },
+];
+---
+
+<BaseLayout
+  title="AUREOLE.650"
+  description="AUREOLE.650 is an upcoming DaVinci Resolve plugin bringing real film halation and glow, calibrated against real footage, with independent Edge Halation and General Glow controls."
+  theme="aureole"
+>
+  <section class="hero section">
+    <FilmPerforations />
+    <div class="container hero-inner">
+      <Image src={wordmark} alt="AUREOLE.650" width={180} height={180} class="hero-mark" />
+      <p class="eyebrow">by Malejemplo &middot; DaVinci Resolve OFX plugin &middot; coming soon</p>
+      <h1>Halation and glow, calibrated to real film.</h1>
+      <p class="lede">
+        AUREOLE.650 runs two independent effects — Edge Halation and General Glow — each with
+        its own threshold, so a blown-out sky doesn't drown out a streetlamp. Dial it in with
+        live preview masks, on a model calibrated against real reference footage, not built
+        from theory.
+      </p>
+      <div class="cta-row">
+        {hasGumroad ? (
+          <a class="btn btn-primary" href={GUMROAD_URL_AUREOLE} target="_blank" rel="noopener noreferrer">$15 &middot; Get AUREOLE.650</a>
+        ) : (
+          <span class="btn btn-primary" aria-disabled="true">$15 &middot; Beta</span>
+        )}
+        <a class="btn btn-ghost" href="#comparison">See how it compares</a>
+        <a class="btn btn-text" href="/aureole/manual.html" download>Download manual</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="showcase">
+    <div class="container">
+      <h2>Before / after</h2>
+      <p class="section-intro">
+        Pick a shot, drag to compare, zoom in on the detail. These are early v0 renders — final
+        examples will be re-shot from the production timeline.
+      </p>
+      <AureoleShowcase client:visible />
+    </div>
+  </section>
+
+  <section class="section" id="screencast">
+    <div class="container">
+      <h2>See it in Resolve</h2>
+      <video
+        class="screencast"
+        src="/aureole/screencast.mp4"
+        poster="/aureole/screencast-poster.jpg"
+        controls
+        preload="none"
+        playsinline
+        aria-label="AUREOLE.650 panel walkthrough inside DaVinci Resolve"
+      />
+      <p class="fine-print">Real screen capture, not a mockup — live parameter changes and the diagnostic preview modes.</p>
+    </div>
+  </section>
+
+  <section class="section" id="panel">
+    <div class="container">
+      <h2>Inside the panel</h2>
+      <p>
+        A recreation of the real AUREOLE.650 controls, section by section — click a section to
+        open it, hover a control to see what it does. Drag the sliders; they're just not wired to
+        a real image here (that math only runs inside Resolve).
+      </p>
+      <AureoleResolvePanel />
+    </div>
+  </section>
+
+  <section class="section" id="sizes">
+    <div class="container">
+      <h2>Size, side by side</h2>
+      <p class="section-intro">
+        S/M/L/XL aren't just presets — they're real width changes. These are live video, not
+        stills, so you can see how each size holds up as the frame moves.
+      </p>
+      <AureoleSizeDemo demos={aureoleSizeDemos} client:visible />
+    </div>
+  </section>
+
+  <section class="section" id="comparison">
+    <div class="container">
+      <h2>How it compares</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              <th scope="col">Dehancer</th>
+              <th scope="col">FilmConvert</th>
+              <th scope="col">AUREOLE.650</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparison.map((row) => (
+              <tr>
+                <th scope="row">{row.feature}</th>
+                <td>{row.dehancer}</td>
+                <td>{row.flc}</td>
+                <td class="highlight">{row.aureole}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="fine-print">
+        Prices and features as of October 2026 — both are moving targets, check their sites
+        before you buy.
+      </p>
+      <p><a href="/guides/aureole-vs-dehancer-vs-filmconvert-halation/">Read the full comparison &rarr;</a></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>Beta, honestly</h2>
+      <p>
+        $15 gets you in early, before this is a finished, fully-tested product. Two things worth
+        knowing going in:
+      </p>
+      <ul>
+        <li>Verified so far on Windows with an AMD GPU. Not yet tested on Nvidia, Intel, or Mac.</li>
+        <li>
+          The installer isn't code-signed yet, so Windows will show an "unknown publisher"
+          warning the first time you run it — that's expected, not a red flag.
+        </li>
+      </ul>
+      <p>
+        Everything here — the engine, the panel, the install experience — keeps getting updated
+        as more people use it and report back. Buying now means being part of that, not just
+        waiting for version 1.0.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="requirements">
+    <div class="container">
+      <h2>Requirements</h2>
+      <dl class="requirements">
+        <div>
+          <dt>DaVinci Resolve</dt>
+          <dd>Free version works — no Studio license required.</dd>
+        </div>
+        <div>
+          <dt>Operating system</dt>
+          <dd>Windows only for now, verified on AMD GPU. Mac support is blocked on hardware access, not ruled out.</dd>
+        </div>
+        <div>
+          <dt>Language</dt>
+          <dd>Plugin panel is in English. Installer runs in English or Spanish.</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>Get notified when it's ready</h2>
+      <p>
+        AUREOLE.650 is in its final testing and tuning pass. Leave your email and you'll be the
+        first to know when it's out.
+      </p>
+      <NewsletterForm />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: var(--space-5);
+    text-align: center;
+  }
+
+  .hero-inner {
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+
+  .hero-mark {
+    margin-inline: auto;
+    margin-bottom: var(--space-2);
+  }
+
+  /* .eyebrow (global.css) stays left-aligned everywhere else it's used, so
+     it needs its own centering inside this centered hero -- see the same
+     note on GATE.24's page, where this was worked out first. */
+  .hero .eyebrow {
+    margin-inline: auto;
+  }
+
+  .lede {
+    font-size: 1.1rem;
+    margin-inline: auto;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: var(--space-3);
+  }
+
+  .narrow {
+    max-width: 40rem;
+  }
+
+  .section-intro {
+    max-width: 40rem;
+    color: var(--color-fg-muted);
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-3);
+  }
+
+  .screencast {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border: 1px solid var(--color-border);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: var(--space-3);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 40rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.9rem;
+  }
+
+  thead th {
+    color: var(--color-fg-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  tbody th {
+    font-weight: 600;
+    color: var(--color-fg);
+  }
+
+  td.highlight {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .fine-print {
+    font-size: 0.8rem;
+    color: var(--color-fg-muted);
+    margin-top: var(--space-2);
+  }
+
+  .requirements {
+    margin-top: var(--space-3);
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .requirements dt {
+    font-weight: 600;
+    color: var(--color-fg);
+    margin-bottom: 0.25rem;
+  }
+
+  .requirements dd {
+    margin: 0;
+    color: var(--color-fg-muted);
+    max-width: 48rem;
+  }
+</style>

@@ -8,7 +8,9 @@
   --color-fg: #f5f3ef;
   --color-fg-muted: #a8a49c;
   --color-border: #2a2a2a;
-  --color-accent: #f5f3ef; /* deliberately no accent color -- "sin decoración de más" */
+  --color-accent: #f5f3ef; /* neutral default -- the shared Malejemplo identity stays "sin
+    decoración de más"; products opt into their own accent via data-theme below */
+  --color-accent-glow: transparent;
 
   --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -24,6 +26,22 @@
   color-scheme: dark;
 }
 
+/* Per-product accent: GATE.24 stays neutral (its own deliberate choice), while
+   AUREOLE.650 takes the warm halation red-orange from its own logo. Applied
+   via data-theme on <html> (product pages) or scoped inside a component
+   (the home carousel), so the shared layout/type stays one identity. */
+:root[data-theme='gate24'],
+[data-theme='gate24'] {
+  --color-accent: #f5f3ef;
+  --color-accent-glow: transparent;
+}
+
+:root[data-theme='aureole'],
+[data-theme='aureole'] {
+  --color-accent: #ff6a3d;
+  --color-accent-glow: rgba(255, 106, 61, 0.16);
+}
+
 *,
 *::before,
 *::after {
@@ -33,10 +51,12 @@
 html {
   background: var(--color-bg);
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-body);
@@ -119,13 +139,14 @@ video {
 }
 
 .btn-primary {
-  background: var(--color-fg);
+  background: var(--color-accent);
   color: var(--color-bg);
+  border-color: var(--color-accent);
 }
 
 .btn-primary:hover {
   background: transparent;
-  color: var(--color-fg);
+  color: var(--color-accent);
 }
 
 .btn-ghost {
@@ -135,7 +156,33 @@ video {
 }
 
 .btn-ghost:hover {
-  border-color: var(--color-fg);
+  border-color: var(--color-accent);
+}
+
+.btn-text {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-fg-muted);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.btn-text:hover {
+  color: var(--color-fg);
+}
+
+.hero {
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -4rem -4rem auto -4rem;
+  height: 26rem;
+  background: radial-gradient(ellipse at top, var(--color-accent-glow), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .visually-hidden {
