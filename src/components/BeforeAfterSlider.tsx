@@ -7,10 +7,8 @@ interface Props {
   afterLabel?: string;
   /** Two CSS colors for the "after" placeholder gradient, themed per preset. */
   afterTint?: [string, string];
-  /** 1 = normal, >1 = zoomed in (e.g. to inspect film grain). */
+  /** 1 = normal, >1 = zoomed in on the center (e.g. to inspect film grain). */
   zoom?: number;
-  /** CSS transform-origin for the zoomed-in view; defaults to center. */
-  zoomOrigin?: string;
 }
 
 // Interactive before/after comparison, driven by pointer events on the track
@@ -28,7 +26,6 @@ export default function BeforeAfterSlider({
   afterLabel = 'With GATE.24',
   afterTint,
   zoom = 1,
-  zoomOrigin = 'center',
 }: Props) {
   const [position, setPosition] = useState(50);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -74,7 +71,7 @@ export default function BeforeAfterSlider({
     >
       <div className="ba-pane ba-after">
         {afterSrc ? (
-          <img src={afterSrc} alt={afterLabel} draggable={false} loading="lazy" style={{ transform: `scale(${zoom})`, transformOrigin: zoomOrigin }} />
+          <img src={afterSrc} alt={afterLabel} draggable={false} loading="lazy" style={{ transform: `scale(${zoom})` }} />
         ) : (
           <div
             className="ba-fallback ba-fallback-after"
@@ -90,7 +87,7 @@ export default function BeforeAfterSlider({
 
       <div className="ba-pane ba-before" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}>
         {beforeSrc ? (
-          <img src={beforeSrc} alt={beforeLabel} draggable={false} loading="lazy" style={{ transform: `scale(${zoom})`, transformOrigin: zoomOrigin }} />
+          <img src={beforeSrc} alt={beforeLabel} draggable={false} loading="lazy" style={{ transform: `scale(${zoom})` }} />
         ) : (
           <div className="ba-fallback ba-fallback-before" />
         )}

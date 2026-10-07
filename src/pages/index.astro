@@ -3,12 +3,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import FilmPerforations from '../components/FilmPerforations.astro';
 import ProductSplit from '../components/ProductSplit.astro';
 import gate24Wordmark from '../assets/brand/gate24-wordmark.png';
-import aureoleWordmark from '../assets/brand/aureole650-wordmark.png';
 import { products } from '../data/products';
 
 const wordmarks: Record<string, ImageMetadata> = {
   gate24: gate24Wordmark,
-  aureole: aureoleWordmark,
 };
 
 const splitProducts = products.map((product) => ({
@@ -19,7 +17,7 @@ const splitProducts = products.map((product) => ({
 
 <BaseLayout
   title="Malejemplo"
-  description="Film tools for DaVinci Resolve, made by Malejemplo. GATE.24 is out now; AUREOLE.650 is coming soon."
+  description="Film tools for DaVinci Resolve, made by Malejemplo. GATE.24 is out now."
 >
   <section class="hero section">
     <FilmPerforations />
