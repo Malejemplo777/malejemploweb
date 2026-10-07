@@ -25,6 +25,4 @@ A single "halation" control that's actually doing both has to pick one threshold
 
 ## Treating them separately
 
-This is the reasoning behind AUREOLE.650 splitting **Edge Halation** and **General Glow** into two independent mechanisms, each with its own threshold: Edge Halation reacts to contrast at edges (so a streetlamp against a dark background can ring strongly), General Glow reacts to sustained brightness (so a blown-out sky doesn't need to trigger the edge mechanism at all). You tune "what counts as a source" for each one separately, instead of finding a single number that's wrong for both.
-
-<!-- TODO: embed a before/after pair showing the same shot with only Edge Halation vs only General Glow, once final renders exist -->
+The better approach is to split **edge halation** and **general glow** into two independent mechanisms, each with its own threshold: edge halation reacts to contrast at edges (so a streetlamp against a dark background can ring strongly), general glow reacts to sustained brightness (so a blown-out sky doesn't need to trigger the edge mechanism at all). You tune "what counts as a source" for each one separately, instead of finding a single number that's wrong for both.

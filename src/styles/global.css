@@ -26,20 +26,14 @@
   color-scheme: dark;
 }
 
-/* Per-product accent: GATE.24 stays neutral (its own deliberate choice), while
-   AUREOLE.650 takes the warm halation red-orange from its own logo. Applied
-   via data-theme on <html> (product pages) or scoped inside a component
-   (the home carousel), so the shared layout/type stays one identity. */
+/* Per-product accent: GATE.24 stays neutral (its own deliberate choice).
+   Applied via data-theme on <html> (product pages) or scoped inside a
+   component (the home product split), so the shared layout/type stays one
+   identity. */
 :root[data-theme='gate24'],
 [data-theme='gate24'] {
   --color-accent: #f5f3ef;
   --color-accent-glow: transparent;
-}
-
-:root[data-theme='aureole'],
-[data-theme='aureole'] {
-  --color-accent: #ff6a3d;
-  --color-accent-glow: rgba(255, 106, 61, 0.16);
 }
 
 *,
