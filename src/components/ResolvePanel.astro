@@ -1,4 +1,6 @@
 ---
+import type { Lang } from '../i18n';
+
 // Recreation of the real GATE.24 panel inside DaVinci Resolve, built with
 // real HTML controls instead of screenshots (crisp at any size, sliders
 // genuinely drag). Visual style, row layout, and default values matched
@@ -80,6 +82,51 @@ const sections: { title: string; rows: Row[] }[] = [
   },
 ];
 
+// Spanish explanations, keyed by `${section}/${label}`. Labels, option
+// values and section titles stay in English on purpose: they're the real
+// names in the plugin's panel, which is English-only.
+const hintsEs: Record<string, string> = {
+  "General/Essentials": "Presets de uso diario: formatos de cine/editorial y de plataformas sociales. Ajustan Crop + Vignette + Grain + Contrast de una vez. Reframe y Crop Offset no se tocan, siempre son manuales.",
+  "General/By Genre": "Presets con una identidad de género y ambiente marcada y deliberada. Ajustan Crop + Vignette + Grain + Contrast de una vez. Después de aplicar uno, cualquier parámetro se puede retocar a mano.",
+  "General/Advanced": "Apagado: solo Preset, el interruptor «Enable» de cada sección y su Intensity. Encendido: todos los controles finos de cada sección.",
+  "General/Preview": "Normal: la imagen de siempre. Vignette: un tinte de color que muestra dónde y cuánto oscurece. Grain: gris neutro y solo grano, para juzgar tamaño y textura. Skin/Midtones: muestra dónde actúa la protección de contraste.",
+  "General/Enable Bars": "Activa o desactiva las barras de recorte.",
+  "General/Enable Vignette": "Activa la viñeta radial, calculada sobre la ventana visible (nunca bajo las barras).",
+  "General/Enable Grain": "Activa el grano de película procedural, limitado al área visible.",
+  "General/Enable Contrast": "Activa la curva de contraste final: una curva en S sobre Rec.709.",
+  "Crop/Format": "Calcula el grosor de las barras V/H para esta relación de aspecto. Después puedes ajustar los deslizadores a mano.",
+  "Crop/V": "Grosor de la barra superior/inferior (letterbox), en % de la altura del fotograma.",
+  "Crop/H": "Grosor de la barra izquierda/derecha (pillarbox), en % del ancho del fotograma.",
+  "Crop/X": "Desplaza la ventana de recorte en horizontal, como fracción del ancho del fotograma (no cambia el tamaño de la ventana).",
+  "Crop/Y": "Desplaza la ventana de recorte en vertical, como fracción de la altura del fotograma (no cambia el tamaño de la ventana).",
+  "Crop/Feather": "Transición suave entre la imagen y la barra, en % de la altura o el ancho del fotograma. 0 = corte duro.",
+  "Crop/Roundness": "Redondea las esquinas de la ventana visible. 0 = esquina viva; al máximo se convierte en óvalo o cápsula, sin romperse nunca.",
+  "Crop/Color": "Color de las barras de recorte.",
+  "Crop/Opacity": "Opacidad de las barras de recorte.",
+  "Reframe/X": "Desplaza la imagen original en horizontal por debajo del recorte, como fracción del ancho del fotograma. El recorte en sí no se mueve.",
+  "Reframe/Y": "Desplaza la imagen original en vertical por debajo del recorte, como fracción de la altura del fotograma. El recorte en sí no se mueve.",
+  "Reframe/Zoom": "Hace zoom sobre la imagen original (solo ampliar), útil cuando moverla no basta para recomponer el plano.",
+  "Vignette/Optics": "Forma y punto de partida de la caída, según el tipo de óptica que quieras evocar.",
+  "Vignette/Intensity": "Positivo oscurece (viñeta clásica); negativo aclara: un efecto de «light leak» o velo que levanta las sombras del borde mucho más que las altas luces. 0 = sin efecto.",
+  "Vignette/Softness": "Dureza del borde: 0 = transición estrecha y dura, 1 = caída ancha y suave.",
+  "Grain/Stock": "Una receta fija de tamaño y textura por formato de negativo; no es una escala continua.",
+  "Grain/Intensity": "Cuánto se mezcla el grano sobre la imagen. 0 = invisible, 1 = mezcla Overlay completa.",
+  "Grain/Size": "Multiplicador sobre el tamaño base del grano del negativo elegido. 1.0 = el tamaño natural de ese negativo.",
+  "Grain/Color": "0 = grano monocromo (recomendado, como un negativo real), 1 = grano con ruido de color independiente por canal.",
+  "Grain/Animation": "0 = grano estático (sin parpadeo), 1 = un patrón nuevo en cada fotograma. Los valores intermedios cambian más despacio.",
+  "Contrast/Intensity": "Fuerza de la curva en S: sombras más profundas, altas luces más abiertas.",
+  "Contrast/Shadow Lift": "Levanta el suelo de negros para un toque de negativo o película en vez del negro digital puro. Es independiente de Intensity: súbelo poco a poco.",
+  "Contrast/Protection": "Atenúa el contraste para que no «queme» ciertas zonas. Midtones: por rango de luminancia. Skin: por tono, aislando el tono de piel real. Both: combina las dos.",
+  "Contrast/Skin Tone": "Usa el cuentagotas para muestrear un tono de piel real de este plano: Skin (tono) se recalibra solo en vez de asumir un tono genérico.",
+  "Contrast/Hue Tolerance": "Cuánto se abre la detección de piel alrededor del tono muestreado. Más ancho cubre mejor la variación real de la piel; más estrecho la separa de colores parecidos, como la madera.",
+  "Contrast/Saturation Range": "Igual que Hue Tolerance, pero para la banda de saturación: excluye los grises casi neutros por un lado y los colores muy vivos por el otro."
+};
+
+const { lang = 'en' } = Astro.props as { lang?: Lang };
+const hoverHint = lang === 'es' ? 'Pasa el cursor sobre un control para ver qué hace.' : 'Hover a control to see what it does.';
+const hintFor = (section: string, row: { label: string; hint: string }) =>
+  lang === 'es' ? hintsEs[`${section}/${row.label}`] ?? row.hint : row.hint;
+
 const totalRows = sections.reduce((sum, s) => sum + s.rows.length, 0);
 
 // Generates the CSS that swaps the visible caption based on which row (by
@@ -148,10 +195,10 @@ let rowCounter = 0;
           })}
         </div>
         <div class="dv-caption-slot">
-          <p class="dv-caption-default">Hover a control to see what it does.</p>
+          <p class="dv-caption-default">{hoverHint}</p>
           {section.rows.map((row, ri) => {
             const idx = rowCounter - section.rows.length + ri;
-            return <p class={`dv-caption c${idx}`}><strong>{row.label}</strong> — {row.hint}</p>;
+            return <p class={`dv-caption c${idx}`}><strong>{row.label}</strong> — {hintFor(section.title, row)}</p>;
           })}
         </div>
       </div>

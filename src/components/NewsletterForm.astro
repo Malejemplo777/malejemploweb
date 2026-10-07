@@ -1,5 +1,13 @@
 ---
 import { NEWSLETTER_FORM_ACTION } from '../data/social';
+import { ui, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const t = ui[lang].newsletter;
 
 const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
 ---
@@ -9,18 +17,21 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
   data-ajax-form
   action={isConfigured ? NEWSLETTER_FORM_ACTION : undefined}
   method="POST"
+  data-msg-sending={t.sending}
+  data-msg-success={t.success}
+  data-msg-error={t.error}
 >
-  <label for="newsletter-email">Get notified about new releases</label>
+  <label for="newsletter-email">{t.label}</label>
   <div class="row">
     <input
       id="newsletter-email"
       name="email"
       type="email"
-      placeholder="you@email.com"
+      placeholder={t.placeholder}
       required
       disabled={!isConfigured}
     />
-    <button type="submit" class="btn btn-primary" disabled={!isConfigured}>Notify me</button>
+    <button type="submit" class="btn btn-primary" disabled={!isConfigured}>{t.button}</button>
   </div>
   <p class="status" data-status role="status" hidden></p>
   {!isConfigured && import.meta.env.DEV && (
@@ -98,8 +109,13 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
 </style>
 
 <script>
+  // Shared by every form[data-ajax-form] on the page (newsletter + contact).
   // Submits via fetch so visitors stay on the page instead of landing on
   // Formspree's generic thank-you page -- see GATE24_Web_Brief_v2.md section 7.
+  // Status messages come from data-msg-* on each form so they follow the
+  // page language. This is the ONLY copy of this handler: it used to be
+  // duplicated in ContactForm, which attached two submit handlers per form
+  // wherever both components were on the page.
   document.querySelectorAll<HTMLFormElement>('form[data-ajax-form]').forEach((form) => {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -107,10 +123,17 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
       const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
       if (!status || !button) return;
 
+      const msg = form.dataset;
       button.disabled = true;
       status.hidden = false;
-      status.textContent = 'Sending...';
+      status.textContent = msg.msgSending ?? 'Sending...';
       status.removeAttribute('data-state');
+
+      const fail = () => {
+        status.textContent = msg.msgError ?? 'Something went wrong. Try again in a moment.';
+        status.setAttribute('data-state', 'error');
+        button.disabled = false;
+      };
 
       try {
         const response = await fetch(form.action, {
@@ -120,18 +143,14 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
         });
 
         if (response.ok) {
-          status.textContent = "Thanks — you're on the list.";
+          status.textContent = msg.msgSuccess ?? 'Thanks.';
           status.setAttribute('data-state', 'success');
           form.reset();
         } else {
-          status.textContent = 'Something went wrong. Try again in a moment.';
-          status.setAttribute('data-state', 'error');
-          button.disabled = false;
+          fail();
         }
       } catch {
-        status.textContent = 'Something went wrong. Try again in a moment.';
-        status.setAttribute('data-state', 'error');
-        button.disabled = false;
+        fail();
       }
     });
   });

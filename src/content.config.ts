@@ -10,4 +10,17 @@ const guides = defineCollection({
   }),
 });
 
-export const collections = { guides };
+// Spanish versions live in their own collection (served under /es/guias/).
+// `translationOf` is the id of the English guide this one translates, which
+// is what wires the language switcher and hreflang between the two.
+const guidesEs = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/guides-es' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    publishDate: z.coerce.date(),
+    translationOf: z.string(),
+  }),
+});
+
+export const collections = { guides, guidesEs };

@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import BeforeAfterSlider from './BeforeAfterSlider';
-import { flagshipPresets } from '../data/presets';
+import { blurbFor, flagshipPresets } from '../data/presets';
+import type { Lang } from '../i18n';
 
 const ZOOM_LEVEL = 2.4;
 
-export default function PresetShowcase() {
+const copy = {
+  en: { choose: 'Choose a preset to preview', zoomOut: '– Zoom out', zoomIn: '+ Zoom in on the grain' },
+  es: { choose: 'Elige un preset para previsualizar', zoomOut: '– Alejar', zoomIn: '+ Acercar para ver el grano' },
+};
+
+export default function PresetShowcase({ lang = 'en' }: { lang?: Lang }) {
+  const c = copy[lang];
   const [active, setActive] = useState(flagshipPresets[0]?.name);
   const [zoomed, setZoomed] = useState(false);
   const preset = flagshipPresets.find((p) => p.name === active) ?? flagshipPresets[0];
@@ -13,7 +20,7 @@ export default function PresetShowcase() {
 
   return (
     <div className="preset-showcase">
-      <div className="chips" role="tablist" aria-label="Choose a preset to preview">
+      <div className="chips" role="tablist" aria-label={c.choose}>
         {flagshipPresets.map((p) => (
           <button
             key={p.name}
@@ -33,14 +40,15 @@ export default function PresetShowcase() {
         beforeSrc={preset.sampleBefore}
         afterSrc={preset.sampleAfter}
         afterLabel={preset.name}
+        lang={lang}
         afterTint={preset.tint}
         zoom={zoomed ? ZOOM_LEVEL : 1}
       />
 
       <div className="toolbar">
-        <p className="caption">{preset.blurb}</p>
+        <p className="caption">{blurbFor(preset, lang)}</p>
         <button type="button" className="zoom-toggle" aria-pressed={zoomed} onClick={() => setZoomed((z) => !z)}>
-          {zoomed ? '– Zoom out' : '+ Zoom in on the grain'}
+          {zoomed ? c.zoomOut : c.zoomIn}
         </button>
       </div>
 

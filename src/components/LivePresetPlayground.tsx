@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { presets, essentialsPresets, genrePresets, type Preset, type GrainStock } from '../data/presets';
+import type { Lang } from '../i18n';
 
 // CSS-only approximation of GATE.24's real OpenCL pipeline, driven by the
 // plugin's real per-preset recipe values (see data/presets.ts). This is NOT
@@ -7,13 +8,32 @@ import { presets, essentialsPresets, genrePresets, type Preset, type GrainStock 
 // something portable to a browser. It's an honest, data-driven approximation
 // so visitors can get a feel for all 13 presets on a photo of their choice.
 
-const rawPhotos: { key: string; label: string; src: string }[] = [
-  { key: 'cine-35', label: 'City street', src: '/showcase/cine-35-before.jpg' },
-  { key: 'western', label: 'Desert road', src: '/showcase/western-before.jpg' },
-  { key: 'romance', label: 'Golden hour', src: '/showcase/romance-before.jpg' },
-  { key: 'vhs', label: 'Living room', src: '/showcase/vhs-before.jpg' },
-  { key: 'terror', label: 'Dark hallway', src: '/showcase/terror-before.jpg' },
+const rawPhotos: { key: string; label: Record<Lang, string>; src: string }[] = [
+  { key: 'cine-35', label: { en: 'City street', es: 'Calle de ciudad' }, src: '/showcase/cine-35-before.jpg' },
+  { key: 'western', label: { en: 'Desert road', es: 'Carretera del desierto' }, src: '/showcase/western-before.jpg' },
+  { key: 'romance', label: { en: 'Golden hour', es: 'Hora dorada' }, src: '/showcase/romance-before.jpg' },
+  { key: 'vhs', label: { en: 'Living room', es: 'Salón' }, src: '/showcase/vhs-before.jpg' },
+  { key: 'terror', label: { en: 'Dark hallway', es: 'Pasillo oscuro' }, src: '/showcase/terror-before.jpg' },
 ];
+
+const copy = {
+  en: {
+    photo: 'Photo',
+    group: 'Preset group',
+    essentials: 'Essentials',
+    genre: 'By genre',
+    grain: (stock: string) => `${stock} grain`,
+    approx: "approximation only -- not GATE.24's real color engine, see note below.",
+  },
+  es: {
+    photo: 'Foto',
+    group: 'Grupo de presets',
+    essentials: 'Esenciales',
+    genre: 'Por género',
+    grain: (stock: string) => `grano de ${stock}`,
+    approx: 'solo una aproximación -- no es el motor de color real de GATE.24, mira la nota de abajo.',
+  },
+};
 
 const FRAME_RATIO = 16 / 9;
 
@@ -65,14 +85,23 @@ function contrastFilter(recipe: Preset['recipe']): string {
   return `contrast(${1 + recipe.contrast * 0.6}) brightness(${1 - recipe.shadowLift * 0.25})`;
 }
 
-const protectionLabel: Record<Preset['recipe']['protection'], string> = {
-  none: 'No protection',
-  midtones: 'Midtone protection',
-  skin: 'Skin-tone protection',
-  both: 'Skin + midtone protection',
+const protectionLabel: Record<Lang, Record<Preset['recipe']['protection'], string>> = {
+  en: {
+    none: 'No protection',
+    midtones: 'Midtone protection',
+    skin: 'Skin-tone protection',
+    both: 'Skin + midtone protection',
+  },
+  es: {
+    none: 'Sin protección',
+    midtones: 'Protección de medios tonos',
+    skin: 'Protección de tonos de piel',
+    both: 'Protección de piel + medios tonos',
+  },
 };
 
-export default function LivePresetPlayground() {
+export default function LivePresetPlayground({ lang = 'en' }: { lang?: Lang }) {
+  const c = copy[lang];
   const [photoKey, setPhotoKey] = useState(rawPhotos[2].key); // golden hour has faces -- best default
   const [presetName, setPresetName] = useState(presets[0].name);
   const [group, setGroup] = useState<'essentials' | 'genre'>('essentials');
@@ -90,7 +119,7 @@ export default function LivePresetPlayground() {
     <div className="playground">
       <div className="controls">
         <div className="control-block">
-          <p className="label">Photo</p>
+          <p className="label">{c.photo}</p>
           <div className="chips">
             {rawPhotos.map((p) => (
               <button
@@ -99,20 +128,20 @@ export default function LivePresetPlayground() {
                 className={p.key === photoKey ? 'chip active' : 'chip'}
                 onClick={() => setPhotoKey(p.key)}
               >
-                {p.label}
+                {p.label[lang]}
               </button>
             ))}
           </div>
         </div>
 
         <div className="control-block">
-          <p className="label">Preset group</p>
+          <p className="label">{c.group}</p>
           <div className="chips">
             <button type="button" className={group === 'essentials' ? 'chip active' : 'chip'} onClick={() => setGroup('essentials')}>
-              Essentials
+              {c.essentials}
             </button>
             <button type="button" className={group === 'genre' ? 'chip active' : 'chip'} onClick={() => setGroup('genre')}>
-              By genre
+              {c.genre}
             </button>
           </div>
           <div className="chips wrap">
@@ -131,7 +160,7 @@ export default function LivePresetPlayground() {
       </div>
 
       <div className="stage" style={{ aspectRatio: '16 / 9' }}>
-        <img src={photo.src} alt={photo.label} className="base-photo" style={{ filter: contrastFilter(preset.recipe) }} />
+        <img src={photo.src} alt={photo.label[lang]} className="base-photo" style={{ filter: contrastFilter(preset.recipe) }} />
 
         <svg className="grain-layer" style={{ opacity: grain.opacity }} aria-hidden="true">
           <filter id={grainId}>
@@ -159,8 +188,7 @@ export default function LivePresetPlayground() {
       </div>
 
       <p className="caption">
-        {protectionLabel[preset.recipe.protection]} &middot; {preset.recipe.grainStock} grain &middot; approximation only --
-        not GATE.24's real color engine, see note below.
+        {protectionLabel[lang][preset.recipe.protection]} &middot; {c.grain(preset.recipe.grainStock)} &middot; {c.approx}
       </p>
 
       <style>{`

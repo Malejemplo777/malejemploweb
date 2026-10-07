@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { pagePath, ui, type Lang } from '../i18n';
 
 const STORAGE_KEY = 'gate24-cookie-consent';
 const GA_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID ?? '';
@@ -22,7 +23,9 @@ function loadGoogleAnalytics(measurementId: string) {
   document.head.appendChild(inline);
 }
 
-export default function CookieConsent() {
+export default function CookieConsent({ lang = 'en' }: { lang?: Lang }) {
+  const t = ui[lang].cookie;
+  const cookiesHref = pagePath('cookies', lang);
   const [choice, setChoice] = useState<'granted' | 'denied' | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -58,31 +61,29 @@ export default function CookieConsent() {
   };
 
   return (
-    <div className="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <div className="cookie-banner" role="dialog" aria-live="polite" aria-label={t.dialog}>
       {GA_ID ? (
         <>
           <p>
-            This site uses Google Analytics to understand traffic. No data is collected until you
-            accept. <a href="/cookies/">Cookie policy</a>
+            {t.withGa} <a href={cookiesHref}>{t.policy}</a>
           </p>
           <div className="actions">
             <button type="button" className="btn btn-ghost" onClick={() => decide('denied')}>
-              Decline
+              {t.decline}
             </button>
             <button type="button" className="btn btn-primary" onClick={() => decide('granted')}>
-              Accept
+              {t.accept}
             </button>
           </div>
         </>
       ) : (
         <>
           <p>
-            This site doesn't set any optional cookies right now — nothing to choose. See the{' '}
-            <a href="/cookies/">cookie policy</a> for details.
+            {t.withoutGa} <a href={cookiesHref}>{t.policyLower}</a> {t.detailsAfter}
           </p>
           <div className="actions">
             <button type="button" className="btn btn-primary" onClick={() => setOpen(false)}>
-              Close
+              {t.close}
             </button>
           </div>
         </>

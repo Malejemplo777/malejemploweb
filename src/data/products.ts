@@ -7,6 +7,8 @@ export interface Product {
   href: string;
   /** Matches a data-theme block in global.css; omit for the neutral Malejemplo look. */
   theme: string;
+  /** Spanish copy for the /es/ pages; name and href aren't translated. */
+  es: { tagline: string; description: string };
 }
 
 // Home page lists this array as a catalogue so adding the next product later
@@ -21,5 +23,10 @@ export const products: Product[] = [
     status: 'available',
     href: '/gate24/',
     theme: 'gate24',
+    es: {
+      tagline: 'Acabado cinematográfico en un clic para DaVinci Resolve.',
+      description:
+        'Barras de recorte, viñeta ligada a la óptica, grano según el negativo y contraste que protege la piel en un solo efecto — 13 presets incluidos.',
+    },
   },
 ];

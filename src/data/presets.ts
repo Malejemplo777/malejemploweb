@@ -122,3 +122,26 @@ export const genrePresets = presets.filter((p) => p.group === 'genre');
 // section 5/12 for why: production cost of sourcing+grading real stills for
 // all 13 isn't worth it, a handful of contrasting moods tells the story).
 export const flagshipPresets = presets.filter((p) => p.flagship);
+
+// Spanish blurbs. Preset NAMES stay in English on purpose: they're the real
+// names shown in the plugin's panel (the panel is English-only), and they
+// double as keys across the site.
+const blurbsEs: Record<string, string> = {
+  'Cinema 35': 'Panorámico anamórfico, grano de 35 mm.',
+  'Cinema 65': 'Contención de gran formato, grano de 65 mm.',
+  'Editorial 4:3': 'Formato cuadrado, contraste de página impresa.',
+  'Urban Editorial': 'Recorte 1:1, contraste potente que protege la piel.',
+  'Social 9:16': 'Entrega vertical, toque ligero.',
+  'Social 1:1': 'Entrega cuadrada, toque ligero.',
+  'Social 4:5': 'Entrega en retrato, toque ligero.',
+  'Dusty Western': 'Polvoriento, grano marcado, viñeta dura.',
+  'Romance / Reverie': 'Brillo de light leak, caída suave.',
+  'Homegrown VHS': 'Cálido, suave, brillo de vídeo casero.',
+  'Classic Horror': 'Sombras aplastadas, viñeta fuerte.',
+  'Worn-Out VHS': 'Cinta degradada, altas luces quemadas.',
+  'Terror Found Footage': 'Crudo, granulado, inestable.',
+};
+
+export function blurbFor(preset: Preset, lang: 'en' | 'es'): string {
+  return lang === 'es' ? blurbsEs[preset.name] ?? preset.blurb : preset.blurb;
+}

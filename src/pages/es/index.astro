@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FilmPerforations from '../../components/FilmPerforations.astro';
+import ProductSplit from '../../components/ProductSplit.astro';
+import gate24Wordmark from '../../assets/brand/gate24-wordmark.png';
+import { products } from '../../data/products';
+
+const wordmarks: Record<string, ImageMetadata> = {
+  gate24: gate24Wordmark,
+};
+
+const splitProducts = products.map((product) => ({
+  ...product,
+  wordmark: wordmarks[product.slug],
+}));
+---
+
+<BaseLayout
+  title="Malejemplo"
+  description="Herramientas de cine para DaVinci Resolve, hechas por Malejemplo. GATE.24 ya está disponible."
+  alternatePath="/"
+>
+  <section class="hero section">
+    <FilmPerforations />
+    <div class="container hero-inner">
+      <p class="eyebrow">Malejemplo</p>
+      <h1>Herramientas de cine, hechas por una persona que también edita.</h1>
+      <p class="lede">
+        Malejemplo crea herramientas de acabado para DaVinci Resolve — empezando por GATE.24, un
+        plugin de look cinematográfico en un clic. Vienen más productos en camino.
+      </p>
+    </div>
+  </section>
+
+  <section class="section products">
+    <div class="container">
+      <h2>Productos</h2>
+      <ProductSplit products={splitProducts} lang="es" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-top: var(--space-6);
+  }
+
+  .hero-inner {
+    max-width: 42rem;
+  }
+
+  .lede {
+    font-size: 1.1rem;
+  }
+
+  .products {
+    padding-top: 0;
+  }
+</style>

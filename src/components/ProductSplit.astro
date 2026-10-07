@@ -3,18 +3,24 @@ import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import type { Product } from '../data/products';
 import FilmPerforations from './FilmPerforations.astro';
+import { pagePath, type Lang } from '../i18n';
 
 interface Props {
   products: (Product & { wordmark: ImageMetadata })[];
+  lang?: Lang;
 }
 
-const { products } = Astro.props;
+const { products, lang = 'en' } = Astro.props;
+const copy = {
+  en: { available: 'Available now', soon: 'Coming soon', view: 'View product' },
+  es: { available: 'Disponible ya', soon: 'Próximamente', view: 'Ver producto' },
+}[lang];
 ---
 
 <div class="split">
   <FilmPerforations />
   {products.map((product) => (
-    <a class="half" data-theme={product.theme} href={product.href}>
+    <a class="half" data-theme={product.theme} href={lang === 'es' ? pagePath(product.slug as 'gate24', lang) : product.href}>
       <div class="half-glow" aria-hidden="true"></div>
       <div class="half-vignette" aria-hidden="true"></div>
       <div class="half-grain" aria-hidden="true"></div>
@@ -22,11 +28,11 @@ const { products } = Astro.props;
       <div class="half-bar half-bar-top" aria-hidden="true"></div>
       <div class="half-bar half-bar-bottom" aria-hidden="true"></div>
       <div class="half-body">
-        <span class="status">{product.status === 'available' ? 'Available now' : 'Coming soon'}</span>
+        <span class="status">{product.status === 'available' ? copy.available : copy.soon}</span>
         <h3>{product.name}</h3>
-        <p class="tagline">{product.tagline}</p>
-        <p class="description">{product.description}</p>
-        <span class="cta">View product &rarr;</span>
+        <p class="tagline">{lang === 'es' ? product.es.tagline : product.tagline}</p>
+        <p class="description">{lang === 'es' ? product.es.description : product.description}</p>
+        <span class="cta">{copy.view} &rarr;</span>
       </div>
     </a>
   ))}

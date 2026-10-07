@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { ui, type Lang } from '../i18n';
 
 interface Props {
   beforeSrc?: string;
@@ -9,6 +10,7 @@ interface Props {
   afterTint?: [string, string];
   /** 1 = normal, >1 = zoomed in on the center (e.g. to inspect film grain). */
   zoom?: number;
+  lang?: Lang;
 }
 
 // Interactive before/after comparison, driven by pointer events on the track
@@ -22,11 +24,15 @@ interface Props {
 export default function BeforeAfterSlider({
   beforeSrc,
   afterSrc,
-  beforeLabel = 'Before',
-  afterLabel = 'With GATE.24',
+  beforeLabel,
+  afterLabel,
   afterTint,
   zoom = 1,
+  lang = 'en',
 }: Props) {
+  const t = ui[lang].slider;
+  beforeLabel = beforeLabel ?? t.before;
+  afterLabel = afterLabel ?? t.after;
   const [position, setPosition] = useState(50);
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -99,7 +105,7 @@ export default function BeforeAfterSlider({
         style={{ left: `${position}%` }}
         role="slider"
         tabIndex={0}
-        aria-label="Comparison position"
+        aria-label={t.position}
         aria-valuenow={Math.round(position)}
         aria-valuemin={0}
         aria-valuemax={100}

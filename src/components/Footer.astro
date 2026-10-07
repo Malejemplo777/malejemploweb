@@ -1,6 +1,14 @@
 ---
 import NewsletterForm from './NewsletterForm.astro';
 import { social } from '../data/social';
+import { pagePath, ui, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const t = ui[lang].footer;
 
 const socialLinks = [
   { key: 'youtube', label: 'YouTube', href: social.youtube },
@@ -16,7 +24,7 @@ const year = new Date().getFullYear();
   <div class="container grid">
     <div>
       <p class="eyebrow">Malejemplo</p>
-      <p class="tagline">Film tools for DaVinci Resolve, made by one person.</p>
+      <p class="tagline">{t.tagline}</p>
       {socialLinks.length > 0 && (
         <ul class="social">
           {socialLinks.map((s) => (
@@ -27,23 +35,23 @@ const year = new Date().getFullYear();
     </div>
 
     <div>
-      <p class="eyebrow">Stay in the loop</p>
-      <NewsletterForm />
+      <p class="eyebrow">{t.stay}</p>
+      <NewsletterForm lang={lang} />
     </div>
 
     <div>
-      <p class="eyebrow">Contact &amp; legal</p>
+      <p class="eyebrow">{t.legal}</p>
       <ul class="legal-links">
-        <li><a href="/about/#contact">Contact</a></li>
-        <li><a href="/privacy/">Privacy policy</a></li>
-        <li><a href="/cookies/">Cookie policy</a></li>
-        <li><button type="button" id="cookie-settings-btn" class="link-button">Cookie settings</button></li>
+        <li><a href={pagePath('about', lang, '#contact')}>{t.contact}</a></li>
+        <li><a href={pagePath('privacy', lang)}>{t.privacy}</a></li>
+        <li><a href={pagePath('cookies', lang)}>{t.cookies}</a></li>
+        <li><button type="button" id="cookie-settings-btn" class="link-button">{t.cookieSettings}</button></li>
       </ul>
     </div>
   </div>
 
   <div class="container bottom">
-    <p>&copy; {year} Malejemplo. GATE.24 is a product by Malejemplo.</p>
+    <p>&copy; {year} Malejemplo. {t.copyright}</p>
   </div>
 </footer>
 

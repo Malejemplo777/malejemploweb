@@ -4,17 +4,21 @@ import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
   const entries = await getCollection('guides');
-  return entries.map((entry) => ({
-    params: { slug: entry.id },
-    props: { entry },
-  }));
+  const translations = await getCollection('guidesEs');
+  return entries.map((entry) => {
+    const es = translations.find((t) => t.data.translationOf === entry.id);
+    return {
+      params: { slug: entry.id },
+      props: { entry, alternatePath: es ? `/es/guias/${es.id}/` : undefined },
+    };
+  });
 }
 
-const { entry } = Astro.props;
+const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<BaseLayout title={entry.data.title} description={entry.data.description}>
+<BaseLayout title={entry.data.title} description={entry.data.description} alternatePath={alternatePath}>
   <article class="section">
     <div class="container prose">
       <p class="eyebrow">Guide</p>

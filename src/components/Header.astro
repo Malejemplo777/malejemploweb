@@ -1,11 +1,20 @@
 ---
 import { Image } from 'astro:assets';
 import wordmark from '../assets/brand/gate24-icon.png';
+import { pagePath, ui, type Lang } from '../i18n';
+
+interface Props {
+  lang?: Lang;
+  alternatePath?: string;
+}
+
+const { lang = 'en', alternatePath } = Astro.props;
+const t = ui[lang];
 
 const nav = [
-  { href: '/gate24/', label: 'GATE.24' },
-  { href: '/guides/', label: 'Guides' },
-  { href: '/about/', label: 'About' },
+  { href: pagePath('gate24', lang), label: t.nav.gate24 },
+  { href: pagePath('guides', lang), label: t.nav.guides },
+  { href: pagePath('about', lang), label: t.nav.about },
 ];
 
 const currentPath = Astro.url.pathname;
@@ -13,7 +22,7 @@ const currentPath = Astro.url.pathname;
 
 <header class="site-header">
   <div class="container bar">
-    <a href="/" class="brand" aria-label="Malejemplo -- home">
+    <a href={pagePath('home', lang)} class="brand" aria-label={t.homeLabel}>
       <Image src={wordmark} alt="" width={32} height={32} loading="eager" />
       <span>Malejemplo</span>
     </a>
@@ -22,12 +31,12 @@ const currentPath = Astro.url.pathname;
       class="nav-toggle"
       aria-expanded="false"
       aria-controls="main-nav"
-      aria-label="Menu"
+      aria-label={t.menu}
       id="nav-toggle-btn"
     >
       <span></span><span></span><span></span>
     </button>
-    <nav aria-label="Main" id="main-nav">
+    <nav aria-label={t.navLabel} id="main-nav">
       <ul>
         {nav.map((item) => (
           <li>
@@ -36,6 +45,19 @@ const currentPath = Astro.url.pathname;
             </a>
           </li>
         ))}
+        {alternatePath && (
+          <li>
+            <a
+              class="lang-switch"
+              href={alternatePath}
+              hreflang={lang === 'es' ? 'en' : 'es'}
+              lang={lang === 'es' ? 'en' : 'es'}
+              aria-label={t.switchLabel}
+            >
+              {t.switchTo}
+            </a>
+          </li>
+        )}
       </ul>
     </nav>
   </div>
@@ -105,6 +127,17 @@ const currentPath = Astro.url.pathname;
   nav a:hover,
   nav a[aria-current='page'] {
     color: var(--color-fg);
+    border-color: var(--color-fg);
+  }
+
+  nav a.lang-switch {
+    border: 1px solid var(--color-border);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.8rem;
+  }
+
+  nav a.lang-switch:hover {
     border-color: var(--color-fg);
   }
 

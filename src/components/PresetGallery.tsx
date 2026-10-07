@@ -1,18 +1,26 @@
 import { useState } from 'react';
-import { essentialsPresets, genrePresets, type Preset } from '../data/presets';
+import { blurbFor, essentialsPresets, genrePresets, type Preset } from '../data/presets';
+import type { Lang } from '../i18n';
 
-const tabs: { key: 'essentials' | 'genre'; label: string; presets: Preset[] }[] = [
-  { key: 'essentials', label: 'Essentials', presets: essentialsPresets },
-  { key: 'genre', label: 'By genre', presets: genrePresets },
+const tabDefs: { key: 'essentials' | 'genre'; presets: Preset[] }[] = [
+  { key: 'essentials', presets: essentialsPresets },
+  { key: 'genre', presets: genrePresets },
 ];
 
-export default function PresetGallery() {
+const copy = {
+  en: { groups: 'Preset groups', essentials: 'Essentials', genre: 'By genre', alt: (n: string) => `${n} preset applied` },
+  es: { groups: 'Grupos de presets', essentials: 'Esenciales', genre: 'Por género', alt: (n: string) => `Preset ${n} aplicado` },
+};
+
+export default function PresetGallery({ lang = 'en' }: { lang?: Lang }) {
+  const c = copy[lang];
+  const tabs = tabDefs.map((t) => ({ ...t, label: c[t.key] }));
   const [active, setActive] = useState<'essentials' | 'genre'>('essentials');
   const current = tabs.find((t) => t.key === active)!;
 
   return (
     <div className="preset-gallery">
-      <div className="tabs" role="tablist" aria-label="Preset groups">
+      <div className="tabs" role="tablist" aria-label={c.groups}>
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -32,7 +40,7 @@ export default function PresetGallery() {
           <div className="card" key={preset.name}>
             <div className="thumb">
               {preset.sampleAfter ? (
-                <img src={preset.sampleAfter} alt={`${preset.name} preset applied`} loading="lazy" />
+                <img src={preset.sampleAfter} alt={c.alt(preset.name)} loading="lazy" />
               ) : (
                 <svg aria-hidden="true">
                   <filter id={`grain-${preset.name.replace(/\s+/g, '-')}`}>
@@ -45,7 +53,7 @@ export default function PresetGallery() {
               <span className="format">{preset.format}</span>
             </div>
             <p className="name">{preset.name}</p>
-            <p className="blurb">{preset.blurb}</p>
+            <p className="blurb">{blurbFor(preset, lang)}</p>
           </div>
         ))}
       </div>

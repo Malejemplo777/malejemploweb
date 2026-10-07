@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const entries = (await getCollection('guidesEs')).sort(
+  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
+);
+---
+
+<BaseLayout
+  title="Guías"
+  description="Guías prácticas para conseguir un look cinematográfico en DaVinci Resolve y cómo se compara GATE.24 con otras herramientas de acabado."
+  alternatePath="/guides/"
+>
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Guías</p>
+      <h1>Guías</h1>
+      <p>No es un blog que tengas que revisar cada semana — un conjunto pequeño y fijo de guías prácticas.</p>
+
+      <ul class="guide-list">
+        {entries.map((entry) => (
+          <li>
+            <a href={`/es/guias/${entry.id}/`}>
+              <h2>{entry.data.title}</h2>
+              <p>{entry.data.description}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .guide-list {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .guide-list a {
+    display: block;
+    text-decoration: none;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+    transition: border-color 0.2s ease;
+  }
+
+  .guide-list a:hover {
+    border-color: var(--color-fg);
+  }
+
+  .guide-list h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.4rem;
+    color: var(--color-fg);
+  }
+
+  .guide-list p {
+    margin: 0;
+    max-width: none;
+  }
+</style>
