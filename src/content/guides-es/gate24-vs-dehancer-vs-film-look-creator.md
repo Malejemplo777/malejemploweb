@@ -9,7 +9,7 @@ Si editas en DaVinci Resolve y quieres darle un acabado cinematográfico a un cl
 
 ## La versión corta
 
-- **Film Look Creator** viene incluido en DaVinci Resolve Studio (no está en la versión gratuita). Es un buen punto de partida: unos pocos looks integrados, más halation, bloom, grano, gate weave y un recorte tipo film gate, todo dentro de las herramientas del propio Resolve.
+- **Film Look Creator** viene incluido en DaVinci Resolve Studio (no está en la versión gratuita). Es un buen punto de partida: ocho looks integrados más uno personalizado, con halation, bloom, grano, gate weave y un recorte tipo film gate, todo dentro de las herramientas del propio Resolve.
 - **Dehancer** es lo más profundo: más de 60 emulaciones de películas reales y más de 130 perfiles de cámara, con un control muy fino de la densidad y la separación de color. Es de pago, con suscripción o con licencia vitalicia, y toda esa profundidad solo compensa si de verdad quieres construir un look desde cero.
 - **GATE.24** está en el punto medio: un solo efecto que reúne barras de recorte multiformato, una viñeta según la óptica, grano según la película (8, 16, 35 y 65 mm) y un pase final de contraste que protege la piel, con 13 presets listos para no empezar de cero. Es de «paga lo que quieras», incluso gratis.
 
@@ -19,10 +19,10 @@ Si editas en DaVinci Resolve y quieres darle un acabado cinematográfico a un cl
 |---|---|---|---|
 | Precio | De pago (suscripción o licencia vitalicia) | Incluido en Resolve Studio | Paga lo que quieras (puede ser gratis) |
 | Barras de recorte multiformato | No | Recorte tipo film gate | Sí |
-| Viñeta según el tipo de óptica | Genérica | Genérica | Sí (Anamorphic / Spherical / Subtle-tele) |
-| Grano según la película | Sí, muy detallado (más de 60 películas) | Un único grano genérico | Sí, simplificado (8, 16, 35 y 65 mm) |
+| Viñeta según el tipo de óptica | Genérica | Solo cantidad y tamaño | Sí (Anamorphic / Spherical / Subtle-tele) |
+| Grano según la película | Sí, muy detallado (más de 60 películas) | Sí, según el tipo de película | Sí, simplificado (8, 16, 35 y 65 mm) |
 | Protección de la piel | No es su fuerte | No | Sí, con un cuentagotas para tomar el tono de piel real en cada plano |
-| Presets listos para usar | Pocos: el look lo montas tú | Unos pocos looks integrados | 13, divididos en Essentials y Genre |
+| Presets listos para usar | Pocos: el look lo montas tú | 8 looks integrados + uno personalizado | 13, divididos en Essentials y Genre |
 | Superposición de diagnóstico (ver exactamente dónde actúa un efecto) | No | No | Sí |
 | Curva de aprendizaje | Alta | Media | Un clic, y todo sigue siendo ajustable a mano |
 

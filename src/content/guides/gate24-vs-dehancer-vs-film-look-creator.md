@@ -8,7 +8,7 @@ If you edit in DaVinci Resolve and you're trying to get a cinematic finish on a 
 
 ## The short version
 
-- **Film Look Creator** is built into DaVinci Resolve Studio (it isn't in the free version). It's a capable starting point: a handful of built-in looks plus halation, bloom, grain, gate weave and a film-gate crop, all inside Resolve's own tools.
+- **Film Look Creator** is built into DaVinci Resolve Studio (it isn't in the free version). It's a capable starting point: eight built-in looks plus a custom mode, with halation, bloom, grain, gate weave and a film-gate crop, all inside Resolve's own tools.
 - **Dehancer** is the deep end: 60+ real film stock emulations and 130+ camera profiles, with granular control over density and color separation. It's paid, as a subscription or a lifetime license, and the depth is only useful if you actually want to build a look from scratch.
 - **GATE.24** sits in between: one single effect that bundles multi-format crop bars, a lens-tied vignette, grain by camera stock (8/16/35/65mm), and a final contrast pass with skin-tone protection — with 13 ready-made presets so you're not starting from zero. It's pay-what-you-want, including free.
 
@@ -18,10 +18,10 @@ If you edit in DaVinci Resolve and you're trying to get a cinematic finish on a 
 |---|---|---|---|
 | Price | Paid (subscription or lifetime) | Included with Resolve Studio | Pay what you want (can be free) |
 | Multi-format crop bars | No | Film-gate crop | Yes |
-| Vignette tied to lens character | Generic | Generic | Yes (Anamorphic / Spherical / Subtle-tele) |
-| Grain by camera stock | Yes, very granular (60+ stocks) | One generic grain | Yes, simplified (8/16/35/65mm) |
+| Vignette tied to lens character | Generic | Amount and size only | Yes (Anamorphic / Spherical / Subtle-tele) |
+| Grain by camera stock | Yes, very granular (60+ stocks) | Yes, by film type | Yes, simplified (8/16/35/65mm) |
 | Skin-tone protection | Not the focus | No | Yes, with an eyedropper to sample real skin tone per shot |
-| Ready-made presets | Few — you build the look | A few built-in looks | 13, split into Essentials and Genre groups |
+| Ready-made presets | Few — you build the look | 8 built-in looks + custom | 13, split into Essentials and Genre groups |
 | Diagnostic overlay (see exactly where an effect is acting) | No | No | Yes |
 | Learning curve | High | Medium | One click, still fully adjustable by hand |
 
