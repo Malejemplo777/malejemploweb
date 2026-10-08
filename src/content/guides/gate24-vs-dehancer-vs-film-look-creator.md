@@ -8,26 +8,26 @@ If you edit in DaVinci Resolve and you're trying to get a cinematic finish on a 
 
 ## The short version
 
-- **Film Look Creator** is free and already in Resolve. It's a reasonable starting point, but it ships with only 7 generic presets and doesn't touch cropping, skin tones, or per-stock grain.
-- **Dehancer** is the deep end: 60+ real film stock emulations and 130+ camera profiles, with granular control over density and color separation. Lifetime licenses run $500+ (subscriptions are also available), and the depth is only useful if you actually want to build a look from scratch.
+- **Film Look Creator** is built into DaVinci Resolve Studio (it isn't in the free version). It's a capable starting point: a handful of built-in looks plus halation, bloom, grain, gate weave and a film-gate crop, all inside Resolve's own tools.
+- **Dehancer** is the deep end: 60+ real film stock emulations and 130+ camera profiles, with granular control over density and color separation. It's paid, as a subscription or a lifetime license, and the depth is only useful if you actually want to build a look from scratch.
 - **GATE.24** sits in between: one single effect that bundles multi-format crop bars, a lens-tied vignette, grain by camera stock (8/16/35/65mm), and a final contrast pass with skin-tone protection — with 13 ready-made presets so you're not starting from zero. It's pay-what-you-want, including free.
 
 ## Feature by feature
 
 | | Dehancer | Film Look Creator | GATE.24 |
 |---|---|---|---|
-| Price | $500+ | Free | Pay what you want (can be free) |
-| Multi-format crop bars | No | No | Yes |
+| Price | Paid (subscription or lifetime) | Included with Resolve Studio | Pay what you want (can be free) |
+| Multi-format crop bars | No | Film-gate crop | Yes |
 | Vignette tied to lens character | Generic | Generic | Yes (Anamorphic / Spherical / Subtle-tele) |
 | Grain by camera stock | Yes, very granular (60+ stocks) | One generic grain | Yes, simplified (8/16/35/65mm) |
 | Skin-tone protection | Not the focus | No | Yes, with an eyedropper to sample real skin tone per shot |
-| Ready-made presets | Few — you build the look | 7 generic | 13, split into Essentials and Genre groups |
+| Ready-made presets | Few — you build the look | A few built-in looks | 13, split into Essentials and Genre groups |
 | Diagnostic overlay (see exactly where an effect is acting) | No | No | Yes |
 | Learning curve | High | Medium | One click, still fully adjustable by hand |
 
 ## Where each one actually makes sense
 
-**Pick Film Look Creator** if you want zero cost and don't mind a more manual, node-based workflow to get a full finish.
+**Pick Film Look Creator** if you already have DaVinci Resolve Studio and want to stay inside Resolve's own tools, even if it means a more manual, node-based workflow to get a full finish.
 
 **Pick Dehancer** if you're doing serious film emulation work and want granular control over dozens of real stocks — the price buys you depth, not convenience.
 

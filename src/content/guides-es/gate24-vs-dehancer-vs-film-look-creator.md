@@ -9,26 +9,26 @@ Si editas en DaVinci Resolve y quieres darle un acabado cinematográfico a un cl
 
 ## La versión corta
 
-- **Film Look Creator** es gratuito y ya viene con Resolve. Sirve como punto de partida, pero trae solo 7 presets genéricos y no toca ni el recorte, ni los tonos de piel, ni el grano según la película.
-- **Dehancer** es lo más profundo: más de 60 emulaciones de películas reales y más de 130 perfiles de cámara, con un control muy fino de la densidad y la separación de color. Las licencias vitalicias cuestan 500 $ o más (también hay suscripciones), y toda esa profundidad solo compensa si de verdad quieres construir un look desde cero.
+- **Film Look Creator** viene incluido en DaVinci Resolve Studio (no está en la versión gratuita). Es un buen punto de partida: unos pocos looks integrados, más halation, bloom, grano, gate weave y un recorte tipo film gate, todo dentro de las herramientas del propio Resolve.
+- **Dehancer** es lo más profundo: más de 60 emulaciones de películas reales y más de 130 perfiles de cámara, con un control muy fino de la densidad y la separación de color. Es de pago, con suscripción o con licencia vitalicia, y toda esa profundidad solo compensa si de verdad quieres construir un look desde cero.
 - **GATE.24** está en el punto medio: un solo efecto que reúne barras de recorte multiformato, una viñeta según la óptica, grano según la película (8, 16, 35 y 65 mm) y un pase final de contraste que protege la piel, con 13 presets listos para no empezar de cero. Es de «paga lo que quieras», incluso gratis.
 
 ## Característica por característica
 
 | | Dehancer | Film Look Creator | GATE.24 |
 |---|---|---|---|
-| Precio | 500 $ o más | Gratis | Paga lo que quieras (puede ser gratis) |
-| Barras de recorte multiformato | No | No | Sí |
+| Precio | De pago (suscripción o licencia vitalicia) | Incluido en Resolve Studio | Paga lo que quieras (puede ser gratis) |
+| Barras de recorte multiformato | No | Recorte tipo film gate | Sí |
 | Viñeta según el tipo de óptica | Genérica | Genérica | Sí (Anamorphic / Spherical / Subtle-tele) |
 | Grano según la película | Sí, muy detallado (más de 60 películas) | Un único grano genérico | Sí, simplificado (8, 16, 35 y 65 mm) |
 | Protección de la piel | No es su fuerte | No | Sí, con un cuentagotas para tomar el tono de piel real en cada plano |
-| Presets listos para usar | Pocos: el look lo montas tú | 7 genéricos | 13, divididos en Essentials y Genre |
+| Presets listos para usar | Pocos: el look lo montas tú | Unos pocos looks integrados | 13, divididos en Essentials y Genre |
 | Superposición de diagnóstico (ver exactamente dónde actúa un efecto) | No | No | Sí |
 | Curva de aprendizaje | Alta | Media | Un clic, y todo sigue siendo ajustable a mano |
 
 ## Cuándo elegir cada uno
 
-**Elige Film Look Creator** si quieres gastar cero y no te importa un flujo más manual, basado en nodos, para llegar a un acabado completo.
+**Elige Film Look Creator** si ya tienes DaVinci Resolve Studio y quieres quedarte dentro de las herramientas del propio Resolve, aunque eso suponga un flujo más manual, basado en nodos, para llegar a un acabado completo.
 
 **Elige Dehancer** si haces emulación de película en serio y quieres un control fino sobre decenas de películas reales. Lo que pagas es profundidad, no comodidad.
 
