@@ -14,11 +14,11 @@ const hasGumroad = GUMROAD_URL.length > 0;
 const comparison = [
   { feature: 'Precio', dehancer: '$500+', flc: 'Gratis', gate24: 'Paga lo que quieras (puede ser gratis)' },
   { feature: 'Barras de recorte multiformato', dehancer: 'No', flc: 'No', gate24: 'Sí' },
-  { feature: 'Viñeta ligada al carácter de la óptica', dehancer: 'Genérica', flc: 'Genérica', gate24: 'Sí' },
-  { feature: 'Grano según el negativo de cámara', dehancer: 'Sí (más de 60 negativos)', flc: 'Un grano genérico', gate24: 'Sí (8/16/35/65 mm)' },
-  { feature: 'Protección de tonos de piel', dehancer: 'No es su foco', flc: 'No', gate24: 'Sí, con cuentagotas por plano' },
-  { feature: 'Presets listos para usar', dehancer: 'Pocos, construyes tú el look', flc: '7 genéricos', gate24: '13 (Essentials + Genre)' },
-  { feature: 'Curva de aprendizaje', dehancer: 'Alta', flc: 'Media', gate24: 'Un clic, y sigue siendo ajustable a mano' },
+  { feature: 'Viñeta según el tipo de óptica', dehancer: 'Genérica', flc: 'Genérica', gate24: 'Sí' },
+  { feature: 'Grano según la película', dehancer: 'Sí (más de 60 películas)', flc: 'Un único grano genérico', gate24: 'Sí (8, 16, 35 y 65 mm)' },
+  { feature: 'Protección de la piel', dehancer: 'No es su fuerte', flc: 'No', gate24: 'Sí, con cuentagotas en cada plano' },
+  { feature: 'Presets listos para usar', dehancer: 'Pocos, el look lo montas tú', flc: '7 genéricos', gate24: '13 (Essentials + Genre)' },
+  { feature: 'Curva de aprendizaje', dehancer: 'Alta', flc: 'Media', gate24: 'Un clic, y todo sigue siendo ajustable a mano' },
 ];
 
 const jsonLd = {
@@ -29,7 +29,7 @@ const jsonLd = {
   operatingSystem: 'Windows',
   inLanguage: 'es',
   description:
-    'Plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta ligada a la óptica, grano de película según el negativo y contraste que protege la piel.',
+    'Plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta que imita la óptica, grano de película según el negativo y contraste que respeta la piel.',
   offers: {
     '@type': 'Offer',
     price: '0',
@@ -41,7 +41,7 @@ const jsonLd = {
 
 <BaseLayout
   title="GATE.24"
-  description="GATE.24 es un plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta ligada a la óptica, grano de película según el negativo y contraste que protege la piel. 13 presets incluidos."
+  description="GATE.24 es un plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta que imita la óptica, grano de película según el negativo y contraste que respeta la piel. Incluye 13 presets."
   ogImage="/og-gate24.jpg"
   theme="gate24"
   alternatePath="/gate24/"
@@ -55,17 +55,17 @@ const jsonLd = {
     <div class="container hero-inner">
       <Image src={wordmark} alt="GATE.24" width={180} height={180} class="hero-mark" />
       <p class="eyebrow">por Malejemplo &middot; plugin OFX para DaVinci Resolve</p>
-      <h1>Todo lo que hace un plugin de $500+ por tu corrección de color — sin pagar su precio.</h1>
+      <h1>Todo lo que hace un plugin de más de 500 $ por tu etalonaje, sin pagar ese precio.</h1>
       <p class="lede">
-        Un solo efecto para recorte, viñeta ligada a la óptica, grano según el negativo y contraste
-        que protege la piel — 13 presets incluidos, y cada parámetro sigue siendo ajustable a mano.
-        Paga lo que quieras, incluso nada.
+        Un solo efecto para el recorte, la viñeta según la óptica, el grano según la película y un
+        contraste que respeta la piel. Incluye 13 presets y puedes ajustar cada parámetro a mano.
+        Paga lo que quieras, aunque sea nada.
       </p>
       <div class="cta-row">
         {hasGumroad ? (
           <a class="btn btn-primary" href={GUMROAD_URL} target="_blank" rel="noopener noreferrer">Conseguir GATE.24</a>
         ) : (
-          <span class="btn btn-primary" aria-disabled="true">Enlace de descarga próximamente</span>
+          <span class="btn btn-primary" aria-disabled="true">Descarga disponible pronto</span>
         )}
         <a class="btn btn-ghost" href="#comparison">Ver cómo se compara</a>
         <a class="btn btn-text" href="/gate24/manual.html" download>Descargar manual</a>
@@ -75,15 +75,15 @@ const jsonLd = {
 
   <section class="section">
     <div class="container">
-      <h2>Elige un ambiente, mira la diferencia</h2>
-      <p>El mismo plugin, cinco resultados muy distintos. Elige un preset y arrastra para comparar.</p>
+      <h2>Elige un ambiente y mira la diferencia</h2>
+      <p>El mismo plugin con cinco resultados muy distintos. Elige un preset y arrastra para comparar.</p>
       <PresetShowcase client:visible lang="es" />
     </div>
   </section>
 
   <section class="section" id="screencast">
     <div class="container">
-      <h2>Míralo en Resolve</h2>
+      <h2>Míralo en acción en Resolve</h2>
       <video
         class="screencast"
         src="/screencast.mp4"
@@ -93,7 +93,7 @@ const jsonLd = {
         playsinline
         aria-label="Recorrido por el panel de GATE.24 dentro de DaVinci Resolve"
       />
-      <p class="fine-print">Captura de pantalla real, no una maqueta — presets, cambios de parámetros en vivo y el modo de vista previa de diagnóstico.</p>
+      <p class="fine-print">Es una grabación de pantalla real, no una maqueta: presets, cambios de parámetros en directo y el modo de vista previa de diagnóstico.</p>
     </div>
   </section>
 
@@ -101,11 +101,11 @@ const jsonLd = {
     <div class="container">
       <h2>Dentro del panel</h2>
       <p>
-        Una recreación de los controles reales de GATE.24, sección por sección — haz clic en una
-        sección para abrirla y pasa el cursor sobre un control para ver qué hace. Mueve los
-        deslizadores; simplemente no están conectados a una imagen real aquí (ese cálculo solo se
-        ejecuta dentro de Resolve). Los nombres de los controles se quedan en inglés porque el panel
-        real del plugin está en inglés.
+        Una recreación de los controles reales de GATE.24, sección por sección. Abre cada sección
+        con un clic y pasa el ratón por un control para ver qué hace. Los deslizadores se mueven,
+        pero aquí no están conectados a ninguna imagen (ese cálculo solo ocurre dentro de Resolve).
+        Los nombres de los controles están en inglés porque el panel real del plugin también lo
+        está.
       </p>
       <ResolvePanel lang="es" />
     </div>
@@ -113,11 +113,11 @@ const jsonLd = {
 
   <section class="section" id="presets">
     <div class="container">
-      <h2>13 presets, dos grupos</h2>
+      <h2>13 presets en dos grupos</h2>
       <p>
-        <strong>Essentials</strong> para cine de uso diario y formatos editoriales y sociales.
-        <strong>Genre</strong> para un ambiente marcado y deliberado. Cada preset es un punto de
-        partida — nada queda bloqueado después de aplicarlo.
+        <strong>Essentials</strong> es para el cine de uso diario y los formatos editoriales y de
+        redes. <strong>Genre</strong> es para ambientes con una personalidad muy marcada. Cada
+        preset es solo un punto de partida: después de aplicarlo no queda nada bloqueado.
       </p>
       <PresetGallery client:visible lang="es" />
     </div>
@@ -158,19 +158,19 @@ const jsonLd = {
       <ul class="feature-list">
         <li>
           <h3>Vista previa de diagnóstico</h3>
-          <p>Los modos de superposición para viñeta, grano y detección de tonos de piel muestran exactamente dónde y con qué fuerza actúa cada efecto — se acabó adivinar.</p>
+          <p>Los modos de superposición de viñeta, grano y detección de piel te enseñan exactamente dónde actúa cada efecto y con qué fuerza. Se acabó ir a ojo.</p>
         </li>
         <li>
-          <h3>Calibración de piel por plano</h3>
-          <p>Muestrea el tono de piel real de un plano con un selector de color nativo, en vez de depender de un único tono fijo.</p>
+          <h3>Calibración de piel en cada plano</h3>
+          <p>Toma el tono de piel real de un plano con un selector de color nativo, en vez de fiarte de un único tono fijo.</p>
         </li>
         <li>
           <h3>Acelerado por GPU</h3>
-          <p>Funciona sobre OpenCL — vista previa en tiempo real, sin renderizar para comprobar.</p>
+          <p>Funciona con OpenCL: vista previa en tiempo real, sin tener que renderizar para comprobar el resultado.</p>
         </li>
         <li>
           <h3>9 formatos de recorte</h3>
-          <p>Del cine anamórfico 2.39:1 al vertical 9:16 para redes sociales.</p>
+          <p>Desde el 2.39:1 anamórfico del cine hasta el 9:16 vertical para redes.</p>
         </li>
       </ul>
     </div>
@@ -178,13 +178,13 @@ const jsonLd = {
 
   <section class="section" id="playground">
     <div class="container">
-      <h2>Pruébalos los 13 tú mismo</h2>
+      <h2>Prueba los 13 tú mismo</h2>
       <p>
-        Elige una foto, elige un preset y míralo en vivo. Esto funciona con CSS en tu navegador como
-        una <strong>aproximación</strong> de los valores reales de cada preset — una idea rápida del
-        rango, no el motor de color real de GATE.24 (eso es cálculo de píxeles en C++/OpenCL que
-        solo se ejecuta dentro de Resolve). Para ver lo real, mira los ejemplos de antes y después
-        y el panel de arriba.
+        Elige una foto, elige un preset y míralo en directo. Esto funciona con CSS en tu navegador y
+        es solo una <strong>aproximación</strong> de los valores reales de cada preset: sirve para
+        hacerte una idea del rango, pero no es el motor de color de GATE.24 (eso es cálculo de
+        píxeles en C++/OpenCL y solo corre dentro de Resolve). Para ver el resultado real, mira los
+        ejemplos de antes y después y el panel de más arriba.
       </p>
       <LivePresetPlayground client:visible lang="es" />
     </div>
@@ -196,11 +196,11 @@ const jsonLd = {
       <dl class="requirements">
         <div>
           <dt>DaVinci Resolve</dt>
-          <dd>Funciona con la versión gratuita — no hace falta licencia Studio.</dd>
+          <dd>Vale la versión gratuita; no hace falta la licencia Studio.</dd>
         </div>
         <div>
           <dt>Sistema operativo</dt>
-          <dd>Solo Windows por ahora. El soporte para Mac depende de conseguir hardware, no está descartado.</dd>
+          <dd>Solo Windows por ahora. Mac no está descartado, pero de momento no hay hardware para probarlo.</dd>
         </div>
         <div>
           <dt>Idioma</dt>

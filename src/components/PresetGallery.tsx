@@ -9,7 +9,7 @@ const tabDefs: { key: 'essentials' | 'genre'; presets: Preset[] }[] = [
 
 const copy = {
   en: { groups: 'Preset groups', essentials: 'Essentials', genre: 'By genre', alt: (n: string) => `${n} preset applied` },
-  es: { groups: 'Grupos de presets', essentials: 'Esenciales', genre: 'Por género', alt: (n: string) => `Preset ${n} aplicado` },
+  es: { groups: 'Grupos de presets', essentials: 'Esenciales', genre: 'Por género', alt: (n: string) => `Imagen con el preset ${n} aplicado` },
 };
 
 export default function PresetGallery({ lang = 'en' }: { lang?: Lang }) {

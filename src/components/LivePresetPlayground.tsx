@@ -9,7 +9,7 @@ import type { Lang } from '../i18n';
 // so visitors can get a feel for all 13 presets on a photo of their choice.
 
 const rawPhotos: { key: string; label: Record<Lang, string>; src: string }[] = [
-  { key: 'cine-35', label: { en: 'City street', es: 'Calle de ciudad' }, src: '/showcase/cine-35-before.jpg' },
+  { key: 'cine-35', label: { en: 'City street', es: 'Calle urbana' }, src: '/showcase/cine-35-before.jpg' },
   { key: 'western', label: { en: 'Desert road', es: 'Carretera del desierto' }, src: '/showcase/western-before.jpg' },
   { key: 'romance', label: { en: 'Golden hour', es: 'Hora dorada' }, src: '/showcase/romance-before.jpg' },
   { key: 'vhs', label: { en: 'Living room', es: 'Salón' }, src: '/showcase/vhs-before.jpg' },
@@ -30,8 +30,8 @@ const copy = {
     group: 'Grupo de presets',
     essentials: 'Esenciales',
     genre: 'Por género',
-    grain: (stock: string) => `grano de ${stock}`,
-    approx: 'solo una aproximación -- no es el motor de color real de GATE.24, mira la nota de abajo.',
+    grain: (stock: string) => `grano de ${stock.replace('mm', ' mm')}`,
+    approx: 'es solo una aproximación, no el motor de color real de GATE.24 (mira la nota de arriba).',
   },
 };
 
@@ -94,9 +94,9 @@ const protectionLabel: Record<Lang, Record<Preset['recipe']['protection'], strin
   },
   es: {
     none: 'Sin protección',
-    midtones: 'Protección de medios tonos',
-    skin: 'Protección de tonos de piel',
-    both: 'Protección de piel + medios tonos',
+    midtones: 'Protege los medios tonos',
+    skin: 'Protege la piel',
+    both: 'Protege piel y medios tonos',
   },
 };
 

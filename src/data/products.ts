@@ -24,9 +24,9 @@ export const products: Product[] = [
     href: '/gate24/',
     theme: 'gate24',
     es: {
-      tagline: 'Acabado cinematográfico en un clic para DaVinci Resolve.',
+      tagline: 'El acabado cinematográfico para DaVinci Resolve, en un clic.',
       description:
-        'Barras de recorte, viñeta ligada a la óptica, grano según el negativo y contraste que protege la piel en un solo efecto — 13 presets incluidos.',
+        'Barras de recorte, viñeta que imita la óptica, grano según la película y contraste que respeta la piel, todo en un solo efecto. Incluye 13 presets.',
     },
   },
 ];

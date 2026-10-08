@@ -7,7 +7,7 @@ const ZOOM_LEVEL = 2.4;
 
 const copy = {
   en: { choose: 'Choose a preset to preview', zoomOut: '– Zoom out', zoomIn: '+ Zoom in on the grain' },
-  es: { choose: 'Elige un preset para previsualizar', zoomOut: '– Alejar', zoomIn: '+ Acercar para ver el grano' },
+  es: { choose: 'Elige un preset para verlo', zoomOut: '– Alejar', zoomIn: '+ Acercar para ver el grano' },
 };
 
 export default function PresetShowcase({ lang = 'en' }: { lang?: Lang }) {

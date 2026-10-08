@@ -79,7 +79,7 @@ export default function CookieConsent({ lang = 'en' }: { lang?: Lang }) {
       ) : (
         <>
           <p>
-            {t.withoutGa} <a href={cookiesHref}>{t.policyLower}</a> {t.detailsAfter}
+            {t.withoutGa} <a href={cookiesHref}>{t.policyLower}</a>{t.detailsAfter}
           </p>
           <div className="actions">
             <button type="button" className="btn btn-primary" onClick={() => setOpen(false)}>

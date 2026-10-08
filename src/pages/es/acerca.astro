@@ -5,22 +5,22 @@ import { social } from '../../data/social';
 ---
 
 <BaseLayout
-  title="Acerca de"
-  description="Malejemplo es la marca personal de un editor de DaVinci Resolve y creador de YouTube que crea herramientas de acabado, empezando por GATE.24."
+  title="Sobre Malejemplo"
+  description="Malejemplo es la marca personal de alguien que edita en DaVinci Resolve, crea contenido en YouTube y hace herramientas de acabado, empezando por GATE.24."
   alternatePath="/about/"
 >
   <section class="section">
     <div class="container narrow">
-      <p class="eyebrow">Acerca de</p>
+      <p class="eyebrow">Sobre Malejemplo</p>
       <h1>Malejemplo</h1>
       <p>
-        Malejemplo es un taller de una sola persona que crea herramientas de acabado para DaVinci
-        Resolve — plugins hechos por alguien que edita y colorea metraje real, no por un estudio de
-        plugins que trabaja desde una hoja de especificaciones. GATE.24 es el primer lanzamiento;
-        hay más herramientas en camino.
+        Malejemplo es un taller de una sola persona que hace herramientas de acabado para DaVinci
+        Resolve. Son plugins pensados por alguien que edita y etalona metraje real todos los días,
+        no por un estudio que trabaja con una hoja de especificaciones. GATE.24 es el primero;
+        habrá más.
       </p>
       {social.youtube ? (
-        <p><a class="btn btn-ghost" href={social.youtube} target="_blank" rel="noopener noreferrer">Ver en YouTube</a></p>
+        <p><a class="btn btn-ghost" href={social.youtube} target="_blank" rel="noopener noreferrer">Ver el canal de YouTube</a></p>
       ) : (
         <p class="fine-print">Enlace de YouTube pendiente.</p>
       )}
@@ -30,7 +30,7 @@ import { social } from '../../data/social';
   <section class="section" id="contact">
     <div class="container narrow">
       <h2>Contacto</h2>
-      <p>Preguntas, errores, peticiones de funciones — usa el formulario de abajo.</p>
+      <p>Dudas, errores, ideas para nuevas funciones: escríbeme con este formulario.</p>
       <ContactForm lang="es" />
     </div>
   </section>
