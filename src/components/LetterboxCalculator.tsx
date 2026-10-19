@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Lang } from '../i18n';
 import { calcBars, ratios, sources } from '../lib/letterbox';
 
@@ -38,6 +38,13 @@ const copy = {
     copied: 'Copied',
     px: 'px',
     alt: 'Sample film frame with the letterbox bars applied',
+    altOwn: 'Your photo with the letterbox bars applied',
+    upload: 'Use your own photo',
+    uploadHint: 'Pick a file, take a photo or drop one on the preview. It stays in your browser; nothing is uploaded.',
+    yourPhoto: 'Your photo',
+    useSample: 'Back to the sample',
+    download: 'Download PNG with bars',
+    badImage: "Couldn't read that image. Try a JPG, PNG or WebP.",
   },
   es: {
     sourceLabel: 'Tu fotograma',
@@ -70,6 +77,13 @@ const copy = {
     copied: 'Copiado',
     px: 'px',
     alt: 'Fotograma de ejemplo con las barras negras aplicadas',
+    altOwn: 'Tu foto con las barras negras aplicadas',
+    upload: 'Usar tu propia foto',
+    uploadHint: 'Elige un archivo, haz una foto o suéltala sobre la vista previa. Se queda en tu navegador; no se sube a ningún sitio.',
+    yourPhoto: 'Tu foto',
+    useSample: 'Volver al ejemplo',
+    download: 'Descargar PNG con barras',
+    badImage: 'No he podido leer esa imagen. Prueba con un JPG, PNG o WebP.',
   },
 } as const;
 
@@ -106,10 +120,46 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
   const [ratioId, setRatioId] = useState('2.39');
   const [customRatio, setCustomRatio] = useState('2.76');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<{ url: string; w: number; h: number } | null>(null);
+  const [photoError, setPhotoError] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Release the blob URL when it is replaced or the component goes away.
+  useEffect(() => () => { if (photo) URL.revokeObjectURL(photo.url); }, [photo]);
+
+  function loadFile(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setPhotoError(true);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const probe = new Image();
+    probe.onload = () => {
+      setPhotoError(false);
+      setPhoto({ url, w: probe.naturalWidth, h: probe.naturalHeight });
+      setSourceId('photo');
+    };
+    probe.onerror = () => {
+      URL.revokeObjectURL(url);
+      setPhotoError(true);
+    };
+    probe.src = url;
+  }
+
+  function clearPhoto() {
+    setPhoto(null);
+    setPhotoError(false);
+    if (fileRef.current) fileRef.current.value = '';
+    if (sourceId === 'photo') setSourceId('hd');
+  }
 
   const src = sources.find((s) => s.id === sourceId);
-  const w = src ? src.w : parseDim(customW);
-  const h = src ? src.h : parseDim(customH);
+  const usePhotoSize = sourceId === 'photo' && photo;
+  const w = usePhotoSize ? photo.w : src ? src.w : parseDim(customW);
+  const h = usePhotoSize ? photo.h : src ? src.h : parseDim(customH);
   const ratio = ratios.find((r) => r.id === ratioId);
   const target = ratio ? ratio.value : parseRatio(customRatio);
   const targetLabel = ratio ? ratio.label : `${customRatio.trim()}`;
@@ -143,6 +193,47 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
     }
   }
 
+  function downloadPng() {
+    const img = imgRef.current;
+    if (!img || !bars || !w || !h) return;
+    try {
+      // Cap the longest side so a huge photo can't exhaust memory.
+      const k = Math.min(1, 4096 / Math.max(w, h));
+      const cw = Math.round(w * k);
+      const ch = Math.round(h * k);
+      const canvas = document.createElement('canvas');
+      canvas.width = cw;
+      canvas.height = ch;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      // Same "cover" fit the preview uses.
+      const ir = img.naturalWidth / img.naturalHeight;
+      const cr = cw / ch;
+      const dw = ir > cr ? ch * ir : cw;
+      const dh = ir > cr ? ch : cw / ir;
+      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+      ctx.fillStyle = '#000';
+      const b = Math.round(bars.bar * k);
+      if (bars.mode === 'letterbox') {
+        ctx.fillRect(0, 0, cw, b);
+        ctx.fillRect(0, ch - b, cw, b);
+      } else if (bars.mode === 'pillarbox') {
+        ctx.fillRect(0, 0, b, ch);
+        ctx.fillRect(cw - b, 0, b, ch);
+      }
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `letterbox-${targetLabel.replace(/[^0-9a-z.]+/gi, '-')}.png`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }, 'image/png');
+    } catch {
+      /* canvas can fail on very large images; nothing else to do */
+    }
+  }
+
   const modeText = c[shown.mode];
   const edgeText = `▸ ${bars ? targetLabel : '—'}  ▸  GATE.24  ▸  ${fmt(shown.bar)} PX`;
 
@@ -152,6 +243,16 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         <fieldset className="lbx-group">
           <legend className="lbx-label">{c.sourceLabel}</legend>
           <div className="lbx-chips">
+            {photo && (
+              <button
+                type="button"
+                className="lbx-chip"
+                aria-pressed={sourceId === 'photo'}
+                onClick={() => setSourceId('photo')}
+              >
+                {c.yourPhoto} {fmt(photo.w)}×{fmt(photo.h)}
+              </button>
+            )}
             {sources.map((s) => (
               <button
                 key={s.id}
@@ -235,10 +336,33 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           )}
           {ratioId === 'custom' && !target && <p className="lbx-error" role="alert">{c.badRatio}</p>}
         </fieldset>
+
+        <div className="lbx-group lbx-upload">
+          <input
+            ref={fileRef}
+            id="lbx-file"
+            className="lbx-file"
+            type="file"
+            accept="image/*"
+            onChange={(e) => loadFile(e.target.files?.[0])}
+          />
+          <label htmlFor="lbx-file" className="lbx-chip lbx-upload-btn">{c.upload}</label>
+          {photo && (
+            <button type="button" className="lbx-chip" onClick={clearPhoto}>{c.useSample}</button>
+          )}
+          <p className="lbx-hint">{c.uploadHint}</p>
+          {photoError && <p className="lbx-error" role="alert">{c.badImage}</p>}
+        </div>
       </div>
 
       <div className="lbx-body">
-        <figure className="lbx-strip" aria-label={c.gateTitle}>
+        <figure
+          className={`lbx-strip${dragging ? ' lbx-drop' : ''}`}
+          aria-label={c.gateTitle}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); loadFile(e.dataTransfer.files?.[0]); }}
+        >
           <div className="lbx-perfs lbx-perfs-l" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
           <div className="lbx-perfs lbx-perfs-r" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
 
@@ -250,10 +374,10 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           <div className="lbx-stage">
             <div className="lbx-gate" style={{ ['--ar' as string]: sw / sh }}>
               <img
+                ref={imgRef}
                 className="lbx-photo"
-                src="/showcase/cine-35-before.jpg"
-                alt={c.alt}
-                loading="lazy"
+                src={photo ? photo.url : '/showcase/cine-35-before.jpg'}
+                alt={photo ? c.altOwn : c.alt}
                 draggable={false}
               />
               <div className="lbx-grain" style={{ backgroundImage: GRAIN }} aria-hidden="true" />
@@ -352,6 +476,9 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
                   </span>
                 </div>
               )}
+              {shown.mode !== 'none' && (
+                <button type="button" className="lbx-download" onClick={downloadPng}>{c.download}</button>
+              )}
             </>
           )}
         </div>
@@ -416,6 +543,27 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-inputs input[aria-invalid='true'] { border-color: #c9694f; }
         .lbx-times { color: var(--color-fg-muted); padding-bottom: 0.55rem; }
         .lbx-error { margin: 0.6rem 0 0; font-size: 0.8rem; color: #d8836b; }
+
+        .lbx-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        .lbx-file:focus-visible + .lbx-upload-btn { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+        .lbx-upload { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; position: relative; }
+        .lbx-upload-btn { display: inline-block; color: var(--color-fg); border-color: var(--color-fg-muted); }
+        .lbx-hint { flex: 1 1 100%; margin: 0.2rem 0 0; font-size: 0.78rem; color: var(--color-fg-muted); max-width: none; }
+        .lbx-drop { outline: 2px dashed var(--color-fg); outline-offset: -6px; }
+        .lbx-download {
+          margin-top: 0.4rem;
+          font: 600 0.72rem var(--lbx-mono);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--color-bg);
+          background: var(--color-fg);
+          border: 1px solid var(--color-fg);
+          border-radius: 2px;
+          padding: 0.65rem 0.9rem;
+          cursor: pointer;
+        }
+        .lbx-download:hover { background: transparent; color: var(--color-fg); }
+        .lbx-download:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
 
         .lbx-body {
           display: grid;
