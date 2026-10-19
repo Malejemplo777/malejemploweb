@@ -17,12 +17,12 @@ If you edit in DaVinci Resolve and you're trying to get a cinematic finish on a 
 | | Dehancer | Film Look Creator | GATE.24 |
 |---|---|---|---|
 | Price | Paid (subscription or lifetime) | Included with Resolve Studio | Pay what you want (can be free) |
-| Multi-format crop bars | No | Film-gate crop | Yes |
-| Vignette tied to lens character | Generic | Amount and size only | Yes (Anamorphic / Spherical / Subtle-tele) |
+| Multi-format crop bars | Not listed (it has Overscan) | Film-gate crop | Yes |
+| Vignette tied to lens character | Film-style exposure vignette | Amount and size only | Yes (Anamorphic / Spherical / Subtle-tele) |
 | Grain by camera stock | Yes, very granular (60+ stocks) | Yes, by film type | Yes, simplified (8/16/35/65mm) |
-| Skin-tone protection | Not the focus | No | Yes, with an eyedropper to sample real skin tone per shot |
-| Ready-made presets | Few — you build the look | 8 built-in looks + custom | 13, split into Essentials and Genre groups |
-| Diagnostic overlay (see exactly where an effect is acting) | No | No | Yes |
+| Skin-tone protection | No dedicated tool listed | No | Yes, with an eyedropper to sample real skin tone per shot |
+| Ready-made presets | 60+ film profiles; you build the look | 8 built-in looks + custom | 13, split into Essentials and Genre groups |
+| Diagnostic overlay (see exactly where an effect is acting) | Exposure views only (False Color, Clipping) | No | Yes |
 | Learning curve | High | Medium | One click, still fully adjustable by hand |
 
 ## Where each one actually makes sense

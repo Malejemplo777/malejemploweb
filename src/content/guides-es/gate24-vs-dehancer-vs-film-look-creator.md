@@ -18,12 +18,12 @@ Si editas en DaVinci Resolve y quieres darle un acabado cinematográfico a un cl
 | | Dehancer | Film Look Creator | GATE.24 |
 |---|---|---|---|
 | Precio | De pago (suscripción o licencia vitalicia) | Incluido en Resolve Studio | Paga lo que quieras (puede ser gratis) |
-| Barras de recorte multiformato | No | Recorte tipo film gate | Sí |
-| Viñeta según el tipo de óptica | Genérica | Solo cantidad y tamaño | Sí (Anamorphic / Spherical / Subtle-tele) |
+| Barras de recorte multiformato | No consta (tiene Overscan) | Recorte tipo film gate | Sí |
+| Viñeta según el tipo de óptica | Viñeta de exposición tipo película | Solo cantidad y tamaño | Sí (Anamorphic / Spherical / Subtle-tele) |
 | Grano según la película | Sí, muy detallado (más de 60 películas) | Sí, según el tipo de película | Sí, simplificado (8, 16, 35 y 65 mm) |
-| Protección de la piel | No es su fuerte | No | Sí, con un cuentagotas para tomar el tono de piel real en cada plano |
-| Presets listos para usar | Pocos: el look lo montas tú | 8 looks integrados + uno personalizado | 13, divididos en Essentials y Genre |
-| Superposición de diagnóstico (ver exactamente dónde actúa un efecto) | No | No | Sí |
+| Protección de la piel | Sin herramienta específica indicada | No | Sí, con un cuentagotas para tomar el tono de piel real en cada plano |
+| Presets listos para usar | Más de 60 perfiles de película; el look lo montas tú | 8 looks integrados + uno personalizado | 13, divididos en Essentials y Genre |
+| Superposición de diagnóstico (ver exactamente dónde actúa un efecto) | Solo vistas de exposición (False Color, Clipping) | No | Sí |
 | Curva de aprendizaje | Alta | Media | Un clic, y todo sigue siendo ajustable a mano |
 
 ## Cuándo elegir cada uno

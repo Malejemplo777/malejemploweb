@@ -8,8 +8,8 @@ interface Props {
 
 const copy = {
   en: {
-    sourceLabel: 'Your frame',
-    targetLabel: 'Target ratio',
+    sourceLabel: 'Size',
+    targetLabel: 'Ratio',
     custom: 'Custom',
     width: 'Width (px)',
     height: 'Height (px)',
@@ -17,30 +17,17 @@ const copy = {
     badSource: 'Enter a width and height between 16 and 16384 px.',
     badRatio: 'Enter a ratio like 2.39, 2.39:1 or 21:9.',
     gateTitle: 'Film gate preview',
-    source: 'Source',
-    target: 'Target',
-    letterbox: 'Letterbox · bars top and bottom',
-    pillarbox: 'Pillarbox · bars left and right',
-    none: 'Same ratio · no bars needed',
-    barEach: 'Bar on each side',
-    barTotal: 'Total black',
-    visible: 'Visible frame',
-    pct: 'Of frame',
-    pctOf: { letterbox: 'of the height', pillarbox: 'of the width', none: '' },
-    actual: 'Resulting ratio',
-    actualNote: 'Bars are whole pixels, so it can differ in the 3rd decimal.',
-    resolve: 'Crop values for Resolve',
-    cropTop: 'Top',
-    cropBottom: 'Bottom',
-    cropLeft: 'Left',
-    cropRight: 'Right',
+    barTB: 'Bar, top and bottom',
+    barLR: 'Bar, left and right',
+    noBars: 'No bars needed',
+    visibleShort: 'Visible',
     copy: 'Copy',
     copied: 'Copied',
     px: 'px',
     alt: 'Sample film frame with the letterbox bars applied',
     altOwn: 'Your photo with the letterbox bars applied',
     upload: 'Use your own photo',
-    uploadHint: 'Pick a file, take a photo or drop one on the preview. It stays in your browser; nothing is uploaded.',
+    uploadHint: 'It stays in your browser.',
     yourPhoto: 'Your photo',
     useSample: 'Back to the sample',
     download: 'Download PNG with bars',
@@ -48,8 +35,8 @@ const copy = {
     badImage: "Couldn't read that image. Try a JPG, PNG or WebP.",
   },
   es: {
-    sourceLabel: 'Tu fotograma',
-    targetLabel: 'Relación de aspecto objetivo',
+    sourceLabel: 'Tamaño',
+    targetLabel: 'Relación',
     custom: 'Otra',
     width: 'Ancho (px)',
     height: 'Alto (px)',
@@ -57,30 +44,17 @@ const copy = {
     badSource: 'Escribe un ancho y un alto entre 16 y 16384 px.',
     badRatio: 'Escribe una relación como 2.39, 2.39:1 o 21:9.',
     gateTitle: 'Vista previa del film gate',
-    source: 'Origen',
-    target: 'Objetivo',
-    letterbox: 'Letterbox · barras arriba y abajo',
-    pillarbox: 'Pillarbox · barras a los lados',
-    none: 'Misma relación · no hacen falta barras',
-    barEach: 'Barra en cada lado',
-    barTotal: 'Negro total',
-    visible: 'Imagen visible',
-    pct: 'Del fotograma',
-    pctOf: { letterbox: 'del alto', pillarbox: 'del ancho', none: '' },
-    actual: 'Relación resultante',
-    actualNote: 'Las barras son píxeles enteros, así que puede variar en el tercer decimal.',
-    resolve: 'Valores de recorte para Resolve',
-    cropTop: 'Arriba',
-    cropBottom: 'Abajo',
-    cropLeft: 'Izquierda',
-    cropRight: 'Derecha',
+    barTB: 'Barra arriba y abajo',
+    barLR: 'Barra a los lados',
+    noBars: 'No hacen falta barras',
+    visibleShort: 'Visible',
     copy: 'Copiar',
     copied: 'Copiado',
     px: 'px',
     alt: 'Fotograma de ejemplo con las barras negras aplicadas',
     altOwn: 'Tu foto con las barras negras aplicadas',
     upload: 'Usar tu propia foto',
-    uploadHint: 'Elige un archivo, haz una foto o suéltala sobre la vista previa. Se queda en tu navegador; no se sube a ningún sitio.',
+    uploadHint: 'Se queda en tu navegador.',
     yourPhoto: 'Tu foto',
     useSample: 'Volver al ejemplo',
     download: 'Descargar PNG con barras',
@@ -181,7 +155,6 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
   const sw = bars && w ? w : last.w;
   const sh = bars && h ? h : last.h;
 
-  const sourceRatio = sw / sh;
   const letter = shown.mode === 'letterbox';
   const pillar = shown.mode === 'pillarbox';
 
@@ -236,8 +209,6 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
     }
   }
 
-  const modeText = c[shown.mode];
-  const edgeText = `▸ ${bars ? targetLabel : '—'}  ▸  GATE.24  ▸  ${fmt(shown.bar)} PX`;
 
   return (
     <div className="lbx">
@@ -368,11 +339,6 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           <div className="lbx-perfs lbx-perfs-l" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
           <div className="lbx-perfs lbx-perfs-r" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
 
-          <div className="lbx-head" aria-hidden="true">
-            <span>{c.source} {fmt(sw)}×{fmt(sh)} · {dec(sourceRatio, 3)}:1</span>
-            <span>{c.target} {bars ? targetLabel : '—'}</span>
-          </div>
-
           <div className="lbx-stage">
             <div className="lbx-gate" style={{ ['--ar' as string]: sw / sh }}>
               <img
@@ -413,71 +379,32 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
             </div>
           </div>
 
-          <figcaption className="lbx-edge" aria-hidden="true">{edgeText}</figcaption>
         </figure>
 
         <div className="lbx-readout" aria-live="polite">
-          <p className="lbx-mode">{bars ? modeText : '—'}</p>
-
           {bars && (
             <>
               <div className="lbx-cell lbx-cell-main">
-                <span className="lbx-k">{c.barEach}</span>
-                <span className="lbx-v">
-                  {fmt(shown.bar)}<small>{c.px}</small>
-                </span>
+                <span className="lbx-k">{letter ? c.barTB : pillar ? c.barLR : c.noBars}</span>
                 {shown.mode !== 'none' && (
-                  <button type="button" className="lbx-copy" onClick={() => copyValue('bar', String(shown.bar))}>
-                    {copiedKey === 'bar' ? c.copied : c.copy}
-                  </button>
+                  <>
+                    <span className="lbx-v">
+                      {fmt(shown.bar)}<small>{c.px}</small>
+                    </span>
+                    <button type="button" className="lbx-copy" onClick={() => copyValue('bar', String(shown.bar))}>
+                      {copiedKey === 'bar' ? c.copied : c.copy}
+                    </button>
+                  </>
                 )}
               </div>
 
               <div className="lbx-cell">
-                <span className="lbx-k">{c.visible}</span>
+                <span className="lbx-k">{c.visibleShort}</span>
                 <span className="lbx-v lbx-v-sm">
                   {fmt(shown.visibleW)} × {fmt(shown.visibleH)}
                 </span>
               </div>
 
-              <div className="lbx-cell">
-                <span className="lbx-k">{c.barTotal}</span>
-                <span className="lbx-v lbx-v-sm">
-                  {fmt(shown.bar * 2)} {c.px}
-                </span>
-              </div>
-
-              {shown.mode !== 'none' && (
-                <div className="lbx-cell">
-                  <span className="lbx-k">{c.pct}</span>
-                  <span className="lbx-v lbx-v-sm">
-                    {dec(shown.barPct, 2)}%<small> {c.pctOf[shown.mode]}</small>
-                  </span>
-                </div>
-              )}
-
-              <div className="lbx-cell">
-                <span className="lbx-k">{c.actual}</span>
-                <span className="lbx-v lbx-v-sm">{dec(shown.actual, 3)}:1</span>
-                <span className="lbx-note">{c.actualNote}</span>
-              </div>
-
-              {shown.mode !== 'none' && (
-                <div className="lbx-cell lbx-crop">
-                  <span className="lbx-k">{c.resolve}</span>
-                  <span className="lbx-crop-row">
-                    {letter ? (
-                      <>
-                        <b>{c.cropTop}</b> {fmt(shown.bar)} <b>{c.cropBottom}</b> {fmt(shown.bar)}
-                      </>
-                    ) : (
-                      <>
-                        <b>{c.cropLeft}</b> {fmt(shown.bar)} <b>{c.cropRight}</b> {fmt(shown.bar)}
-                      </>
-                    )}
-                  </span>
-                </div>
-              )}
               <div className="lbx-actions">
                 {shown.mode !== 'none' && (
                   <button type="button" className="lbx-download" onClick={downloadPng}>{c.download}</button>
@@ -597,7 +524,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-strip {
           position: relative;
           margin: 0;
-          padding: 1.9rem 2.6rem 1.9rem;
+          padding: 1.4rem 2.6rem;
           background: #050505;
           border: 1px solid var(--color-border);
           border-radius: 2px;
@@ -624,33 +551,6 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           border-radius: 1px;
         }
 
-        .lbx-head {
-          position: absolute;
-          top: 0.55rem;
-          left: 2.6rem;
-          right: 2.6rem;
-          display: flex;
-          justify-content: space-between;
-          gap: 1rem;
-          font: 0.62rem var(--lbx-mono);
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: var(--color-fg-muted);
-          white-space: nowrap;
-          overflow: hidden;
-        }
-        .lbx-edge {
-          position: absolute;
-          bottom: 0.55rem;
-          left: 2.6rem;
-          right: 2.6rem;
-          font: 0.62rem var(--lbx-mono);
-          letter-spacing: 0.18em;
-          color: var(--color-fg-muted);
-          opacity: 0.7;
-          white-space: pre;
-          overflow: hidden;
-        }
 
         .lbx-stage {
           height: var(--lbx-stage-h);
@@ -741,14 +641,6 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           border-radius: 2px;
           padding: 1.2rem 1.3rem 1.3rem;
         }
-        .lbx-mode {
-          margin: 0 0 0.3rem;
-          font: 600 0.7rem var(--lbx-mono);
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: var(--color-fg);
-          max-width: none;
-        }
         .lbx-cell {
           display: grid;
           grid-template-columns: 1fr auto;
@@ -788,20 +680,14 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           cursor: pointer;
         }
         .lbx-copy:hover { color: var(--color-fg); border-color: var(--color-fg-muted); }
-        .lbx-note { grid-column: 1 / -1; font-size: 0.72rem; color: var(--color-fg-muted); opacity: 0.8; }
-        .lbx-crop-row { grid-column: 2; font: 0.95rem var(--lbx-mono); font-variant-numeric: tabular-nums; color: var(--color-fg); text-align: right; }
-        .lbx-crop-row b { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-fg-muted); font-weight: 600; margin-left: 0.5rem; }
-        .lbx-crop-row b:first-child { margin-left: 0; }
 
         @media (max-width: 900px) {
           .lbx-body { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
           .lbx { --lbx-stage-h: 15rem; }
-          .lbx-strip { padding: 1.7rem 0.9rem 1.7rem; }
+          .lbx-strip { padding: 1rem 0.9rem; }
           .lbx-perfs { display: none; }
-          .lbx-head, .lbx-edge { left: 0.9rem; right: 0.9rem; }
-          .lbx-head span:last-child { display: none; }
           .lbx-inputs input { width: 100%; }
           .lbx-inputs label { flex: 1 1 8rem; }
         }

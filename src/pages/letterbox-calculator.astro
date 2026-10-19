@@ -19,20 +19,16 @@ const px = (n: number) => n.toLocaleString('en-US');
 
 const faq = [
   {
-    q: 'How many pixels are the black bars for 2.39:1 on 1920×1080?',
-    a: 'The image has to be 1920×804, so you need 138 px of black at the top and 138 px at the bottom (276 px in total, about 12.8% of the frame height each side).',
+    q: 'How big are the black bars for 2.39:1 on 1920×1080?',
+    a: '138 px at the top and 138 px at the bottom. The picture left is about 1920×804.',
   },
   {
-    q: 'What is the difference between letterbox and pillarbox?',
-    a: 'Letterbox adds bars at the top and bottom, which is what you need when the target ratio is wider than your frame (2.39:1 on a 16:9 video). Pillarbox adds bars at the left and right, which is what you need when the target is narrower (1:1 or 4:5 on a 16:9 video).',
-  },
-  {
-    q: 'Does adding black bars crop my footage?',
-    a: 'Yes, in the sense that those rows of pixels are covered. The video keeps its full resolution (1920×1080 stays 1920×1080) but the visible picture is smaller. If you want to keep the whole frame, shoot or frame with the bars in mind.',
+    q: 'Letterbox or pillarbox?',
+    a: 'Letterbox is bars on top and bottom, for a ratio wider than your frame (2.39:1 on 16:9). Pillarbox is bars on the sides, for a narrower one (1:1 or 4:5 on 16:9).',
   },
   {
     q: 'Why is the resulting ratio not exactly 2.39?',
-    a: 'Bars are made of whole pixels and are the same on both sides, so the visible height is rounded. On 1920×1080 you get 2.388:1 instead of 2.390:1. The difference is invisible in practice.',
+    a: 'Bars are whole pixels and equal on both sides, so the height is rounded. The difference is invisible.',
   },
 ];
 
@@ -74,10 +70,7 @@ const jsonLd = [
     <div class="container hero-inner">
       <p class="eyebrow">Free tool &middot; by Malejemplo</p>
       <h1>Letterbox calculator</h1>
-      <p class="lede">
-        Pick your frame size and the aspect ratio you want. You get the exact height of the black
-        bars in pixels, what is left of the picture, and the values to paste into your editor.
-      </p>
+      <p class="lede">Pick a size and a ratio. Get the black bars in pixels.</p>
     </div>
   </section>
 
@@ -89,24 +82,16 @@ const jsonLd = [
 
   <section class="section">
     <div class="container narrow">
-      <h2>How the black bars are calculated</h2>
-      <p>
-        If your target ratio is wider than your frame, the picture keeps its full width and loses
-        height. The bars are the leftover height, split in two:
-      </p>
+      <h2>The formula</h2>
       <p class="formula">visible height = width ÷ ratio<br />bar = (height − visible height) ÷ 2</p>
-      <p>
-        For 1920×1080 and 2.39:1 the visible height is 1920 ÷ 2.39 ≈ 803.3, so each bar is
-        (1080 − 803.3) ÷ 2 ≈ <strong>138 px</strong>, on top and at the bottom. If the target is narrower than the frame, the same idea
-        applies to the width and the bars go on the sides (pillarbox).
-      </p>
+      <p>1920×1080 at 2.39:1: 1920 ÷ 2.39 ≈ 803, so (1080 − 803) ÷ 2 ≈ <strong>138 px</strong> per bar.</p>
     </div>
   </section>
 
   <section class="section table-section">
     <div class="container">
       <h2>Common ratios, ready to read</h2>
-      <p>Bar size on each side, in pixels. 1080p and 4K UHD, with the bars applied to a 16:9 frame.</p>
+      <p>Bar per side, in pixels, on a 16:9 frame.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -134,27 +119,17 @@ const jsonLd = [
 
   <section class="section">
     <div class="container narrow">
-      <h2>How to add the bars in DaVinci Resolve</h2>
-      <p>Two manual ways, both using the numbers from the calculator:</p>
+      <h2>In DaVinci Resolve</h2>
       <ol class="steps">
-        <li>
-          <strong>Output Blanking.</strong> In the Timeline menu choose Output Blanking and pick one
-          of the ratios in the list (for example 2.39). It is applied to the whole timeline, at the
-          end of the chain, so it does not touch your clips or your grade.
-        </li>
-        <li>
-          <strong>Crop.</strong> Select the clip, open the Inspector, Video tab, Cropping, and type
-          the bar size from the calculator into Crop Top and Crop Bottom (Crop Left and Crop Right
-          for a pillarbox). The values are in pixels, so use the numbers for your timeline
-          resolution.
-        </li>
+        <li><strong>Timeline › Output Blanking.</strong> Pick a ratio from the list.</li>
+        <li><strong>Inspector › Cropping.</strong> Type the bar size in Crop Top and Crop Bottom (Left and Right for pillarbox).</li>
       </ol>
     </div>
   </section>
 
   <section class="section">
     <div class="container narrow">
-      <h2>Questions</h2>
+      <h2>FAQ</h2>
       <dl class="faq">
         {faq.map((f) => (
           <div>
@@ -169,11 +144,7 @@ const jsonLd = [
   <section class="section cta">
     <div class="container narrow">
       <h2>Skip the maths</h2>
-      <p>
-        GATE.24 is a plugin for DaVinci Resolve that puts the crop bars on for you, with 9 formats
-        from 2.39:1 to 9:16, plus lens-style vignette, film grain and skin-safe contrast. Pick a
-        format, adjust it by hand if you want.
-      </p>
+      <p>GATE.24 puts the bars on for you: 9 formats from 2.39:1 to 9:16, inside DaVinci Resolve.</p>
       <p><a class="btn btn-primary" href={pagePath('gate24', 'en')}>See GATE.24</a></p>
     </div>
   </section>

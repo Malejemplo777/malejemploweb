@@ -19,20 +19,16 @@ const px = (n: number) => n.toLocaleString('es-ES');
 
 const faq = [
   {
-    q: '¿Cuántos píxeles miden las barras negras para 2.39:1 en 1920×1080?',
-    a: 'La imagen tiene que quedarse en 1920×804, así que necesitas 138 px de negro arriba y otros 138 px abajo (276 px en total, un 12,8 % del alto del fotograma por cada lado).',
+    q: '¿Cuánto miden las barras para 2.39:1 en 1920×1080?',
+    a: '138 px arriba y 138 px abajo. La imagen que queda es de unos 1920×804.',
   },
   {
-    q: '¿Qué diferencia hay entre letterbox y pillarbox?',
-    a: 'El letterbox pone las barras arriba y abajo, y lo necesitas cuando la relación que quieres es más ancha que tu fotograma (2.39:1 sobre un vídeo 16:9). El pillarbox las pone a izquierda y derecha, y lo necesitas cuando es más estrecha (1:1 o 4:5 sobre un vídeo 16:9).',
-  },
-  {
-    q: '¿Añadir barras negras recorta mi vídeo?',
-    a: 'En el sentido de que esas filas de píxeles quedan tapadas, sí. El vídeo mantiene su resolución (1920×1080 sigue siendo 1920×1080), pero la imagen visible es más pequeña. Si quieres conservar todo el encuadre, grábalo pensando ya en las barras.',
+    q: '¿Letterbox o pillarbox?',
+    a: 'Letterbox son barras arriba y abajo, para una relación más ancha que tu fotograma (2.39:1 sobre 16:9). Pillarbox son barras a los lados, para una más estrecha (1:1 o 4:5 sobre 16:9).',
   },
   {
     q: '¿Por qué la relación resultante no es exactamente 2.39?',
-    a: 'Las barras son de píxeles enteros y son iguales por los dos lados, así que el alto visible se redondea. En 1920×1080 sale 2.388:1 en lugar de 2.390:1. A efectos prácticos no se nota.',
+    a: 'Las barras son píxeles enteros e iguales por los dos lados, así que el alto se redondea. No se nota.',
   },
 ];
 
@@ -74,11 +70,7 @@ const jsonLd = [
     <div class="container hero-inner">
       <p class="eyebrow">Herramienta gratuita &middot; por Malejemplo</p>
       <h1>Calculadora de barras negras</h1>
-      <p class="lede">
-        Elige el tamaño de tu fotograma y la relación de aspecto que quieres. Te doy el alto exacto
-        de las barras en píxeles, lo que queda de imagen y los valores listos para copiar en tu
-        editor.
-      </p>
+      <p class="lede">Elige un tamaño y una relación. Te doy las barras en píxeles.</p>
     </div>
   </section>
 
@@ -90,25 +82,16 @@ const jsonLd = [
 
   <section class="section">
     <div class="container narrow">
-      <h2>Cómo se calculan las barras negras</h2>
-      <p>
-        Si la relación que quieres es más ancha que tu fotograma, la imagen conserva todo el ancho
-        y pierde altura. Las barras son la altura que sobra, repartida en dos:
-      </p>
+      <h2>La fórmula</h2>
       <p class="formula">alto visible = ancho ÷ relación<br />barra = (alto − alto visible) ÷ 2</p>
-      <p>
-        Para 1920×1080 y 2.39:1, el alto visible es 1920 ÷ 2.39 ≈ 803,3, así que cada barra mide
-        (1080 − 803,3) ÷ 2 ≈ <strong>138 px</strong>, arriba y abajo. Si la relación es más estrecha
-        que el fotograma, la cuenta es la misma pero con el ancho, y las barras van a los lados
-        (pillarbox).
-      </p>
+      <p>1920×1080 a 2.39:1: 1920 ÷ 2.39 ≈ 803, así que (1080 − 803) ÷ 2 ≈ <strong>138 px</strong> por barra.</p>
     </div>
   </section>
 
   <section class="section table-section">
     <div class="container">
       <h2>Las relaciones más habituales, ya calculadas</h2>
-      <p>Tamaño de la barra en cada lado, en píxeles. 1080p y 4K UHD, con las barras aplicadas sobre un fotograma 16:9.</p>
+      <p>Barra por lado, en píxeles, sobre un fotograma 16:9.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -136,27 +119,17 @@ const jsonLd = [
 
   <section class="section">
     <div class="container narrow">
-      <h2>Cómo poner las barras en DaVinci Resolve</h2>
-      <p>Dos formas manuales, las dos con los números de la calculadora:</p>
+      <h2>En DaVinci Resolve</h2>
       <ol class="steps">
-        <li>
-          <strong>Output Blanking.</strong> En el menú Timeline elige Output Blanking y escoge una
-          de las relaciones de la lista (por ejemplo, 2.39). Se aplica a toda la línea de tiempo y
-          al final de la cadena, así que no toca ni tus clips ni tu etalonaje.
-        </li>
-        <li>
-          <strong>Recorte.</strong> Selecciona el clip, abre el Inspector, pestaña Video, Cropping,
-          y escribe el tamaño de barra de la calculadora en Crop Top y Crop Bottom (Crop Left y Crop
-          Right si es un pillarbox). Los valores van en píxeles, así que usa los de la resolución de
-          tu línea de tiempo.
-        </li>
+        <li><strong>Timeline › Output Blanking.</strong> Elige una relación de la lista.</li>
+        <li><strong>Inspector › Cropping.</strong> Escribe el tamaño de barra en Crop Top y Crop Bottom (Left y Right si es pillarbox).</li>
       </ol>
     </div>
   </section>
 
   <section class="section">
     <div class="container narrow">
-      <h2>Preguntas frecuentes</h2>
+      <h2>Preguntas</h2>
       <dl class="faq">
         {faq.map((f) => (
           <div>
@@ -171,11 +144,7 @@ const jsonLd = [
   <section class="section cta">
     <div class="container narrow">
       <h2>Sin hacer cuentas</h2>
-      <p>
-        GATE.24 es un plugin para DaVinci Resolve que pone las barras por ti, con 9 formatos del
-        2.39:1 al 9:16, además de viñeta según la óptica, grano de película y contraste que respeta
-        la piel. Elige un formato y, si quieres, retócalo a mano.
-      </p>
+      <p>GATE.24 pone las barras por ti: 9 formatos del 2.39:1 al 9:16, dentro de DaVinci Resolve.</p>
       <p><a class="btn btn-primary" href={pagePath('gate24', 'es')}>Ver GATE.24</a></p>
     </div>
   </section>
