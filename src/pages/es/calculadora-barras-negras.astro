@@ -1,0 +1,278 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FilmPerforations from '../../components/FilmPerforations.astro';
+import LetterboxCalculator from '../../components/LetterboxCalculator.tsx';
+import { calcBars, ratios } from '../../lib/letterbox';
+import { pagePath } from '../../i18n';
+
+const hd = { w: 1920, h: 1080 };
+const uhd = { w: 3840, h: 2160 };
+
+const rows = ratios.map((r) => ({
+  label: r.label,
+  hd: calcBars(hd.w, hd.h, r.value),
+  uhd: calcBars(uhd.w, uhd.h, r.value),
+}));
+
+const kind = (m: string) => (m === 'letterbox' ? 'Arriba y abajo' : m === 'pillarbox' ? 'A los lados' : 'Ninguna');
+const px = (n: number) => n.toLocaleString('es-ES');
+
+const faq = [
+  {
+    q: '¿Cuántos píxeles miden las barras negras para 2.39:1 en 1920×1080?',
+    a: 'La imagen tiene que quedarse en 1920×804, así que necesitas 138 px de negro arriba y otros 138 px abajo (276 px en total, un 12,8 % del alto del fotograma por cada lado).',
+  },
+  {
+    q: '¿Qué diferencia hay entre letterbox y pillarbox?',
+    a: 'El letterbox pone las barras arriba y abajo, y lo necesitas cuando la relación que quieres es más ancha que tu fotograma (2.39:1 sobre un vídeo 16:9). El pillarbox las pone a izquierda y derecha, y lo necesitas cuando es más estrecha (1:1 o 4:5 sobre un vídeo 16:9).',
+  },
+  {
+    q: '¿Añadir barras negras recorta mi vídeo?',
+    a: 'En el sentido de que esas filas de píxeles quedan tapadas, sí. El vídeo mantiene su resolución (1920×1080 sigue siendo 1920×1080), pero la imagen visible es más pequeña. Si quieres conservar todo el encuadre, grábalo pensando ya en las barras.',
+  },
+  {
+    q: '¿Por qué la relación resultante no es exactamente 2.39?',
+    a: 'Las barras son de píxeles enteros y son iguales por los dos lados, así que el alto visible se redondea. En 1920×1080 sale 2.388:1 en lugar de 2.390:1. A efectos prácticos no se nota.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Calculadora de barras negras',
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Cualquiera (funciona en el navegador)',
+    inLanguage: 'es',
+    description:
+      'Calculadora gratuita que te da el tamaño exacto en píxeles de las barras negras (letterbox o pillarbox) para cualquier resolución y relación de aspecto.',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Calculadora de barras negras: tamaño en píxeles"
+  description="Calculadora gratuita de letterbox y pillarbox. Elige tu resolución y una relación de aspecto (2.39:1, 2.35:1, 1.85:1, 1:1, 4:5, 9:16) y obtén el tamaño exacto de las barras negras en píxeles."
+  alternatePath="/letterbox-calculator/"
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+
+  <section class="hero section">
+    <FilmPerforations />
+    <div class="container hero-inner">
+      <p class="eyebrow">Herramienta gratuita &middot; por Malejemplo</p>
+      <h1>Calculadora de barras negras</h1>
+      <p class="lede">
+        Elige el tamaño de tu fotograma y la relación de aspecto que quieres. Te doy el alto exacto
+        de las barras en píxeles, lo que queda de imagen y los valores listos para copiar en tu
+        editor.
+      </p>
+    </div>
+  </section>
+
+  <section class="calc-section">
+    <div class="container">
+      <LetterboxCalculator client:load lang="es" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>Cómo se calculan las barras negras</h2>
+      <p>
+        Si la relación que quieres es más ancha que tu fotograma, la imagen conserva todo el ancho
+        y pierde altura. Las barras son la altura que sobra, repartida en dos:
+      </p>
+      <p class="formula">alto visible = ancho ÷ relación<br />barra = (alto − alto visible) ÷ 2</p>
+      <p>
+        Para 1920×1080 y 2.39:1, el alto visible es 1920 ÷ 2.39 ≈ 803,3, así que cada barra mide
+        (1080 − 803,3) ÷ 2 ≈ <strong>138 px</strong>, arriba y abajo. Si la relación es más estrecha
+        que el fotograma, la cuenta es la misma pero con el ancho, y las barras van a los lados
+        (pillarbox).
+      </p>
+    </div>
+  </section>
+
+  <section class="section table-section">
+    <div class="container">
+      <h2>Las relaciones más habituales, ya calculadas</h2>
+      <p>Tamaño de la barra en cada lado, en píxeles. 1080p y 4K UHD, con las barras aplicadas sobre un fotograma 16:9.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Relación</th>
+              <th scope="col">Barras</th>
+              <th scope="col">1920×1080</th>
+              <th scope="col">3840×2160</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr>
+                <th scope="row">{r.label}</th>
+                <td>{kind(r.hd.mode)}</td>
+                <td>{px(r.hd.bar)} px <span class="dim">→ {r.hd.visibleW}×{r.hd.visibleH}</span></td>
+                <td>{px(r.uhd.bar)} px <span class="dim">→ {r.uhd.visibleW}×{r.uhd.visibleH}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>Cómo poner las barras en DaVinci Resolve</h2>
+      <p>Dos formas manuales, las dos con los números de la calculadora:</p>
+      <ol class="steps">
+        <li>
+          <strong>Output Blanking.</strong> En el menú Timeline elige Output Blanking y escoge una
+          de las relaciones de la lista (por ejemplo, 2.39). Se aplica a toda la línea de tiempo y
+          al final de la cadena, así que no toca ni tus clips ni tu etalonaje.
+        </li>
+        <li>
+          <strong>Recorte.</strong> Selecciona el clip, abre el Inspector, pestaña Video, Cropping,
+          y escribe el tamaño de barra de la calculadora en Crop Top y Crop Bottom (Crop Left y Crop
+          Right si es un pillarbox). Los valores van en píxeles, así que usa los de la resolución de
+          tu línea de tiempo.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>Preguntas frecuentes</h2>
+      <dl class="faq">
+        {faq.map((f) => (
+          <div>
+            <dt>{f.q}</dt>
+            <dd>{f.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section cta">
+    <div class="container narrow">
+      <h2>Sin hacer cuentas</h2>
+      <p>
+        GATE.24 es un plugin para DaVinci Resolve que pone las barras por ti, con 9 formatos del
+        2.39:1 al 9:16, además de viñeta según la óptica, grano de película y contraste que respeta
+        la piel. Elige un formato y, si quieres, retócalo a mano.
+      </p>
+      <p><a class="btn btn-primary" href={pagePath('gate24', 'es')}>Ver GATE.24</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-4);
+    text-align: center;
+  }
+  .hero-inner {
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+  .hero .eyebrow {
+    margin-inline: auto;
+  }
+  .lede {
+    font-size: 1.1rem;
+    margin-inline: auto;
+  }
+  .calc-section {
+    padding-bottom: var(--space-5);
+  }
+  .narrow {
+    max-width: 44rem;
+  }
+  .formula {
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+    color: var(--color-fg);
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
+    padding: 1rem 1.25rem;
+    line-height: 1.8;
+    max-width: none;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: var(--space-3);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 36rem;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    color: var(--color-fg-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  tbody th {
+    font-weight: 600;
+  }
+  .dim {
+    color: var(--color-fg-muted);
+    font-size: 0.8rem;
+    margin-left: 0.25rem;
+  }
+  .steps {
+    color: var(--color-fg-muted);
+    padding-left: 1.2rem;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .steps strong {
+    color: var(--color-fg);
+  }
+  .faq {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-3) 0 0;
+  }
+  .faq dt {
+    font-weight: 600;
+    color: var(--color-fg);
+    margin-bottom: 0.25rem;
+  }
+  .faq dd {
+    margin: 0;
+    color: var(--color-fg-muted);
+  }
+  .cta {
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+  }
+  .cta .narrow p {
+    margin-inline: auto;
+  }
+</style>

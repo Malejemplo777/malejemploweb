@@ -1,0 +1,645 @@
+import { useMemo, useState } from 'react';
+import type { Lang } from '../i18n';
+import { calcBars, ratios, sources } from '../lib/letterbox';
+
+interface Props {
+  lang?: Lang;
+}
+
+const copy = {
+  en: {
+    sourceLabel: 'Your frame',
+    targetLabel: 'Target ratio',
+    custom: 'Custom',
+    width: 'Width (px)',
+    height: 'Height (px)',
+    ratioInput: 'Ratio (e.g. 2.76 or 21:9)',
+    badSource: 'Enter a width and height between 16 and 16384 px.',
+    badRatio: 'Enter a ratio like 2.39, 2.39:1 or 21:9.',
+    gateTitle: 'Film gate preview',
+    source: 'Source',
+    target: 'Target',
+    letterbox: 'Letterbox · bars top and bottom',
+    pillarbox: 'Pillarbox · bars left and right',
+    none: 'Same ratio · no bars needed',
+    barEach: 'Bar on each side',
+    barTotal: 'Total black',
+    visible: 'Visible frame',
+    pct: 'Of frame',
+    pctOf: { letterbox: 'of the height', pillarbox: 'of the width', none: '' },
+    actual: 'Resulting ratio',
+    actualNote: 'Bars are whole pixels, so it can differ in the 3rd decimal.',
+    resolve: 'Crop values for Resolve',
+    cropTop: 'Top',
+    cropBottom: 'Bottom',
+    cropLeft: 'Left',
+    cropRight: 'Right',
+    copy: 'Copy',
+    copied: 'Copied',
+    px: 'px',
+    alt: 'Sample film frame with the letterbox bars applied',
+  },
+  es: {
+    sourceLabel: 'Tu fotograma',
+    targetLabel: 'Relación de aspecto objetivo',
+    custom: 'Otra',
+    width: 'Ancho (px)',
+    height: 'Alto (px)',
+    ratioInput: 'Relación (p. ej. 2.76 o 21:9)',
+    badSource: 'Escribe un ancho y un alto entre 16 y 16384 px.',
+    badRatio: 'Escribe una relación como 2.39, 2.39:1 o 21:9.',
+    gateTitle: 'Vista previa del film gate',
+    source: 'Origen',
+    target: 'Objetivo',
+    letterbox: 'Letterbox · barras arriba y abajo',
+    pillarbox: 'Pillarbox · barras a los lados',
+    none: 'Misma relación · no hacen falta barras',
+    barEach: 'Barra en cada lado',
+    barTotal: 'Negro total',
+    visible: 'Imagen visible',
+    pct: 'Del fotograma',
+    pctOf: { letterbox: 'del alto', pillarbox: 'del ancho', none: '' },
+    actual: 'Relación resultante',
+    actualNote: 'Las barras son píxeles enteros, así que puede variar en el tercer decimal.',
+    resolve: 'Valores de recorte para Resolve',
+    cropTop: 'Arriba',
+    cropBottom: 'Abajo',
+    cropLeft: 'Izquierda',
+    cropRight: 'Derecha',
+    copy: 'Copiar',
+    copied: 'Copiado',
+    px: 'px',
+    alt: 'Fotograma de ejemplo con las barras negras aplicadas',
+  },
+} as const;
+
+// Accepts "2.39", "2,39", "2.39:1", "21:9" or "21/9"; returns width / height.
+function parseRatio(input: string): number | null {
+  const s = input.trim().replace(',', '.');
+  const m = s.match(/^(\d+(?:\.\d+)?)\s*(?:[:/]\s*(\d+(?:\.\d+)?))?$/);
+  if (!m) return null;
+  const a = parseFloat(m[1]);
+  const b = m[2] === undefined ? 1 : parseFloat(m[2]);
+  const v = a / b;
+  return Number.isFinite(v) && v >= 0.2 && v <= 10 ? v : null;
+}
+
+function parseDim(input: string): number | null {
+  if (!/^\d{1,5}$/.test(input.trim())) return null;
+  const n = parseInt(input, 10);
+  return n >= 16 && n <= 16384 ? n : null;
+}
+
+// Same fractal-noise grain the rest of the site uses, as an inline SVG.
+const GRAIN =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+
+export default function LetterboxCalculator({ lang = 'en' }: Props) {
+  const c = copy[lang];
+  const loc = lang === 'es' ? 'es-ES' : 'en-US';
+  const fmt = (n: number) => n.toLocaleString(loc);
+  const dec = (n: number, d: number) => n.toLocaleString(loc, { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  const [sourceId, setSourceId] = useState('hd');
+  const [customW, setCustomW] = useState('2048');
+  const [customH, setCustomH] = useState('858');
+  const [ratioId, setRatioId] = useState('2.39');
+  const [customRatio, setCustomRatio] = useState('2.76');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const src = sources.find((s) => s.id === sourceId);
+  const w = src ? src.w : parseDim(customW);
+  const h = src ? src.h : parseDim(customH);
+  const ratio = ratios.find((r) => r.id === ratioId);
+  const target = ratio ? ratio.value : parseRatio(customRatio);
+  const targetLabel = ratio ? ratio.label : `${customRatio.trim()}`;
+
+  const bars = useMemo(
+    () => (w && h && target ? calcBars(w, h, target) : null),
+    [w, h, target],
+  );
+
+  // Keep the last valid geometry on screen while a custom field is mid-edit
+  // so the preview doesn't collapse.
+  const [last, setLast] = useState({ w: 1920, h: 1080, bars: calcBars(1920, 1080, 2.39) });
+  if (bars && w && h && (last.bars !== bars || last.w !== w || last.h !== h)) {
+    setLast({ w, h, bars });
+  }
+  const shown = bars ?? last.bars;
+  const sw = bars && w ? w : last.w;
+  const sh = bars && h ? h : last.h;
+
+  const sourceRatio = sw / sh;
+  const letter = shown.mode === 'letterbox';
+  const pillar = shown.mode === 'pillarbox';
+
+  async function copyValue(key: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 1400);
+    } catch {
+      /* clipboard can be blocked; the number is on screen anyway */
+    }
+  }
+
+  const modeText = c[shown.mode];
+  const edgeText = `▸ ${bars ? targetLabel : '—'}  ▸  GATE.24  ▸  ${fmt(shown.bar)} PX`;
+
+  return (
+    <div className="lbx">
+      <div className="lbx-controls">
+        <fieldset className="lbx-group">
+          <legend className="lbx-label">{c.sourceLabel}</legend>
+          <div className="lbx-chips">
+            {sources.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className="lbx-chip"
+                aria-pressed={sourceId === s.id}
+                onClick={() => setSourceId(s.id)}
+              >
+                {s.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="lbx-chip"
+              aria-pressed={sourceId === 'custom'}
+              onClick={() => setSourceId('custom')}
+            >
+              {c.custom}
+            </button>
+          </div>
+          {sourceId === 'custom' && (
+            <div className="lbx-inputs">
+              <label>
+                <span>{c.width}</span>
+                <input
+                  inputMode="numeric"
+                  value={customW}
+                  onChange={(e) => setCustomW(e.target.value)}
+                  aria-invalid={!w}
+                />
+              </label>
+              <span className="lbx-times" aria-hidden="true">×</span>
+              <label>
+                <span>{c.height}</span>
+                <input
+                  inputMode="numeric"
+                  value={customH}
+                  onChange={(e) => setCustomH(e.target.value)}
+                  aria-invalid={!h}
+                />
+              </label>
+            </div>
+          )}
+          {sourceId === 'custom' && (!w || !h) && <p className="lbx-error" role="alert">{c.badSource}</p>}
+        </fieldset>
+
+        <fieldset className="lbx-group">
+          <legend className="lbx-label">{c.targetLabel}</legend>
+          <div className="lbx-chips">
+            {ratios.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                className="lbx-chip lbx-chip-ratio"
+                aria-pressed={ratioId === r.id}
+                onClick={() => setRatioId(r.id)}
+              >
+                {r.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="lbx-chip lbx-chip-ratio"
+              aria-pressed={ratioId === 'custom'}
+              onClick={() => setRatioId('custom')}
+            >
+              {c.custom}
+            </button>
+          </div>
+          {ratioId === 'custom' && (
+            <div className="lbx-inputs">
+              <label>
+                <span>{c.ratioInput}</span>
+                <input
+                  value={customRatio}
+                  onChange={(e) => setCustomRatio(e.target.value)}
+                  aria-invalid={!target}
+                />
+              </label>
+            </div>
+          )}
+          {ratioId === 'custom' && !target && <p className="lbx-error" role="alert">{c.badRatio}</p>}
+        </fieldset>
+      </div>
+
+      <div className="lbx-body">
+        <figure className="lbx-strip" aria-label={c.gateTitle}>
+          <div className="lbx-perfs lbx-perfs-l" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
+          <div className="lbx-perfs lbx-perfs-r" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
+
+          <div className="lbx-head" aria-hidden="true">
+            <span>{c.source} {fmt(sw)}×{fmt(sh)} · {dec(sourceRatio, 3)}:1</span>
+            <span>{c.target} {bars ? targetLabel : '—'}</span>
+          </div>
+
+          <div className="lbx-stage">
+            <div className="lbx-gate" style={{ ['--ar' as string]: sw / sh }}>
+              <img
+                className="lbx-photo"
+                src="/showcase/cine-35-before.jpg"
+                alt={c.alt}
+                loading="lazy"
+                draggable={false}
+              />
+              <div className="lbx-grain" style={{ backgroundImage: GRAIN }} aria-hidden="true" />
+
+              <div className="lbx-bar lbx-top" style={{ height: `${letter ? shown.barPct : 0}%` }}>
+                {letter && shown.barPct > 7 && <span>{fmt(shown.bar)} {c.px}</span>}
+              </div>
+              <div className="lbx-bar lbx-bottom" style={{ height: `${letter ? shown.barPct : 0}%` }}>
+                {letter && shown.barPct > 7 && <span>{fmt(shown.bar)} {c.px}</span>}
+              </div>
+              <div className="lbx-bar lbx-left" style={{ width: `${pillar ? shown.barPct : 0}%` }}>
+                {pillar && shown.barPct > 14 && <span>{fmt(shown.bar)} {c.px}</span>}
+              </div>
+              <div className="lbx-bar lbx-right" style={{ width: `${pillar ? shown.barPct : 0}%` }}>
+                {pillar && shown.barPct > 14 && <span>{fmt(shown.bar)} {c.px}</span>}
+              </div>
+
+              {/* Framing guide on the visible area */}
+              <div
+                className="lbx-frame"
+                aria-hidden="true"
+                style={{
+                  top: `${letter ? shown.barPct : 0}%`,
+                  bottom: `${letter ? shown.barPct : 0}%`,
+                  left: `${pillar ? shown.barPct : 0}%`,
+                  right: `${pillar ? shown.barPct : 0}%`,
+                }}
+              >
+                <i className="tl" /><i className="tr" /><i className="bl" /><i className="br" />
+              </div>
+            </div>
+          </div>
+
+          <figcaption className="lbx-edge" aria-hidden="true">{edgeText}</figcaption>
+        </figure>
+
+        <div className="lbx-readout" aria-live="polite">
+          <p className="lbx-mode">{bars ? modeText : '—'}</p>
+
+          {bars && (
+            <>
+              <div className="lbx-cell lbx-cell-main">
+                <span className="lbx-k">{c.barEach}</span>
+                <span className="lbx-v">
+                  {fmt(shown.bar)}<small>{c.px}</small>
+                </span>
+                {shown.mode !== 'none' && (
+                  <button type="button" className="lbx-copy" onClick={() => copyValue('bar', String(shown.bar))}>
+                    {copiedKey === 'bar' ? c.copied : c.copy}
+                  </button>
+                )}
+              </div>
+
+              <div className="lbx-cell">
+                <span className="lbx-k">{c.visible}</span>
+                <span className="lbx-v lbx-v-sm">
+                  {fmt(shown.visibleW)} × {fmt(shown.visibleH)}
+                </span>
+              </div>
+
+              <div className="lbx-cell">
+                <span className="lbx-k">{c.barTotal}</span>
+                <span className="lbx-v lbx-v-sm">
+                  {fmt(shown.bar * 2)} {c.px}
+                </span>
+              </div>
+
+              {shown.mode !== 'none' && (
+                <div className="lbx-cell">
+                  <span className="lbx-k">{c.pct}</span>
+                  <span className="lbx-v lbx-v-sm">
+                    {dec(shown.barPct, 2)}%<small> {c.pctOf[shown.mode]}</small>
+                  </span>
+                </div>
+              )}
+
+              <div className="lbx-cell">
+                <span className="lbx-k">{c.actual}</span>
+                <span className="lbx-v lbx-v-sm">{dec(shown.actual, 3)}:1</span>
+                <span className="lbx-note">{c.actualNote}</span>
+              </div>
+
+              {shown.mode !== 'none' && (
+                <div className="lbx-cell lbx-crop">
+                  <span className="lbx-k">{c.resolve}</span>
+                  <span className="lbx-crop-row">
+                    {letter ? (
+                      <>
+                        <b>{c.cropTop}</b> {fmt(shown.bar)} <b>{c.cropBottom}</b> {fmt(shown.bar)}
+                      </>
+                    ) : (
+                      <>
+                        <b>{c.cropLeft}</b> {fmt(shown.bar)} <b>{c.cropRight}</b> {fmt(shown.bar)}
+                      </>
+                    )}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <style>{`
+        .lbx {
+          --lbx-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+          --lbx-stage-h: 24rem;
+          display: grid;
+          gap: var(--space-4);
+        }
+
+        .lbx-controls { display: grid; gap: var(--space-3); }
+        .lbx-group { border: 0; margin: 0; padding: 0; min-width: 0; }
+        .lbx-label {
+          padding: 0;
+          margin-bottom: 0.6rem;
+          font-size: 0.7rem;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--color-fg-muted);
+        }
+        .lbx-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+        .lbx-chip {
+          font: 500 0.82rem var(--lbx-mono);
+          letter-spacing: 0.04em;
+          font-variant-numeric: tabular-nums;
+          color: var(--color-fg-muted);
+          background: transparent;
+          border: 1px solid var(--color-border);
+          border-radius: 2px;
+          padding: 0.45rem 0.8rem;
+          cursor: pointer;
+          transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .lbx-chip:hover { color: var(--color-fg); border-color: var(--color-fg-muted); }
+        .lbx-chip[aria-pressed='true'] {
+          color: var(--color-bg);
+          background: var(--color-fg);
+          border-color: var(--color-fg);
+        }
+        .lbx-chip:focus-visible, .lbx-copy:focus-visible, .lbx-inputs input:focus-visible {
+          outline: 2px solid var(--color-fg);
+          outline-offset: 2px;
+        }
+
+        .lbx-inputs { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.9rem; }
+        .lbx-inputs label { display: grid; gap: 0.3rem; font-size: 0.7rem; color: var(--color-fg-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+        .lbx-inputs input {
+          width: 10rem;
+          font: 500 1rem var(--lbx-mono);
+          font-variant-numeric: tabular-nums;
+          color: var(--color-fg);
+          background: var(--color-bg-raised);
+          border: 1px solid var(--color-border);
+          border-radius: 2px;
+          padding: 0.5rem 0.7rem;
+        }
+        .lbx-inputs input[aria-invalid='true'] { border-color: #c9694f; }
+        .lbx-times { color: var(--color-fg-muted); padding-bottom: 0.55rem; }
+        .lbx-error { margin: 0.6rem 0 0; font-size: 0.8rem; color: #d8836b; }
+
+        .lbx-body {
+          display: grid;
+          grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+          gap: var(--space-4);
+          align-items: start;
+        }
+
+        /* ---- film strip ---- */
+        .lbx-strip {
+          position: relative;
+          margin: 0;
+          padding: 1.9rem 2.6rem 1.9rem;
+          background: #050505;
+          border: 1px solid var(--color-border);
+          border-radius: 2px;
+        }
+        .lbx-perfs {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 2.6rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-evenly;
+          align-items: center;
+          pointer-events: none;
+        }
+        .lbx-perfs-l { left: 0; }
+        .lbx-perfs-r { right: 0; }
+        .lbx-perfs i {
+          display: block;
+          width: 0.7rem;
+          height: 0.46rem;
+          background: var(--color-bg);
+          border: 1px solid #1d1d1d;
+          border-radius: 1px;
+        }
+
+        .lbx-head {
+          position: absolute;
+          top: 0.55rem;
+          left: 2.6rem;
+          right: 2.6rem;
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          font: 0.62rem var(--lbx-mono);
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--color-fg-muted);
+          white-space: nowrap;
+          overflow: hidden;
+        }
+        .lbx-edge {
+          position: absolute;
+          bottom: 0.55rem;
+          left: 2.6rem;
+          right: 2.6rem;
+          font: 0.62rem var(--lbx-mono);
+          letter-spacing: 0.18em;
+          color: var(--color-fg-muted);
+          opacity: 0.7;
+          white-space: pre;
+          overflow: hidden;
+        }
+
+        .lbx-stage {
+          height: var(--lbx-stage-h);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .lbx-gate {
+          position: relative;
+          aspect-ratio: var(--ar);
+          width: min(100%, calc(var(--lbx-stage-h) * var(--ar)));
+          overflow: hidden;
+          background: #000;
+          box-shadow: 0 0 0 1px #262626, 0 18px 50px rgba(0, 0, 0, 0.6);
+          transition: width 0.4s ease;
+        }
+        .lbx-photo {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          filter: contrast(1.06) saturate(0.92);
+          user-select: none;
+        }
+        .lbx-grain {
+          position: absolute;
+          inset: 0;
+          background-size: 160px 160px;
+          mix-blend-mode: overlay;
+          opacity: 0.2;
+          pointer-events: none;
+          animation: lbx-grain 0.9s steps(5) infinite;
+        }
+        @keyframes lbx-grain {
+          0% { background-position: 0 0; }
+          20% { background-position: -40px 25px; }
+          40% { background-position: 30px -55px; }
+          60% { background-position: -70px -20px; }
+          80% { background-position: 55px 45px; }
+          100% { background-position: 0 0; }
+        }
+
+        .lbx-bar {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          background:
+            repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 7px),
+            #000;
+          transition: height 0.55s cubic-bezier(0.65, 0, 0.2, 1), width 0.55s cubic-bezier(0.65, 0, 0.2, 1);
+        }
+        .lbx-bar span {
+          font: 0.68rem var(--lbx-mono);
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(245, 243, 239, 0.55);
+          white-space: nowrap;
+          font-variant-numeric: tabular-nums;
+        }
+        .lbx-top { top: 0; left: 0; right: 0; }
+        .lbx-bottom { bottom: 0; left: 0; right: 0; }
+        .lbx-left { top: 0; bottom: 0; left: 0; }
+        .lbx-right { top: 0; bottom: 0; right: 0; }
+        .lbx-left span, .lbx-right span { writing-mode: vertical-rl; }
+
+        .lbx-frame {
+          position: absolute;
+          pointer-events: none;
+          border: 1px solid rgba(245, 243, 239, 0.28);
+          transition: top 0.55s cubic-bezier(0.65, 0, 0.2, 1), bottom 0.55s cubic-bezier(0.65, 0, 0.2, 1),
+            left 0.55s cubic-bezier(0.65, 0, 0.2, 1), right 0.55s cubic-bezier(0.65, 0, 0.2, 1);
+        }
+        .lbx-frame i { position: absolute; width: 0.9rem; height: 0.9rem; border: 0 solid rgba(245, 243, 239, 0.9); }
+        .lbx-frame .tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+        .lbx-frame .tr { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+        .lbx-frame .bl { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+        .lbx-frame .br { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+
+        /* ---- counter readout ---- */
+        .lbx-readout {
+          display: grid;
+          gap: 0.75rem;
+          background: var(--color-bg-raised);
+          border: 1px solid var(--color-border);
+          border-radius: 2px;
+          padding: 1.2rem 1.3rem 1.3rem;
+        }
+        .lbx-mode {
+          margin: 0 0 0.3rem;
+          font: 600 0.7rem var(--lbx-mono);
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--color-fg);
+          max-width: none;
+        }
+        .lbx-cell {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: baseline;
+          gap: 0.15rem 1rem;
+          padding-top: 0.75rem;
+          border-top: 1px dashed var(--color-border);
+        }
+        .lbx-k {
+          font-size: 0.68rem;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--color-fg-muted);
+        }
+        .lbx-v {
+          font: 500 clamp(2.4rem, 4vw, 3.3rem) var(--lbx-mono);
+          font-variant-numeric: tabular-nums;
+          line-height: 1;
+          color: var(--color-fg);
+          grid-column: 1;
+        }
+        .lbx-v small { font-size: 0.9rem; letter-spacing: 0.08em; margin-left: 0.4rem; color: var(--color-fg-muted); }
+        .lbx-v-sm { font-size: 1.15rem; text-align: right; grid-column: 2; }
+        .lbx-cell-main { grid-template-columns: 1fr auto; }
+        .lbx-cell-main .lbx-k { grid-column: 1 / -1; }
+        .lbx-copy {
+          align-self: end;
+          font: 600 0.68rem var(--lbx-mono);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--color-fg-muted);
+          background: transparent;
+          border: 1px solid var(--color-border);
+          border-radius: 2px;
+          padding: 0.35rem 0.6rem;
+          cursor: pointer;
+        }
+        .lbx-copy:hover { color: var(--color-fg); border-color: var(--color-fg-muted); }
+        .lbx-note { grid-column: 1 / -1; font-size: 0.72rem; color: var(--color-fg-muted); opacity: 0.8; }
+        .lbx-crop-row { grid-column: 2; font: 0.95rem var(--lbx-mono); font-variant-numeric: tabular-nums; color: var(--color-fg); text-align: right; }
+        .lbx-crop-row b { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-fg-muted); font-weight: 600; margin-left: 0.5rem; }
+        .lbx-crop-row b:first-child { margin-left: 0; }
+
+        @media (max-width: 900px) {
+          .lbx-body { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+          .lbx { --lbx-stage-h: 15rem; }
+          .lbx-strip { padding: 1.7rem 0.9rem 1.7rem; }
+          .lbx-perfs { display: none; }
+          .lbx-head, .lbx-edge { left: 0.9rem; right: 0.9rem; }
+          .lbx-head span:last-child { display: none; }
+          .lbx-inputs input { width: 100%; }
+          .lbx-inputs label { flex: 1 1 8rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .lbx-grain { animation: none; }
+        }
+      `}</style>
+    </div>
+  );
+}

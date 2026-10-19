@@ -1,0 +1,276 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FilmPerforations from '../components/FilmPerforations.astro';
+import LetterboxCalculator from '../components/LetterboxCalculator.tsx';
+import { calcBars, ratios } from '../lib/letterbox';
+import { pagePath } from '../i18n';
+
+const hd = { w: 1920, h: 1080 };
+const uhd = { w: 3840, h: 2160 };
+
+const rows = ratios.map((r) => ({
+  label: r.label,
+  hd: calcBars(hd.w, hd.h, r.value),
+  uhd: calcBars(uhd.w, uhd.h, r.value),
+}));
+
+const kind = (m: string) => (m === 'letterbox' ? 'Top & bottom' : m === 'pillarbox' ? 'Left & right' : 'None');
+const px = (n: number) => n.toLocaleString('en-US');
+
+const faq = [
+  {
+    q: 'How many pixels are the black bars for 2.39:1 on 1920×1080?',
+    a: 'The image has to be 1920×804, so you need 138 px of black at the top and 138 px at the bottom (276 px in total, about 12.8% of the frame height each side).',
+  },
+  {
+    q: 'What is the difference between letterbox and pillarbox?',
+    a: 'Letterbox adds bars at the top and bottom, which is what you need when the target ratio is wider than your frame (2.39:1 on a 16:9 video). Pillarbox adds bars at the left and right, which is what you need when the target is narrower (1:1 or 4:5 on a 16:9 video).',
+  },
+  {
+    q: 'Does adding black bars crop my footage?',
+    a: 'Yes, in the sense that those rows of pixels are covered. The video keeps its full resolution (1920×1080 stays 1920×1080) but the visible picture is smaller. If you want to keep the whole frame, shoot or frame with the bars in mind.',
+  },
+  {
+    q: 'Why is the resulting ratio not exactly 2.39?',
+    a: 'Bars are made of whole pixels and are the same on both sides, so the visible height is rounded. On 1920×1080 you get 2.388:1 instead of 2.390:1. The difference is invisible in practice.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Letterbox calculator',
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Any (runs in the browser)',
+    inLanguage: 'en',
+    description:
+      'Free calculator that gives you the exact pixel size of the black bars (letterbox or pillarbox) for any video resolution and aspect ratio.',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Letterbox calculator: black bar size in pixels"
+  description="Free letterbox and pillarbox calculator. Pick your resolution and an aspect ratio (2.39:1, 2.35:1, 1.85:1, 1:1, 4:5, 9:16) and get the exact black bar size in pixels."
+  alternatePath="/es/calculadora-barras-negras/"
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </Fragment>
+
+  <section class="hero section">
+    <FilmPerforations />
+    <div class="container hero-inner">
+      <p class="eyebrow">Free tool &middot; by Malejemplo</p>
+      <h1>Letterbox calculator</h1>
+      <p class="lede">
+        Pick your frame size and the aspect ratio you want. You get the exact height of the black
+        bars in pixels, what is left of the picture, and the values to paste into your editor.
+      </p>
+    </div>
+  </section>
+
+  <section class="calc-section">
+    <div class="container">
+      <LetterboxCalculator client:load lang="en" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>How the black bars are calculated</h2>
+      <p>
+        If your target ratio is wider than your frame, the picture keeps its full width and loses
+        height. The bars are the leftover height, split in two:
+      </p>
+      <p class="formula">visible height = width ÷ ratio<br />bar = (height − visible height) ÷ 2</p>
+      <p>
+        For 1920×1080 and 2.39:1 the visible height is 1920 ÷ 2.39 ≈ 803.3, so each bar is
+        (1080 − 803.3) ÷ 2 ≈ <strong>138 px</strong>, on top and at the bottom. If the target is narrower than the frame, the same idea
+        applies to the width and the bars go on the sides (pillarbox).
+      </p>
+    </div>
+  </section>
+
+  <section class="section table-section">
+    <div class="container">
+      <h2>Common ratios, ready to read</h2>
+      <p>Bar size on each side, in pixels. 1080p and 4K UHD, with the bars applied to a 16:9 frame.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Ratio</th>
+              <th scope="col">Bars</th>
+              <th scope="col">1920×1080</th>
+              <th scope="col">3840×2160</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr>
+                <th scope="row">{r.label}</th>
+                <td>{kind(r.hd.mode)}</td>
+                <td>{px(r.hd.bar)} px <span class="dim">→ {r.hd.visibleW}×{r.hd.visibleH}</span></td>
+                <td>{px(r.uhd.bar)} px <span class="dim">→ {r.uhd.visibleW}×{r.uhd.visibleH}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>How to add the bars in DaVinci Resolve</h2>
+      <p>Two manual ways, both using the numbers from the calculator:</p>
+      <ol class="steps">
+        <li>
+          <strong>Output Blanking.</strong> In the Timeline menu choose Output Blanking and pick one
+          of the ratios in the list (for example 2.39). It is applied to the whole timeline, at the
+          end of the chain, so it does not touch your clips or your grade.
+        </li>
+        <li>
+          <strong>Crop.</strong> Select the clip, open the Inspector, Video tab, Cropping, and type
+          the bar size from the calculator into Crop Top and Crop Bottom (Crop Left and Crop Right
+          for a pillarbox). The values are in pixels, so use the numbers for your timeline
+          resolution.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <h2>Questions</h2>
+      <dl class="faq">
+        {faq.map((f) => (
+          <div>
+            <dt>{f.q}</dt>
+            <dd>{f.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section cta">
+    <div class="container narrow">
+      <h2>Skip the maths</h2>
+      <p>
+        GATE.24 is a plugin for DaVinci Resolve that puts the crop bars on for you, with 9 formats
+        from 2.39:1 to 9:16, plus lens-style vignette, film grain and skin-safe contrast. Pick a
+        format, adjust it by hand if you want.
+      </p>
+      <p><a class="btn btn-primary" href={pagePath('gate24', 'en')}>See GATE.24</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-4);
+    text-align: center;
+  }
+  .hero-inner {
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+  .hero .eyebrow {
+    margin-inline: auto;
+  }
+  .lede {
+    font-size: 1.1rem;
+    margin-inline: auto;
+  }
+  .calc-section {
+    padding-bottom: var(--space-5);
+  }
+  .narrow {
+    max-width: 44rem;
+  }
+  .formula {
+    font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+    color: var(--color-fg);
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
+    padding: 1rem 1.25rem;
+    line-height: 1.8;
+    max-width: none;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: var(--space-3);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 36rem;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    color: var(--color-fg-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  tbody th {
+    font-weight: 600;
+  }
+  .dim {
+    color: var(--color-fg-muted);
+    font-size: 0.8rem;
+    margin-left: 0.25rem;
+  }
+  .steps {
+    color: var(--color-fg-muted);
+    padding-left: 1.2rem;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .steps strong {
+    color: var(--color-fg);
+  }
+  .faq {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-3) 0 0;
+  }
+  .faq dt {
+    font-weight: 600;
+    color: var(--color-fg);
+    margin-bottom: 0.25rem;
+  }
+  .faq dd {
+    margin: 0;
+    color: var(--color-fg-muted);
+  }
+  .cta {
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+  }
+  .cta .narrow p {
+    margin-inline: auto;
+  }
+</style>

@@ -5,7 +5,7 @@ export function langFromUrl(url: URL): Lang {
   return /^\/es(\/|$)/.test(url.pathname) ? 'es' : 'en';
 }
 
-export type PageKey = 'home' | 'gate24' | 'guides' | 'about' | 'privacy' | 'cookies';
+export type PageKey = 'home' | 'gate24' | 'guides' | 'about' | 'privacy' | 'cookies' | 'calculator';
 
 // Spanish routes get Spanish slugs (better for Spanish search); the English
 // routes are untouched so nothing already indexed moves.
@@ -14,6 +14,7 @@ const slugs: Record<Exclude<PageKey, 'home' | 'gate24'>, Record<Lang, string>> =
   about: { en: 'about', es: 'acerca' },
   privacy: { en: 'privacy', es: 'privacidad' },
   cookies: { en: 'cookies', es: 'cookies' },
+  calculator: { en: 'letterbox-calculator', es: 'calculadora-barras-negras' },
 };
 
 export function pagePath(key: PageKey, lang: Lang, hash = ''): string {
@@ -35,7 +36,7 @@ export const ui = {
     homeLabel: 'Malejemplo -- home',
     menu: 'Menu',
     navLabel: 'Main',
-    nav: { gate24: 'GATE.24', guides: 'Guides', about: 'About' },
+    nav: { gate24: 'GATE.24', calculator: 'Letterbox calculator', guides: 'Guides', about: 'About' },
     footer: {
       tagline: 'Film tools for DaVinci Resolve, made by one person.',
       stay: 'Stay in the loop',
@@ -83,7 +84,7 @@ export const ui = {
     homeLabel: 'Malejemplo — inicio',
     menu: 'Menú',
     navLabel: 'Principal',
-    nav: { gate24: 'GATE.24', guides: 'Guías', about: 'Sobre Malejemplo' },
+    nav: { gate24: 'GATE.24', calculator: 'Barras negras', guides: 'Guías', about: 'Sobre Malejemplo' },
     footer: {
       tagline: 'Herramientas de cine para DaVinci Resolve, hechas por una sola persona.',
       stay: 'Mantente al día',
