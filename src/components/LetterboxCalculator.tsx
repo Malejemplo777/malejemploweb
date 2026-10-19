@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Lang } from '../i18n';
+import { pagePath, type Lang } from '../i18n';
 import { calcBars, ratios, sources } from '../lib/letterbox';
 
 interface Props {
@@ -44,6 +44,7 @@ const copy = {
     yourPhoto: 'Your photo',
     useSample: 'Back to the sample',
     download: 'Download PNG with bars',
+    gate: 'Do it in one click with GATE.24',
     badImage: "Couldn't read that image. Try a JPG, PNG or WebP.",
   },
   es: {
@@ -83,6 +84,7 @@ const copy = {
     yourPhoto: 'Tu foto',
     useSample: 'Volver al ejemplo',
     download: 'Descargar PNG con barras',
+    gate: 'Hazlo en un clic con GATE.24',
     badImage: 'No he podido leer esa imagen. Prueba con un JPG, PNG o WebP.',
   },
 } as const;
@@ -476,9 +478,12 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
                   </span>
                 </div>
               )}
-              {shown.mode !== 'none' && (
-                <button type="button" className="lbx-download" onClick={downloadPng}>{c.download}</button>
-              )}
+              <div className="lbx-actions">
+                {shown.mode !== 'none' && (
+                  <button type="button" className="lbx-download" onClick={downloadPng}>{c.download}</button>
+                )}
+                <a className="lbx-gate-link" href={pagePath('gate24', lang)}>{c.gate} &rarr;</a>
+              </div>
             </>
           )}
         </div>
@@ -550,8 +555,24 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-upload-btn { display: inline-block; color: var(--color-fg); border-color: var(--color-fg-muted); }
         .lbx-hint { flex: 1 1 100%; margin: 0.2rem 0 0; font-size: 0.78rem; color: var(--color-fg-muted); max-width: none; }
         .lbx-drop { outline: 2px dashed var(--color-fg); outline-offset: -6px; }
+        .lbx-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.4rem; }
+        .lbx-actions > * { flex: 1 1 11rem; text-align: center; }
+        .lbx-gate-link {
+          font: 600 0.72rem var(--lbx-mono);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          text-decoration: none;
+          color: var(--color-fg);
+          background: transparent;
+          border: 1px solid var(--color-border);
+          border-radius: 2px;
+          padding: 0.65rem 0.9rem;
+          transition: border-color 0.2s;
+        }
+        .lbx-gate-link:hover { border-color: var(--color-fg); }
+        .lbx-gate-link:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
         .lbx-download {
-          margin-top: 0.4rem;
+          margin-top: 0;
           font: 600 0.72rem var(--lbx-mono);
           letter-spacing: 0.12em;
           text-transform: uppercase;
