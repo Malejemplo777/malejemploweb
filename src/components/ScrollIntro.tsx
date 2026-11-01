@@ -9,39 +9,34 @@ interface Props {
   forceMotion?: boolean;
 }
 
-// Scroll-driven intro for the GATE.24 page. One sticky stage; the scroll position
-// (0..1) drives every layer. Windows below are written in "vh of scrolling" and
-// converted to progress units, so a chapter can be lengthened by editing one pair.
-const TOTAL = 890;
+// Scroll-driven intro for the GATE.24 page: one sticky stage. The scroll only decides
+// WHICH chapter is current and drives the amounts inside it (grain, vignette, the
+// bars, weave...). Changing chapter, look or step is never tied to the scroll
+// position: crossing a threshold starts a timed, eased move (CSS), so the stage can
+// never be left half-way between two states, however fast the wheel or trackpad is.
+const TOTAL = 920;
 const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
 
+// Where each chapter starts, in vh of scrolling: opening title, presets, grain,
+// vignette, crop, weave + flicker, download.
+const TH = [0, 40, 287, 485, 580, 716, 862];
+const CH = { open: 0, presets: 1, grain: 2, vig: 3, bars: 4, fx: 5, cta: 6 };
+
+// Amounts inside a chapter.
 const W = {
-  presetsIn: w(40, 64),
-  presets: w(64, 240),
-  presetsOut: w(240, 264),
-  grainIn: w(250, 276),
-  zoom: w(292, 340),
-  stocks: w(340, 436),
-  grainOut: w(436, 462),
-  vigIn: w(448, 474),
-  vig: w(474, 530),
-  vigOut: w(530, 556),
-  barsIn: w(544, 570),
-  bars: w(570, 666),
-  barsOut: w(666, 692),
-  moveIn: w(680, 706),
-  fx: w(706, 826),
-  cta: w(832, 866),
+  presets: w(64, 270),
+  zoom: w(322, 370),
+  stocks: w(370, 466),
+  vig: w(504, 560),
+  bars: w(600, 696),
+  fx: w(736, 856),
 };
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
 const ramp = (p: number, win: readonly [number, number]) => clamp((p - win[0]) / (win[1] - win[0]));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-// Smootherstep: flatter at both ends than smoothstep, so every slide, zoom and
-// title eases in and out more gently.
+// Smootherstep: flatter at both ends than smoothstep.
 const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
-/** 1 at i, falling to 0 one step away: a cross-fade between neighbours. */
-const tri = (x: number, i: number) => clamp(1 - Math.abs(x - i));
 
 // Plugin names (presets, controls) stay in English in every language.
 // `es` is the Spanish title shown in the intro; the plugin's own name is shown under it.
@@ -50,6 +45,8 @@ const looks = [
   { id: 'cinema35', label: 'Cinema 35', es: 'Cine 35', src: '/intro-proto/m07_cinema35.webp' },
   { id: 'dustywestern', label: 'Dusty Western', es: 'Western polvoriento', src: '/intro-proto/m07_dustywestern.webp' },
   { id: 'romance', label: 'Romance / Reverie', es: 'Romance / Ensueño', src: '/intro-proto/m07_romance.webp' },
+  // 4:3 shows the side bars, the other formats show top and bottom.
+  { id: 'editorial', label: 'Editorial 4:3', es: 'Editorial 4:3', src: '/library/m07_editorial_pro.webp' },
   { id: 'classichorror', label: 'Classic Horror', es: 'Terror clásico', src: '/intro-proto/m07_classichorror.webp' },
   { id: 'urban', label: 'Urban Editorial', es: 'Editorial urbano', src: '/intro-proto/m07_urban_pro.webp' },
   // Last step: the other presets, shown without naming one.
@@ -58,10 +55,10 @@ const looks = [
 
 // Coarsest grain last.
 const grains = [
-  { label: '65 mm', freq: 0.95, alpha: 0.55 },
-  { label: '35 mm', freq: 0.78, alpha: 0.65 },
-  { label: '16 mm', freq: 0.55, alpha: 0.78 },
-  { label: '8 mm', freq: 0.36, alpha: 0.9 },
+  { label: '65 mm', freq: 0.95, alpha: 0.55 },
+  { label: '35 mm', freq: 0.78, alpha: 0.65 },
+  { label: '16 mm', freq: 0.55, alpha: 0.78 },
+  { label: '8 mm', freq: 0.36, alpha: 0.9 },
 ];
 
 // The Format list of the plugin today (4:5 and 9:16 were removed 2026-10-12).
@@ -150,10 +147,33 @@ const copy = {
   },
 };
 
+/**
+ * Follows `target`, but changes at most once every `ms`, and when it changes it goes
+ * straight to the latest target. A hard flick of the wheel therefore skips the steps
+ * in between (one clean move instead of a pile of half-played ones), and a move that
+ * is already playing is never interrupted by the next one.
+ */
+function useStepper(target: number, ms: number, instant: boolean, settle = 0) {
+  const [v, setV] = useState(target);
+  const last = useRef(0);
+  useEffect(() => {
+    if (instant || v === target) return;
+    // `settle`: the target must hold still this long first, so a flick that crosses
+    // several steps in a few frames lands on the final one without showing the rest.
+    const wait = Math.max(settle, ms - (performance.now() - last.current));
+    const id = window.setTimeout(() => {
+      last.current = performance.now();
+      setV(target);
+    }, wait);
+    return () => window.clearTimeout(id);
+  }, [v, target, ms, instant, settle]);
+  return instant ? target : v;
+}
+
+type ChapterState = 'before' | 'on' | 'after';
+
 interface CenterProps {
-  /** 0 -> 1 while the title comes in, 0 -> 1 while it leaves. */
-  inP: number;
-  outP: number;
+  state: ChapterState;
   calm: boolean;
   tag: string;
   title: string;
@@ -161,7 +181,7 @@ interface CenterProps {
   sub?: string;
   steps?: number;
   active?: number;
-  /** Re-run the small arrival animation when the title / value text changes. */
+  /** Slide the text when the title / value changes. */
   swapTitle?: boolean;
   swapValue?: boolean;
 }
@@ -179,7 +199,7 @@ function SwapText({ text, className, tag: Tag, animate }: { text: string; classN
   }
   useEffect(() => {
     if (prev === null) return;
-    const id = window.setTimeout(() => setPrev(null), 950);
+    const id = window.setTimeout(() => setPrev(null), 1000);
     return () => window.clearTimeout(id);
   }, [n]);
   if (!animate) return <Tag className={className} translate="no">{cur}</Tag>;
@@ -198,13 +218,10 @@ function SwapText({ text, className, tag: Tag, animate }: { text: string; classN
 }
 
 /** Content that slides down through a mask: in from above, out below. No fading. */
-function Mask({ inE, outX, delay, calm, children }: { inE: number; outX: number; delay: number; calm: boolean; children: React.ReactNode }) {
-  const span = 1 - 0.36;
-  const e = smooth(clamp((inE - delay) / span));
-  const x = smooth(clamp((outX - delay) / span));
+function Mask({ delay, children }: { delay: number; children: React.ReactNode }) {
   return (
     <span className="si-m">
-      <span className="si-m-in" style={calm ? undefined : { transform: `translate3d(0, ${(e - 1) * 110 + x * 110}%, 0)` }}>
+      <span className="si-m-in" style={{ '--d': `${delay}s` } as CSSProperties}>
         {children}
       </span>
     </span>
@@ -212,34 +229,27 @@ function Mask({ inE, outX, delay, calm, children }: { inE: number; outX: number;
 }
 
 /** The big centred title of a chapter, with a row of step dots under it. */
-function Center({ inP, outP, calm, tag, title, value, sub, steps, active = 0, swapTitle, swapValue }: CenterProps) {
-  const e = smooth(inP);
-  const x = smooth(outP);
-  const shown = e * (1 - x);
+function Center({ state, calm, tag, title, value, sub, steps, active = 0, swapTitle, swapValue }: CenterProps) {
   return (
-    <div
-      className="si-center"
-      style={calm ? { visibility: shown > 0.5 ? 'visible' : 'hidden' } : undefined}
-      aria-hidden="true"
-    >
-      <Mask inE={inP} outX={outP} delay={0} calm={calm}>
+    <div className="si-center" data-s={state} aria-hidden="true">
+      <Mask delay={0}>
         <p className="si-tag">{tag}</p>
       </Mask>
-      <Mask inE={inP} outX={outP} delay={0.1} calm={calm}>
+      <Mask delay={0.07}>
         <SwapText text={title} className="si-big" tag="h2" animate={!!swapTitle && !calm} />
       </Mask>
       {value && (
-        <Mask inE={inP} outX={outP} delay={0.2} calm={calm}>
+        <Mask delay={0.14}>
           <SwapText text={value} className="si-value" tag="p" animate={!!swapValue && !calm} />
         </Mask>
       )}
       {sub && (
-        <Mask inE={inP} outX={outP} delay={0.26} calm={calm}>
+        <Mask delay={0.18}>
           <SwapText text={sub} className="si-sub" tag="p" animate={!!swapTitle && !calm} />
         </Mask>
       )}
       {steps && (
-        <Mask inE={inP} outX={outP} delay={0.32} calm={calm}>
+        <Mask delay={0.22}>
           <ul className="si-dots">
             {Array.from({ length: steps }, (_, i) => (
               <li key={i} className={i === active ? 'on' : i < active ? 'done' : undefined} />
@@ -266,12 +276,13 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   const raf = useRef(0);
   const fxRef = useRef({ amp: 0, flick: 0 });
   const lookRef = useRef(0);
+  const chRef = useRef(0);
 
   useEffect(() => {
     // "Reduced motion" keeps the scroll-driven chapters (the reader controls them)
-    // but drops the zoom, the weave/flicker jitter, the smoothing and the bar
-    // transitions. `?motion=full` overrides it so the prototype can be judged on a
-    // PC that has Windows animations switched off.
+    // but drops the zoom, the weave/flicker jitter, the smoothing and every timed move.
+    // `?motion=full` overrides it so the prototype can be judged on a PC that has
+    // Windows animations switched off.
     const force = forceMotion || new URLSearchParams(window.location.search).get('motion') === 'full';
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const apply = () => {
@@ -299,9 +310,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
     const tick = () => {
       raf.current = 0;
       const d = target.current - shown.current;
-      // Ease towards the scroll position so a hard flick glides through the
-      // chapters instead of jumping.
-      shown.current = Math.abs(d) < 0.00015 || reducedRef.current ? target.current : shown.current + d * 0.09;
+      // Ease towards the scroll position so the amounts glide.
+      shown.current = Math.abs(d) < 0.00015 || reducedRef.current ? target.current : shown.current + d * 0.12;
       setP(shown.current);
       if (shown.current !== target.current) raf.current = requestAnimationFrame(tick);
     };
@@ -335,61 +345,59 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
     };
   }, []);
 
-  // ---- derived values -------------------------------------------------------
+  // ---- current chapter (with a little hysteresis so it never flickers) --------
+  const vh = p * TOTAL;
+  let c = chRef.current;
+  while (c < TH.length - 1 && vh >= TH[c + 1]) c++;
+  while (c > 0 && vh < TH[c] - 12) c--;
+  chRef.current = c;
+  // The chapter the stage is actually showing: it follows `c`, skipping any chapters
+  // that were crossed faster than a move can play.
+  const cd = useStepper(c, 1100, reduced, 180);
+
+  const stateOf = (k: number): ChapterState => (cd < k ? 'before' : cd === k ? 'on' : 'after');
+
+  // ---- looks: a vertical strip of frames, like film in a projector gate -------
   const lookIdx = ramp(p, W.presets) * (looks.length - 1);
-  // The looks are a vertical strip of frames, like film in a projector gate. Each
-  // look holds still; when the scroll passes the halfway point to the next one the
-  // strip advances with a timed, eased move (CSS), so it is equally smooth however
-  // the wheel or trackpad delivers the scroll. A little hysteresis stops it from
-  // flipping back and forth right at the threshold.
   if (Math.abs(lookIdx - lookRef.current) > 0.58) lookRef.current = Math.round(lookIdx);
-  const lookNow = lookRef.current;
+  const lookNow = useStepper(cd >= CH.presets ? lookRef.current : 0, 1100, reduced, 150);
 
-  const inset = ramp(p, W.presetsIn) * (1 - ramp(p, W.presetsOut));
-  // The opening title leaves like a slide being pulled down out of the gate.
-  const titleOut = smooth(ramp(p, w(24, 60)));
-
-  // Chapter changes are camera moves, not fades through black: the next shot
-  // rises over the previous one, which drifts up a little slower.
-  const inGrain = smooth(ramp(p, W.grainIn));
-  const inVig = smooth(ramp(p, W.vigIn));
-  const inBars = smooth(ramp(p, W.barsIn));
-  const inMove = smooth(ramp(p, W.moveIn));
-  const slide = (self: number, next: number): CSSProperties =>
-    reduced
-      ? { opacity: self }
-      : {
-          transform: `translate3d(0, ${(1 - self) * 100 - next * 14}%, 0)`,
-          boxShadow: self > 0 && self < 1 ? '0 -40px 80px rgba(0,0,0,.55)' : 'none',
-        };
-  // A slow push-in while a shot is on screen, so there is always gentle motion.
-  const drift = (a: readonly [number, number], b: readonly [number, number], amount: number) =>
-    reduced ? undefined : { transform: `scale(${1 + ramp(p, [a[0], b[1]] as const) * amount})` };
+  // ---- other steps, one at a time ---------------------------------------------
+  const grainTarget = Math.min(grains.length - 1, Math.floor(ramp(p, W.stocks) * (grains.length - 1) + 0.5));
+  const grainNow = useStepper(grainTarget, 1100, reduced, 150);
+  const barTarget = clamp(Math.floor(ramp(p, W.bars) * ratios.length), 0, ratios.length - 1);
+  const barStep = useStepper(barTarget, 600, reduced, 100);
+  const fxTarget = clamp(Math.floor(ramp(p, W.fx) * FX_STAGES), 0, FX_STAGES - 1);
+  const fxStage = useStepper(fxTarget, 1100, reduced, 150);
 
   const zoom = ramp(p, W.zoom);
   const g = ramp(p, W.stocks);
-  const grainIdx = g * (grains.length - 1);
-  const grainNow = Math.min(grains.length - 1, Math.floor(grainIdx + 0.5));
-
   const v = ramp(p, W.vig);
 
-  const barStep = clamp(Math.floor(ramp(p, W.bars) * ratios.length), 0, ratios.length - 1);
+  // A slow push-in while a shot is on screen, so there is always gentle motion.
+  const drift = (a: number, b: number, amount: number): CSSProperties | undefined =>
+    reduced ? undefined : { transform: `scale(${1 + clamp((vh - a) / (b - a)) * amount})` };
 
-  const ctaOpacity = ramp(p, W.cta);
-  const fxStage = clamp(Math.floor(ramp(p, W.fx) * FX_STAGES), 0, FX_STAGES - 1);
+  // Layer i (grain, vignette, crop, weave) waits below the stage and rises over the
+  // previous one when its chapter starts; the previous one drifts up a little slower.
+  const layerStyle = (own: number): CSSProperties => {
+    if (reduced) return { visibility: cd >= own ? 'visible' : 'hidden' };
+    const y = cd < own ? 100 : cd > own ? -14 : 0;
+    return { transform: `translate3d(0, ${y}%, 0)` };
+  };
+
   const weaveNow = weaveSteps[Math.min(fxStage, 3)];
   const flickerNow = flickerSteps[Math.max(0, fxStage - 3)];
 
   fxRef.current = { amp: weaveNow * (stage.h / 100) * 2, flick: flickerNow };
-  const fxActive = p >= W.moveIn[0] && !reduced && inView;
+  const fxActive = cd >= CH.fx && !reduced && inView;
   useEffect(() => {
     if (!fxActive) {
       setJitter({ y: 0, b: 1 });
       return;
     }
     // Weave = the frame hops vertically every other frame (12 fps here);
-    // flicker = exposure pulses. Both amounts follow the stage, exaggerated a
-    // little so they read on a web page.
+    // flicker = exposure pulses. Both amounts follow the stage.
     const id = window.setInterval(() => {
       const { amp, flick } = fxRef.current;
       const hop = amp > 0 && Math.random() < 0.4 ? (Math.random() * 2 - 1) * amp : 0;
@@ -407,14 +415,19 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   }, [stage, barStep]);
 
   // Clip, don't resize: animating top/left/right/bottom would re-layout every frame.
+  // The frame around the presets opens and closes with a timed move.
+  const framed = cd === CH.presets;
   const mediaInset: CSSProperties = {
-    clipPath: `inset(${inset * 8}% ${inset * 9}% ${inset * 10}% ${inset * 9}%)`,
+    clipPath: framed ? 'inset(8% 9% 10% 9%)' : 'inset(0% 0% 0% 0%)',
   };
 
   const fxTitle = fxStage === 0 ? 'Weave · Flicker' : fxStage <= 3 ? 'Weave' : 'Flicker';
   const fxValue =
     fxStage === 0 ? t.off : fxStage <= 3 ? `Vertical ${weaveNow.toFixed(2)}` : `Amount ${flickerNow}%`;
   const fxSub = fxStage === 0 ? undefined : fxStage <= 3 ? t.weaveTag : `${t.flickerTag} · Weave ${weaveSteps[3].toFixed(2)}`;
+
+  const atTop = vh < 24;
+  const ctaOn = cd >= CH.cta;
 
   return (
     <section
@@ -425,14 +438,15 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
     >
       <div className="si-stage">
         <p className="si-sr" translate="no">
-          {`${t.summary} Presets: ${looks.map((l) => l.label).join(', ')}. Grain: ${grains.map((x) => x.label).join(', ')}. Crop: ${ratios
-            .map((r) => r.label)
-            .join(', ')}.`}
+          {`${t.summary} Presets: ${looks
+            .filter((l) => l.id !== 'more')
+            .map((l) => l.label)
+            .join(', ')}. Grain: ${grains.map((x) => x.label).join(', ')}. Crop: ${ratios.map((r) => r.label).join(', ')}.`}
         </p>
 
         <div className="si-media" style={mediaInset} aria-hidden="true">
           {/* Hero + presets: the same plane, each look laid over the previous one */}
-          <div className="si-layer" style={reduced ? undefined : { transform: `translate3d(0, ${-inGrain * 14}%, 0)` }}>
+          <div className="si-layer" style={reduced ? undefined : { transform: `translate3d(0, ${cd >= CH.grain ? -14 : 0}%, 0)` }}>
             {looks.map((l, i) => (
               <img
                 key={l.id}
@@ -442,7 +456,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
                 draggable={false}
                 style={
                   reduced
-                    ? { opacity: i === lookNow ? 1 : 0 }
+                    ? { visibility: i === lookNow ? 'visible' : 'hidden' }
                     : {
                         // The incoming frame settles from a touch larger, like film seating in the gate.
                         transform: `translate3d(0, ${(i - lookNow) * 104}%, 0) scale(${1 + 0.02 * Math.min(1, Math.abs(i - lookNow))})`,
@@ -456,7 +470,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           </div>
 
           {/* Grain: the whole frame, then a zoom, then the stock changes */}
-          <div className="si-layer" style={slide(inGrain, inVig)}>
+          <div className="si-layer si-up" style={layerStyle(CH.grain)}>
             <img
               className="si-img"
               src="/intro-proto/m08_original.webp"
@@ -470,19 +484,19 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
               <div
                 key={gr.label}
                 className="si-grain"
-                style={{ backgroundImage: grainUri(gr.freq), opacity: tri(grainIdx, i) * gr.alpha * lerp(0.4, 1, Math.max(zoom * 0.7, g)) }}
+                style={{ backgroundImage: grainUri(gr.freq), opacity: i === grainNow ? gr.alpha * lerp(0.4, 1, Math.max(zoom * 0.7, g)) : 0 }}
               />
             ))}
           </div>
 
           {/* Vignette */}
-          <div className="si-layer" style={slide(inVig, inBars)}>
+          <div className="si-layer si-up" style={layerStyle(CH.vig)}>
             <img
               className="si-img"
               src="/intro-proto/m04_original.webp"
               alt=""
               draggable={false}
-              style={drift(W.vigIn, W.vigOut, 0.07)}
+              style={drift(TH[CH.vig], TH[CH.bars], 0.07)}
               {...imgSize.wide}
               decoding="async"
             />
@@ -495,13 +509,13 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           </div>
 
           {/* Crop bars */}
-          <div className="si-layer" style={slide(inBars, inMove)}>
+          <div className="si-layer si-up" style={layerStyle(CH.bars)}>
             <img
               className="si-img"
               src="/intro-proto/m07_original.webp"
               alt=""
               draggable={false}
-              style={drift(W.barsIn, W.barsOut, 0.05)}
+              style={drift(TH[CH.bars], TH[CH.fx], 0.05)}
               {...imgSize.wide}
               decoding="async"
             />
@@ -512,7 +526,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           </div>
 
           {/* Weave + flicker (and the closing backdrop) */}
-          <div className="si-layer" style={slide(inMove, 0)}>
+          <div className="si-layer si-up si-dim" style={{ ...layerStyle(CH.fx), filter: ctaOn ? 'brightness(.45)' : undefined }}>
             <img
               className="si-img"
               src="/intro-proto/m05_original.webp"
@@ -520,7 +534,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
               draggable={false}
               style={{
                 transform: `translateY(${jitter.y}px) scale(1.04)`,
-                filter: `brightness(${jitter.b * (1 - ctaOpacity * 0.55)})`,
+                filter: `brightness(${jitter.b})`,
               }}
               {...imgSize.wide}
               decoding="async"
@@ -528,22 +542,24 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           </div>
         </div>
 
-        {/* Opening title */}
+        {/* Opening title: pulled down out of the gate when the presets begin */}
         <div
           className="si-title"
-          style={reduced ? { visibility: titleOut < 0.5 ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${titleOut * 104}%, 0)` }}
+          style={reduced ? { visibility: cd === CH.open ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${cd === CH.open ? 0 : 104}%, 0)` }}
         >
           <p className="si-eyebrow">{t.eyebrow}</p>
           <h1 translate="no">GATE.24</h1>
         </div>
-        <p className="si-hint" style={reduced ? { visibility: p < 0.02 ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${ramp(p, w(0, 24)) * 400}%, 0)` }}>
+        <p
+          className="si-hint"
+          style={reduced ? { visibility: atTop ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${atTop && cd === CH.open ? 0 : 400}%, 0)` }}
+        >
           {t.scroll} ↓
         </p>
 
         {/* One big, centred title per chapter */}
         <Center
-          inP={ramp(p, w(52, 68))}
-          outP={ramp(p, w(250, 263))}
+          state={stateOf(CH.presets)}
           calm={reduced}
           tag={t.presetsTag}
           title={lang === 'es' ? looks[lookNow].es : looks[lookNow].label}
@@ -559,8 +575,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           swapTitle
         />
         <Center
-          inP={ramp(p, w(263, 276))}
-          outP={ramp(p, w(448, 461))}
+          state={stateOf(CH.grain)}
           calm={reduced}
           tag={t.grainTag}
           title={t.grain}
@@ -571,8 +586,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           swapValue
         />
         <Center
-          inP={ramp(p, w(461, 474))}
-          outP={ramp(p, w(544, 557))}
+          state={stateOf(CH.vig)}
           calm={reduced}
           tag={t.vignetteTag}
           title={t.vignette}
@@ -580,8 +594,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           value={`${t.amount} ${Math.round(v * 100)}`}
         />
         <Center
-          inP={ramp(p, w(557, 570))}
-          outP={ramp(p, w(680, 693))}
+          state={stateOf(CH.bars)}
           calm={reduced}
           tag={t.cropTag}
           title={t.crop}
@@ -591,8 +604,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           active={barStep}
         />
         <Center
-          inP={ramp(p, w(693, 706))}
-          outP={ramp(p, w(812, 840))}
+          state={stateOf(CH.fx)}
           calm={reduced}
           tag={fxStage === 0 ? '' : ' '}
           title={fxTitle}
@@ -604,12 +616,12 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           swapValue
         />
 
-        {/* Closing: download */}
+        {/* Closing: download. Slides down into place like the other chapters. */}
         <div
           className="si-cta"
           style={{
-            ...(reduced ? { visibility: ctaOpacity > 0.5 ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${(smooth(ctaOpacity) - 1) * 104}%, 0)` }),
-            pointerEvents: ctaOpacity > 0.6 ? 'auto' : 'none',
+            ...(reduced ? { visibility: ctaOn ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${ctaOn ? 0 : -104}%, 0)` }),
+            pointerEvents: ctaOn ? 'auto' : 'none',
           }}
         >
           <h2>{t.ctaTitle}</h2>
@@ -617,7 +629,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
             <div className="si-card">
               <h3>{t.lite}</h3>
               <p>{t.liteText}</p>
-              <a className="si-btn" href={downloadHref} tabIndex={ctaOpacity > 0.6 ? 0 : -1}>
+              <a className="si-btn" href={downloadHref} tabIndex={ctaOn ? 0 : -1}>
                 {t.get}
               </a>
             </div>
@@ -639,70 +651,77 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   );
 }
 
+const EASE = 'cubic-bezier(.45,0,.2,1)';
 const styles = `
 .si { position: relative; background: #000; }
 .si-stage {
   position: sticky; top: var(--si-top, 4rem);
   height: calc(100dvh - var(--si-top, 4rem));
-  overflow: hidden; background: #000; color: #f5f3ef;
+  overflow: hidden; background: #000; color: #f5f5f3;
 }
 .si-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.si-media { position: absolute; inset: 0; overflow: hidden; background: #000; }
-.si-layer { position: absolute; inset: 0; }
-.si-live .si-layer { will-change: transform; }
-.si-look { transition: transform 1.5s cubic-bezier(.45,0,.2,1); }
+.si-media { position: absolute; inset: 0; overflow: hidden; background: #000; transition: clip-path 1.5s ${EASE}; }
+.si-layer { position: absolute; inset: 0; transition: transform 1.5s ${EASE}, filter 1.2s ${EASE}; }
+.si-up { box-shadow: 0 -40px 80px rgba(0,0,0,.55); }
+.si-live .si-layer, .si-live .si-media { will-change: transform; }
+.si-look { transition: transform 1.4s ${EASE}; }
 .si-live .si-look { will-change: transform; }
 .si-swapbox { display: grid; justify-items: center; }
 .si-swapbox > * { grid-area: 1 / 1; }
-.si-in { animation: si-in .95s cubic-bezier(.3,.1,.2,1) both; }
-.si-out { animation: si-out .95s cubic-bezier(.3,.1,.2,1) both; }
+.si-in { animation: si-in 1s cubic-bezier(.3,.1,.2,1) both; }
+.si-out { animation: si-out 1s cubic-bezier(.3,.1,.2,1) both; }
 @keyframes si-in { from { transform: translateY(-108%); } }
 @keyframes si-out { to { transform: translateY(108%); } }
 .si-m { display: block; overflow: hidden; padding: .06em .4em; margin: -.06em -.4em; }
-.si-m-in { display: flow-root; }
+.si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform 1.05s cubic-bezier(.3,.1,.2,1) var(--d, 0s); }
+.si-center { visibility: hidden; transition: visibility 0s linear 1.5s; }
+.si-center[data-s='on'] { visibility: visible; transition-delay: 0s; }
+.si-center[data-s='on'] .si-m-in { transform: none; }
+.si-center[data-s='after'] .si-m-in { transform: translate3d(0, 110%, 0); }
 .si-live .si-m-in, .si-live .si-title, .si-live .si-cta, .si-live .si-hint { will-change: transform; }
 .si-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
-.si-grain { position: absolute; inset: 0; mix-blend-mode: overlay; background-size: 220px 220px; }
+.si-grain { position: absolute; inset: 0; mix-blend-mode: overlay; background-size: 220px 220px; transition: opacity .9s ${EASE}; }
 .si-vig { position: absolute; inset: 0; }
-.si-bar { position: absolute; background: #000; transition: height .55s cubic-bezier(.2,.7,.2,1), width .55s cubic-bezier(.2,.7,.2,1); }
+.si-bar { position: absolute; background: #000; transition: height .6s ${EASE}, width .6s ${EASE}; }
 .si-title { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 1rem; pointer-events: none;
-  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.5)); }
+  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.5)); transition: transform 1.25s ${EASE}; }
 .si-title h1 { font-family: var(--font-display, Georgia, serif); font-size: clamp(3rem, 12vw, 8rem); line-height: 1; margin: .4rem 0 0; letter-spacing: .01em; }
-.si-eyebrow { font: 600 .8125rem/1 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,243,239,.85); margin: 0; }
-.si-hint { position: absolute; left: 0; right: 0; bottom: max(1.2rem, env(safe-area-inset-bottom)); text-align: center; font: 600 .8125rem ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; margin: 0; color: rgba(245,243,239,.8); }
+.si-eyebrow { font: 600 .8125rem/1 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,245,243,.85); margin: 0; }
+.si-hint { position: absolute; left: 0; right: 0; bottom: max(1.2rem, env(safe-area-inset-bottom)); text-align: center; font: 600 .8125rem ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; margin: 0; color: rgba(245,245,243,.8); transition: transform .9s ${EASE}; }
 
 .si-center { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: .5rem; padding: 1rem; text-align: center; pointer-events: none; isolation: isolate;
-}
-/* A soft neutral scrim keeps the title legible over bright skies and highlights. */
-.si-center { text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 28px rgba(0,0,0,.5); }
-.si-tag { margin: 0; min-height: 1em; font: 600 .8125rem/1.2 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,243,239,.9); }
+  text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 28px rgba(0,0,0,.5); }
+.si-tag { margin: 0; min-height: 1em; font: 600 .8125rem/1.2 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,245,243,.9); }
 .si-big { margin: 0; font-family: var(--font-display, Georgia, serif); font-weight: 700; font-size: clamp(2.6rem, 9vw, 8rem); line-height: 1; letter-spacing: .005em; text-wrap: balance; }
 .si-value { margin: .2rem 0 0; font: 600 clamp(1.5rem, 4.4vw, 3.6rem)/1.1 ui-monospace, 'Cascadia Mono', Consolas, monospace; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
-.si-sub { margin: 0; font: 500 clamp(.8125rem, 1.6vw, 1rem)/1.3 ui-monospace, Consolas, monospace; letter-spacing: .06em; color: rgba(245,243,239,.85); text-wrap: balance; }
+.si-sub { margin: 0; font: 500 clamp(.8125rem, 1.6vw, 1rem)/1.3 ui-monospace, Consolas, monospace; letter-spacing: .06em; color: rgba(245,245,243,.85); text-wrap: balance; }
 .si-dots { list-style: none; display: flex; gap: .55rem; margin: 1.1rem 0 0; padding: 0; }
-.si-dots li { width: .6rem; height: .6rem; border-radius: 50%; border: 1px solid rgba(245,243,239,.7); background: rgba(0,0,0,.25); transition: background-color .3s ease, transform .3s cubic-bezier(.22,1,.36,1); }
-.si-dots li.done { background: rgba(245,243,239,.55); }
-.si-dots li.on { background: #f5f3ef; transform: scale(1.35); }
+.si-dots li { width: .6rem; height: .6rem; border-radius: 50%; border: 1px solid rgba(245,245,243,.7); background: rgba(0,0,0,.25); transition: background-color .3s ease, transform .3s cubic-bezier(.22,1,.36,1); }
+.si-dots li.done { background: rgba(245,245,243,.55); }
+.si-dots li.on { background: #f5f5f3; transform: scale(1.35); }
 
-.si-cta { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; padding: 1rem; text-align: center; }
+.si-cta { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; padding: 1rem; text-align: center; transition: transform 1.3s ${EASE}; }
 .si-cta h2 { font-family: var(--font-display, Georgia, serif); font-size: clamp(1.8rem, 5vw, 3rem); margin: 0; }
 .si-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 18rem)); gap: 1rem; }
 @media (max-width: 640px) { .si-cards { grid-template-columns: minmax(0, 20rem); } }
-.si-card { border: 1px solid rgba(245,243,239,.3); background: rgba(10,10,10,.88); padding: 1.2rem; display: grid; gap: .5rem; justify-items: center; }
+.si-card { border: 1px solid rgba(245,245,243,.3); background: rgba(10,10,10,.88); padding: 1.2rem; display: grid; gap: .5rem; justify-items: center; }
 .si-card h3 { font-family: var(--font-display, Georgia, serif); margin: 0; font-size: 1.3rem; }
-.si-card p { margin: 0; color: rgba(245,243,239,.78); font-size: .9rem; }
-.si-btn, .si-top-btn { touch-action: manipulation; -webkit-tap-highlight-color: rgba(245,243,239,.2);
+.si-card p { margin: 0; color: rgba(245,245,243,.78); font-size: .9rem; }
+.si-btn, .si-top-btn { touch-action: manipulation; -webkit-tap-highlight-color: rgba(245,245,243,.2);
   transition: transform .14s cubic-bezier(.22,1,.36,1), background-color .18s ease, color .18s ease, border-color .18s ease; }
-.si-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .5rem 1.1rem; border: 1px solid #f5f3ef; background: #f5f3ef; color: #0a0a0a; font-weight: 600; font-size: .85rem; text-decoration: none; }
-.si-btn-off { background: transparent; color: rgba(245,243,239,.6); border-color: rgba(245,243,239,.3); }
-.si-top-btn { position: absolute; top: max(.8rem, env(safe-area-inset-top)); right: max(.8rem, env(safe-area-inset-right)); z-index: 3; display: inline-flex; align-items: center; min-height: 44px; padding: .4rem 1rem; border: 1px solid rgba(245,243,239,.5); background: rgba(0,0,0,.6); color: #f5f3ef; font-weight: 600; font-size: .8125rem; text-decoration: none; }
-.si-btn:focus-visible, .si-top-btn:focus-visible { outline: 2px solid #f5f3ef; outline-offset: 3px; }
+.si-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .5rem 1.1rem; border: 1px solid #f5f5f3; background: #f5f5f3; color: #0a0a0a; font-weight: 600; font-size: .85rem; text-decoration: none; }
+.si-btn-off { background: transparent; color: rgba(245,245,243,.6); border-color: rgba(245,245,243,.3); }
+.si-top-btn { position: absolute; top: max(.8rem, env(safe-area-inset-top)); right: max(.8rem, env(safe-area-inset-right)); z-index: 3; display: inline-flex; align-items: center; min-height: 44px; padding: .4rem 1rem; border: 1px solid rgba(245,245,243,.5); background: rgba(0,0,0,.6); color: #f5f5f3; font-weight: 600; font-size: .8125rem; text-decoration: none; }
+.si-btn:focus-visible, .si-top-btn:focus-visible { outline: 2px solid #f5f5f3; outline-offset: 3px; }
 .si-btn:active, .si-top-btn:active { transform: scale(.97); }
 @media (hover: hover) and (pointer: fine) {
-  .si-top-btn:hover { background: #f5f3ef; color: #0a0a0a; }
+  .si-top-btn:hover { background: #f5f5f3; color: #0a0a0a; }
   a.si-btn:hover { background: #fff; border-color: #fff; }
 }
-.si-calm .si-look { transition: none; }
+/* Calm mode (reduced motion): everything simply appears and disappears, nothing moves. */
+.si-calm .si-look, .si-calm .si-media, .si-calm .si-layer, .si-calm .si-grain, .si-calm .si-title, .si-calm .si-cta, .si-calm .si-hint { transition: none; }
 .si-calm .si-in, .si-calm .si-out { animation: none; }
+.si-calm .si-center:not([data-s='on']) { visibility: hidden; }
+.si-calm .si-m-in { transform: none !important; transition: none; }
 .si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
 `;

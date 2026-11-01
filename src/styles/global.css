@@ -227,9 +227,12 @@ video {
   html {
     scroll-behavior: auto;
   }
-  *,
-  *::before,
-  *::after {
+  /* The GATE.24 intro (.si) decides for itself what "reduced motion" means (a calm,
+     step-by-step version), and ?motion=full lets it be previewed on a PC that has
+     Windows animations off, so this blanket rule must not freeze its transitions. */
+  *:not(.si, .si *),
+  *:not(.si, .si *)::before,
+  *:not(.si, .si *)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
