@@ -44,13 +44,14 @@ const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const tri = (x: number, i: number) => clamp(1 - Math.abs(x - i));
 
 // Plugin names (presets, controls) stay in English in every language.
+// `es` is the Spanish title shown in the intro; the plugin's own name is shown under it.
 const looks = [
-  { id: 'original', label: 'Original', src: '/intro-proto/m07_original.webp' },
-  { id: 'cinema35', label: 'Cinema 35', src: '/intro-proto/m07_cinema35.webp' },
-  { id: 'dustywestern', label: 'Dusty Western', src: '/intro-proto/m07_dustywestern.webp' },
-  { id: 'romance', label: 'Romance / Reverie', src: '/intro-proto/m07_romance.webp' },
-  { id: 'classichorror', label: 'Classic Horror', src: '/intro-proto/m07_classichorror.webp' },
-  { id: 'urban', label: 'Urban Editorial', src: '/intro-proto/m07_urban_pro.webp' },
+  { id: 'original', label: 'Original', es: 'Original', src: '/intro-proto/m07_original.webp' },
+  { id: 'cinema35', label: 'Cinema 35', es: 'Cine 35', src: '/intro-proto/m07_cinema35.webp' },
+  { id: 'dustywestern', label: 'Dusty Western', es: 'Western polvoriento', src: '/intro-proto/m07_dustywestern.webp' },
+  { id: 'romance', label: 'Romance / Reverie', es: 'Romance / Ensueño', src: '/intro-proto/m07_romance.webp' },
+  { id: 'classichorror', label: 'Classic Horror', es: 'Terror clásico', src: '/intro-proto/m07_classichorror.webp' },
+  { id: 'urban', label: 'Urban Editorial', es: 'Editorial urbano', src: '/intro-proto/m07_urban_pro.webp' },
 ];
 
 // Coarsest grain last.
@@ -103,9 +104,14 @@ const copy = {
     weaveTag: 'The frame hops like a film projector',
     flickerTag: 'Exposure pulses from frame to frame',
     off: 'Off',
+    inPlugin: 'In the plugin',
+    grain: 'Grain',
+    vignette: 'Vignette',
+    crop: 'Crop',
+    amount: 'Amount',
     ctaTitle: 'Pick your version',
     lite: 'GATE.24 Lite',
-    liteText: '5 presets. Free, or pay what you want.',
+    liteText: '5 presets. Free.',
     pro: 'GATE.24 Pro',
     proText: '10 presets, Weave, Flicker and Advanced.',
     soon: 'Coming soon',
@@ -124,9 +130,14 @@ const copy = {
     weaveTag: 'El fotograma salta como en un proyector',
     flickerTag: 'La exposición pulsa de un fotograma a otro',
     off: 'Off',
+    inPlugin: 'En el plugin',
+    grain: 'Grano',
+    vignette: 'Viñeta',
+    crop: 'Recorte',
+    amount: 'Cantidad',
     ctaTitle: 'Elige tu versión',
     lite: 'GATE.24 Lite',
-    liteText: '5 presets. Gratis, o paga lo que quieras.',
+    liteText: '5 presets. Gratis.',
     pro: 'GATE.24 Pro',
     proText: '10 presets, Weave, Flicker y Advanced.',
     soon: 'Próximamente',
@@ -151,35 +162,60 @@ interface CenterProps {
   swapValue?: boolean;
 }
 
+/** Content that slides down through a mask: in from above, out below. No fading. */
+function Mask({ inE, outX, delay, calm, children }: { inE: number; outX: number; delay: number; calm: boolean; children: React.ReactNode }) {
+  const span = 1 - 0.36;
+  const e = smooth(clamp((inE - delay) / span));
+  const x = smooth(clamp((outX - delay) / span));
+  return (
+    <span className="si-m">
+      <span className="si-m-in" style={calm ? undefined : { transform: `translate3d(0, ${(e - 1) * 110 + x * 110}%, 0)` }}>
+        {children}
+      </span>
+    </span>
+  );
+}
+
 /** The big centred title of a chapter, with a row of step dots under it. */
 function Center({ inP, outP, calm, tag, title, value, sub, steps, active = 0, swapTitle, swapValue }: CenterProps) {
   const e = smooth(inP);
   const x = smooth(outP);
+  const shown = e * (1 - x);
   return (
     <div
       className="si-center"
-      style={{
-        opacity: e * (1 - x),
-        transform: calm ? undefined : `translate3d(0, ${(1 - e) * 40 - x * 40}px, 0)`,
-      }}
+      style={calm ? { visibility: shown > 0.5 ? 'visible' : 'hidden' } : undefined}
       aria-hidden="true"
     >
-      <p className="si-tag">{tag}</p>
-      <h2 key={swapTitle ? title : undefined} className={swapTitle ? 'si-big si-swap' : 'si-big'} translate="no">
-        {title}
-      </h2>
+      <div className="si-scrim" style={calm ? undefined : { transform: `translate(-50%, -50%) scaleY(${shown})` }} />
+      <Mask inE={inP} outX={outP} delay={0} calm={calm}>
+        <p className="si-tag">{tag}</p>
+      </Mask>
+      <Mask inE={inP} outX={outP} delay={0.1} calm={calm}>
+        <h2 key={swapTitle ? title : undefined} className={swapTitle ? 'si-big si-swap' : 'si-big'} translate="no">
+          {title}
+        </h2>
+      </Mask>
       {value && (
-        <p key={swapValue ? value : undefined} className={swapValue ? 'si-value si-swap' : 'si-value'} translate="no">
-          {value}
-        </p>
+        <Mask inE={inP} outX={outP} delay={0.2} calm={calm}>
+          <p key={swapValue ? value : undefined} className={swapValue ? 'si-value si-swap' : 'si-value'} translate="no">
+            {value}
+          </p>
+        </Mask>
       )}
-      {sub && <p className="si-sub">{sub}</p>}
+      {sub && (
+        <Mask inE={inP} outX={outP} delay={0.26} calm={calm}>
+          <p className="si-sub">{sub}</p>
+        </Mask>
+      )}
       {steps && (
-        <ul className="si-dots">
-          {Array.from({ length: steps }, (_, i) => (
-            <li key={i} className={i === active ? 'on' : i < active ? 'done' : undefined} />
-          ))}
-        </ul>
+        <Mask inE={inP} outX={outP} delay={0.32} calm={calm}>
+          <ul className="si-dots">
+            {Array.from({ length: steps }, (_, i) => (
+              <li key={i} className={i === active ? 'on' : i < active ? 'done' : undefined} />
+            ))}
+          </ul>
+        </Mask>
       )}
     </div>
   );
@@ -280,7 +316,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   const lookNow = lookRef.current;
 
   const inset = ramp(p, W.presetsIn) * (1 - ramp(p, W.presetsOut));
-  const titleOpacity = 1 - ramp(p, w(30, 56));
+  // The opening title leaves like a slide being pulled down out of the gate.
+  const titleOut = smooth(ramp(p, w(24, 60)));
 
   // Chapter changes are camera moves, not fades through black: the next shot
   // rises over the previous one, which drifts up a little slower.
@@ -378,7 +415,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
                     ? { opacity: i === lookNow ? 1 : 0 }
                     : {
                         // The incoming frame settles from a touch larger, like film seating in the gate.
-                        transform: `translate3d(0, ${(i - lookNow) * 104}%, 0) scale(${1 + 0.035 * Math.min(1, Math.abs(i - lookNow))})`,
+                        transform: `translate3d(0, ${(i - lookNow) * 104}%, 0) scale(${1 + 0.02 * Math.min(1, Math.abs(i - lookNow))})`,
                       }
                 }
                 {...imgSize.wide}
@@ -462,11 +499,14 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
         </div>
 
         {/* Opening title */}
-        <div className="si-title" style={{ opacity: titleOpacity }}>
+        <div
+          className="si-title"
+          style={reduced ? { visibility: titleOut < 0.5 ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${titleOut * 104}%, 0)` }}
+        >
           <p className="si-eyebrow">{t.eyebrow}</p>
           <h1 translate="no">GATE.24</h1>
         </div>
-        <p className="si-hint" style={{ opacity: 1 - ramp(p, w(0, 24)) }}>
+        <p className="si-hint" style={reduced ? { visibility: p < 0.02 ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${ramp(p, w(0, 24)) * 400}%, 0)` }}>
           {t.scroll} ↓
         </p>
 
@@ -476,7 +516,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           outP={ramp(p, w(190, 203))}
           calm={reduced}
           tag={t.presetsTag}
-          title={looks[lookNow].label}
+          title={lang === 'es' ? looks[lookNow].es : looks[lookNow].label}
+          sub={lang === 'es' && looks[lookNow].es !== looks[lookNow].label ? `${t.inPlugin}: ${looks[lookNow].label}` : undefined}
           steps={looks.length}
           active={lookNow}
           swapTitle
@@ -486,7 +527,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           outP={ramp(p, w(388, 401))}
           calm={reduced}
           tag={t.grainTag}
-          title="Grain"
+          title={t.grain}
+          sub={lang === 'es' ? `${t.inPlugin}: Grain` : undefined}
           value={grains[grainNow].label}
           steps={grains.length}
           active={grainNow}
@@ -497,15 +539,17 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           outP={ramp(p, w(484, 497))}
           calm={reduced}
           tag={t.vignetteTag}
-          title="Vignette"
-          value={`Amount ${Math.round(v * 100)}`}
+          title={t.vignette}
+          sub={lang === 'es' ? `${t.inPlugin}: Vignette` : undefined}
+          value={`${t.amount} ${Math.round(v * 100)}`}
         />
         <Center
           inP={ramp(p, w(497, 510))}
           outP={ramp(p, w(620, 633))}
           calm={reduced}
           tag={t.cropTag}
-          title="Crop"
+          title={t.crop}
+          sub={lang === 'es' ? `${t.inPlugin}: Crop` : undefined}
           value={ratios[barStep].label}
           steps={ratios.length}
           active={barStep}
@@ -523,7 +567,13 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
         />
 
         {/* Closing: download */}
-        <div className="si-cta" style={{ opacity: ctaOpacity, pointerEvents: ctaOpacity > 0.6 ? 'auto' : 'none' }}>
+        <div
+          className="si-cta"
+          style={{
+            ...(reduced ? { visibility: ctaOpacity > 0.5 ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${(smooth(ctaOpacity) - 1) * 104}%, 0)` }),
+            pointerEvents: ctaOpacity > 0.6 ? 'auto' : 'none',
+          }}
+        >
           <h2>{t.ctaTitle}</h2>
           <div className="si-cards">
             <div className="si-card">
@@ -562,10 +612,13 @@ const styles = `
 .si-media { position: absolute; inset: 0; overflow: hidden; background: #000; }
 .si-layer { position: absolute; inset: 0; }
 .si-live .si-layer { will-change: transform; }
-.si-look { transition: transform 1.05s cubic-bezier(.65,0,.35,1); }
+.si-look { transition: transform 1.5s cubic-bezier(.45,0,.2,1); }
 .si-live .si-look { will-change: transform; }
-.si-swap { animation: si-swap .6s cubic-bezier(.22,1,.36,1) .18s both; }
-@keyframes si-swap { from { opacity: 0; transform: translateY(14px); } }
+.si-swap { animation: si-swap .85s cubic-bezier(.22,1,.36,1) .25s both; }
+@keyframes si-swap { from { transform: translateY(-108%); } }
+.si-m { display: block; overflow: hidden; padding: .06em .4em; margin: -.06em -.4em; }
+.si-m-in { display: flow-root; }
+.si-live .si-m-in, .si-live .si-title, .si-live .si-cta, .si-live .si-hint { will-change: transform; }
 .si-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
 .si-grain { position: absolute; inset: 0; mix-blend-mode: overlay; background-size: 220px 220px; }
 .si-vig { position: absolute; inset: 0; }
@@ -579,7 +632,7 @@ const styles = `
 .si-center { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: .5rem; padding: 1rem; text-align: center; pointer-events: none; isolation: isolate;
 }
 /* A soft neutral scrim keeps the title legible over bright skies and highlights. */
-.si-center::before { content: ''; position: absolute; left: 50%; top: 50%; width: min(92vw, 60rem); height: 70%; transform: translate(-50%, -50%);
+.si-scrim { content: ''; position: absolute; left: 50%; top: 50%; width: min(92vw, 60rem); height: 70%; transform: translate(-50%, -50%) scaleY(0); position: absolute;
   background: radial-gradient(closest-side, rgba(0,0,0,.55), rgba(0,0,0,.28) 60%, rgba(0,0,0,0)); z-index: -1; }
 .si-tag { margin: 0; min-height: 1em; font: 600 .8125rem/1.2 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,243,239,.9); }
 .si-big { margin: 0; font-family: var(--font-display, Georgia, serif); font-weight: 700; font-size: clamp(2.6rem, 9vw, 8rem); line-height: 1; letter-spacing: .005em; text-wrap: balance; }
@@ -609,5 +662,6 @@ const styles = `
   a.si-btn:hover { background: #fff; border-color: #fff; }
 }
 .si-calm .si-look, .si-calm .si-swap { transition: none; animation: none; }
+.si-calm .si-scrim { transform: translate(-50%, -50%) scaleY(1); }
 .si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
 `;

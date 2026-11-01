@@ -70,6 +70,25 @@ const jsonLd = {
     </div>
   </section>
 
+  <section class="section" id="movement">
+    <div class="container">
+      <h2>Weave y Flicker, de verdad</h2>
+      <p>Weave hace que el fotograma salte como en un proyector de película; Flicker hace que la exposición pulse de un fotograma a otro. Este es el clip real: los ocho planos con los dos activados.</p>
+      <video
+        class="movement"
+        src="/video/weave-flicker.mp4"
+        poster="/video/weave-flicker-poster.jpg"
+        controls
+        muted
+        loop
+        playsinline
+        preload="none"
+        aria-label="Los ocho planos con Weave y Flicker de GATE.24 aplicados"
+      ></video>
+      <p class="fine-print">Metraje real, renderizado desde DaVinci Resolve. Solo en Pro.</p>
+    </div>
+  </section>
+
   <section class="section" id="screencast">
     <div class="container">
       <h2>Míralo en acción en Resolve</h2>
@@ -256,6 +275,14 @@ const jsonLd = {
     font-size: 0.8125rem;
     color: var(--color-fg-muted);
     margin-top: var(--space-2);
+  }
+
+  .movement {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-top: var(--space-3);
+    background: #000;
+    border: 1px solid var(--color-border);
   }
 
   .screencast {

@@ -69,6 +69,25 @@ const jsonLd = {
     </div>
   </section>
 
+  <section class="section" id="movement">
+    <div class="container">
+      <h2>Weave and Flicker, for real</h2>
+      <p>Weave makes the frame hop like a film projector; Flicker makes the exposure pulse from frame to frame. This is the real clip: all eight shots with both turned on.</p>
+      <video
+        class="movement"
+        src="/video/weave-flicker.mp4"
+        poster="/video/weave-flicker-poster.jpg"
+        controls
+        muted
+        loop
+        playsinline
+        preload="none"
+        aria-label="All eight shots with GATE.24 Weave and Flicker applied"
+      ></video>
+      <p class="fine-print">Real footage, rendered from DaVinci Resolve. Pro only.</p>
+    </div>
+  </section>
+
   <section class="section" id="screencast">
     <div class="container">
       <h2>See it in Resolve</h2>
@@ -253,6 +272,14 @@ const jsonLd = {
     font-size: 0.8125rem;
     color: var(--color-fg-muted);
     margin-top: var(--space-2);
+  }
+
+  .movement {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-top: var(--space-3);
+    background: #000;
+    border: 1px solid var(--color-border);
   }
 
   .screencast {
