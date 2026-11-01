@@ -166,6 +166,37 @@ interface CenterProps {
   swapValue?: boolean;
 }
 
+/** Text that changes with the scroll. The old text slides down and out while the new
+ * one slides down in from above, at the same time, so there is never an empty moment. */
+function SwapText({ text, className, tag: Tag, animate }: { text: string; className: string; tag: 'h2' | 'p'; animate: boolean }) {
+  const [cur, setCur] = useState(text);
+  const [prev, setPrev] = useState<string | null>(null);
+  const [n, setN] = useState(0);
+  if (text !== cur) {
+    setPrev(cur);
+    setCur(text);
+    setN((k) => k + 1);
+  }
+  useEffect(() => {
+    if (prev === null) return;
+    const id = window.setTimeout(() => setPrev(null), 950);
+    return () => window.clearTimeout(id);
+  }, [n]);
+  if (!animate) return <Tag className={className} translate="no">{cur}</Tag>;
+  return (
+    <span className="si-swapbox">
+      {prev !== null && (
+        <Tag key={`o${n}`} className={`${className} si-out`} translate="no">
+          {prev}
+        </Tag>
+      )}
+      <Tag key={`i${n}`} className={n > 0 ? `${className} si-in` : className} translate="no">
+        {cur}
+      </Tag>
+    </span>
+  );
+}
+
 /** Content that slides down through a mask: in from above, out below. No fading. */
 function Mask({ inE, outX, delay, calm, children }: { inE: number; outX: number; delay: number; calm: boolean; children: React.ReactNode }) {
   const span = 1 - 0.36;
@@ -195,20 +226,16 @@ function Center({ inP, outP, calm, tag, title, value, sub, steps, active = 0, sw
         <p className="si-tag">{tag}</p>
       </Mask>
       <Mask inE={inP} outX={outP} delay={0.1} calm={calm}>
-        <h2 key={swapTitle ? title : undefined} className={swapTitle ? 'si-big si-swap' : 'si-big'} translate="no">
-          {title}
-        </h2>
+        <SwapText text={title} className="si-big" tag="h2" animate={!!swapTitle && !calm} />
       </Mask>
       {value && (
         <Mask inE={inP} outX={outP} delay={0.2} calm={calm}>
-          <p key={swapValue ? value : undefined} className={swapValue ? 'si-value si-swap' : 'si-value'} translate="no">
-            {value}
-          </p>
+          <SwapText text={value} className="si-value" tag="p" animate={!!swapValue && !calm} />
         </Mask>
       )}
       {sub && (
         <Mask inE={inP} outX={outP} delay={0.26} calm={calm}>
-          <p className="si-sub">{sub}</p>
+          <SwapText text={sub} className="si-sub" tag="p" animate={!!swapTitle && !calm} />
         </Mask>
       )}
       {steps && (
@@ -573,6 +600,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           sub={fxSub}
           steps={FX_STAGES}
           active={fxStage}
+          swapTitle
+          swapValue
         />
 
         {/* Closing: download */}
@@ -623,8 +652,12 @@ const styles = `
 .si-live .si-layer { will-change: transform; }
 .si-look { transition: transform 1.5s cubic-bezier(.45,0,.2,1); }
 .si-live .si-look { will-change: transform; }
-.si-swap { animation: si-swap .85s cubic-bezier(.22,1,.36,1) .25s both; }
-@keyframes si-swap { from { transform: translateY(-108%); } }
+.si-swapbox { display: grid; justify-items: center; }
+.si-swapbox > * { grid-area: 1 / 1; }
+.si-in { animation: si-in .95s cubic-bezier(.3,.1,.2,1) both; }
+.si-out { animation: si-out .95s cubic-bezier(.3,.1,.2,1) both; }
+@keyframes si-in { from { transform: translateY(-108%); } }
+@keyframes si-out { to { transform: translateY(108%); } }
 .si-m { display: block; overflow: hidden; padding: .06em .4em; margin: -.06em -.4em; }
 .si-m-in { display: flow-root; }
 .si-live .si-m-in, .si-live .si-title, .si-live .si-cta, .si-live .si-hint { will-change: transform; }
@@ -669,6 +702,7 @@ const styles = `
   .si-top-btn:hover { background: #f5f3ef; color: #0a0a0a; }
   a.si-btn:hover { background: #fff; border-color: #fff; }
 }
-.si-calm .si-look, .si-calm .si-swap { transition: none; animation: none; }
+.si-calm .si-look { transition: none; }
+.si-calm .si-in, .si-calm .si-out { animation: none; }
 .si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
 `;
