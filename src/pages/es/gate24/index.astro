@@ -17,7 +17,7 @@ const comparison = [
   { feature: 'Viñeta según el tipo de óptica', dehancer: 'Viñeta de exposición tipo película', flc: 'Solo cantidad y tamaño', gate24: 'Sí' },
   { feature: 'Grano según la película', dehancer: 'Sí (más de 60 películas)', flc: 'Sí, según el tipo de película', gate24: 'Sí (8, 16, 35 y 65 mm)' },
   { feature: 'Protección de la piel', dehancer: 'Sin herramienta específica indicada', flc: 'No', gate24: 'Sí, con cuentagotas en cada plano' },
-  { feature: 'Presets listos para usar', dehancer: 'Más de 60 perfiles de película; el look lo montas tú', flc: '8 looks integrados + uno personalizado', gate24: '13 (Essentials + Genre)' },
+  { feature: 'Presets listos para usar', dehancer: 'Más de 60 perfiles de película; el look lo montas tú', flc: '8 looks integrados + uno personalizado', gate24: '10 (Essentials + Genre)' },
   { feature: 'Curva de aprendizaje', dehancer: 'Alta', flc: 'Media', gate24: 'Un clic, y todo sigue siendo ajustable a mano' },
 ];
 
@@ -41,7 +41,7 @@ const jsonLd = {
 
 <BaseLayout
   title="GATE.24"
-  description="GATE.24 es un plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta que imita la óptica, grano de película según el negativo y contraste que respeta la piel. Incluye 13 presets."
+  description="GATE.24 es un plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta que imita la óptica, grano de película según el negativo y contraste que respeta la piel. Incluye 10 presets."
   ogImage="/og-gate24.jpg"
   theme="gate24"
   alternatePath="/gate24/"
@@ -58,7 +58,7 @@ const jsonLd = {
       <h1>Todo lo que hace un plugin de más de 500 $ por tu etalonaje, sin pagar ese precio.</h1>
       <p class="lede">
         Un solo efecto para el recorte, la viñeta según la óptica, el grano según la película y un
-        contraste que respeta la piel. Incluye 13 presets y puedes ajustar cada parámetro a mano.
+        contraste que respeta la piel. Incluye 10 presets y puedes ajustar cada parámetro a mano.
         Paga lo que quieras, aunque sea nada.
       </p>
       <div class="cta-row">
@@ -113,10 +113,9 @@ const jsonLd = {
 
   <section class="section" id="presets">
     <div class="container">
-      <h2>13 presets en dos grupos</h2>
+      <h2>10 presets en dos grupos</h2>
       <p>
-        <strong>Essentials</strong> es para el cine de uso diario y los formatos editoriales y de
-        redes. <strong>Genre</strong> es para ambientes con una personalidad muy marcada. Cada
+        <strong>Essentials</strong> es para el cine de uso diario y los formatos editoriales. <strong>Genre</strong> es para ambientes con una personalidad muy marcada. Cada
         preset es solo un punto de partida: después de aplicarlo no queda nada bloqueado.
       </p>
       <PresetGallery client:visible lang="es" />
@@ -169,8 +168,8 @@ const jsonLd = {
           <p>Funciona con OpenCL: vista previa en tiempo real, sin tener que renderizar para comprobar el resultado.</p>
         </li>
         <li>
-          <h3>9 formatos de recorte</h3>
-          <p>Desde el 2.39:1 anamórfico del cine hasta el 9:16 vertical para redes.</p>
+          <h3>6 formatos de recorte + personalizado</h3>
+          <p>Desde el 2.39:1 anamórfico del cine hasta el 1:1 cuadrado, o define el tuyo.</p>
         </li>
       </ul>
     </div>
@@ -178,7 +177,7 @@ const jsonLd = {
 
   <section class="section" id="playground">
     <div class="container">
-      <h2>Prueba los 13 tú mismo</h2>
+      <h2>Prueba los 10 tú mismo</h2>
       <p>
         Elige una foto, elige un preset y míralo en directo. Esto funciona con CSS en tu navegador y
         es solo una <strong>aproximación</strong> de los valores reales de cada preset: sirve para

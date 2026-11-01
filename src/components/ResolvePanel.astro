@@ -12,7 +12,7 @@ type Row =
   | { type: 'slider'; label: string; value: number; min: number; max: number; step: number; hint: string }
   | { type: 'color'; label: string; value: string; hint: string; eyedropper?: boolean };
 
-const essentialsPresets = ['Custom / Manual', 'Cinema 35', 'Cinema 65', 'Editorial 4:3', 'Urban Editorial', 'Social 9:16', 'Social 1:1', 'Social 4:5'];
+const essentialsPresets = ['Custom / Manual', 'Cinema 35', 'Cinema 65', 'Editorial 4:3', 'Urban Editorial'];
 const genrePresets = ['Custom / Manual', 'Dusty Western', 'Romance / Reverie', 'Homegrown VHS', 'Classic Horror', 'Worn-Out VHS', 'Terror Found Footage'];
 
 const sections: { title: string; rows: Row[] }[] = [
@@ -32,7 +32,7 @@ const sections: { title: string; rows: Row[] }[] = [
   {
     title: 'Crop',
     rows: [
-      { type: 'select', label: 'Format', value: '2.39:1', options: ['Custom', '2.39:1', '2.20:1', '2:1', '1.85:1', '4:3', '1:1', '4:5', '9:16'], hint: 'Calculates the V/H bar thickness for this aspect ratio. You can adjust the sliders by hand afterward.' },
+      { type: 'select', label: 'Format', value: '2.39:1', options: ['Custom', '2.39:1', '2.20:1', '2:1', '1.85:1', '4:3', '1:1'], hint: 'Calculates the V/H bar thickness for this aspect ratio. You can adjust the sliders by hand afterward.' },
       { type: 'slider', label: 'V', value: 12.5, min: 0, max: 40, step: 0.01, hint: 'Thickness of the top/bottom bar (letterbox), in % of frame height.' },
       { type: 'slider', label: 'H', value: 0, min: 0, max: 40, step: 0.01, hint: 'Thickness of the left/right bar (pillarbox), in % of frame width.' },
       { type: 'slider', label: 'X', value: 0, min: -0.5, max: 0.5, step: 0.001, hint: 'Shifts the crop window horizontally, as a fraction of frame width (does not change the window size).' },

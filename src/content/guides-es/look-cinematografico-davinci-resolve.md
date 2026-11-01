@@ -13,7 +13,7 @@ Haz tu etalonaje primario antes de tocar nada de esto. Las barras, el grano y el
 
 ## 2. Encuadra según dónde se va a ver el vídeo
 
-Elige la relación de aspecto por el formato de entrega, no por costumbre: 2.39:1 o 2.20:1 para un aire de cine, 4:3 o 1:1 para un look más editorial o de impresión, y 9:16, 1:1 o 4:5 si cortas para redes. Unas barras con las esquinas ligeramente redondeadas recuerdan más a la ventanilla de un proyector antiguo que un rectángulo seco. Es un detalle pequeño, fácil de pasar por alto y difícil de dejar de ver una vez que te fijas.
+Elige la relación de aspecto por el formato de entrega, no por costumbre: 2.39:1 o 2.20:1 para un aire de cine, 4:3 o 1:1 para un look más editorial o de impresión. Unas barras con las esquinas ligeramente redondeadas recuerdan más a la ventanilla de un proyector antiguo que un rectángulo seco. Es un detalle pequeño, fácil de pasar por alto y difícil de dejar de ver una vez que te fijas.
 
 ## 3. Viñeta: ajústala a una óptica, no a un slider
 
@@ -29,4 +29,4 @@ La forma más fácil de estropear un buen pase de acabado es una curva de contra
 
 ## Todo en un solo paso
 
-Cada uno de estos pasos es una decisión técnica real e independiente, y por eso hacerlos a mano en cada clip es lento. Este es el flujo sobre el que está montado [GATE.24](/es/gate24/): reúne los cuatro pasos (recorte, viñeta según la óptica, grano según la película y contraste que respeta la piel) en 13 presets que sirven de punto de partida y que puedes seguir afinando a mano. Funciona con la versión gratuita de DaVinci Resolve y, por ahora, solo en Windows.
+Cada uno de estos pasos es una decisión técnica real e independiente, y por eso hacerlos a mano en cada clip es lento. Este es el flujo sobre el que está montado [GATE.24](/es/gate24/): reúne los cuatro pasos (recorte, viñeta según la óptica, grano según la película y contraste que respeta la piel) en 10 presets que sirven de punto de partida y que puedes seguir afinando a mano. Funciona con la versión gratuita de DaVinci Resolve y, por ahora, solo en Windows.

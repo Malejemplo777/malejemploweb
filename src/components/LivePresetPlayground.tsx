@@ -6,7 +6,7 @@ import type { Lang } from '../i18n';
 // plugin's real per-preset recipe values (see data/presets.ts). This is NOT
 // the real color engine -- it can't be, that's C++/OpenCL pixel math, not
 // something portable to a browser. It's an honest, data-driven approximation
-// so visitors can get a feel for all 13 presets on a photo of their choice.
+// so visitors can get a feel for all 10 presets on a photo of their choice.
 
 const rawPhotos: { key: string; label: Record<Lang, string>; src: string }[] = [
   { key: 'cine-35', label: { en: 'City street', es: 'Calle urbana' }, src: '/showcase/cine-35-before.jpg' },

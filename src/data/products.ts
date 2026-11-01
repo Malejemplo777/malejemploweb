@@ -19,14 +19,14 @@ export const products: Product[] = [
     name: 'GATE.24',
     tagline: 'One-click cinematic finish for DaVinci Resolve.',
     description:
-      'Crop bars, lens-tied vignette, stock-matched grain, and skin-safe contrast in one effect — 13 presets included.',
+      'Crop bars, lens-tied vignette, stock-matched grain, and skin-safe contrast in one effect — 10 presets included.',
     status: 'available',
     href: '/gate24/',
     theme: 'gate24',
     es: {
       tagline: 'El acabado cinematográfico para DaVinci Resolve, en un clic.',
       description:
-        'Barras de recorte, viñeta que imita la óptica, grano según la película y contraste que respeta la piel, todo en un solo efecto. Incluye 13 presets.',
+        'Barras de recorte, viñeta que imita la óptica, grano según la película y contraste que respeta la piel, todo en un solo efecto. Incluye 10 presets.',
     },
   },
 ];

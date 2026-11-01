@@ -12,7 +12,7 @@ Do your primary color grade before any of this. Framing bars, grain, and a finis
 
 ## 2. Frame for where the video is going
 
-Pick your aspect ratio based on delivery, not habit: 2.39:1 or 2.20:1 for a cinema feel, 4:3 or 1:1 for an editorial/print look, 9:16, 1:1, or 4:5 if you're cutting for social. Crop bars with slightly rounded corners read as more "vintage projector gate" than a hard rectangle — a small detail that's easy to miss and hard to unsee once you notice it.
+Pick your aspect ratio based on delivery, not habit: 2.39:1 or 2.20:1 for a cinema feel, 4:3 or 1:1 for an editorial/print look. Crop bars with slightly rounded corners read as more "vintage projector gate" than a hard rectangle — a small detail that's easy to miss and hard to unsee once you notice it.
 
 ## 3. Vignette: match it to a lens, not a slider
 
@@ -28,6 +28,6 @@ The easiest way to ruin an otherwise good finishing pass is a contrast curve tha
 
 ## Doing this in one pass
 
-Every step above is a real, separate technical decision — which is exactly why it's slow to do by hand on every clip. This is the workflow [GATE.24](/gate24/) is built around: it bundles all four steps (crop, lens-tied vignette, stock-matched grain, and skin-safe contrast) into 13 ready-made presets, each one a starting point you can still fine-tune by hand. It runs on the free version of DaVinci Resolve, Windows only for now.
+Every step above is a real, separate technical decision — which is exactly why it's slow to do by hand on every clip. This is the workflow [GATE.24](/gate24/) is built around: it bundles all four steps (crop, lens-tied vignette, stock-matched grain, and skin-safe contrast) into 10 ready-made presets, each one a starting point you can still fine-tune by hand. It runs on the free version of DaVinci Resolve, Windows only for now.
 
 <!-- TODO: embed the before/after slider or a short screencast once footage exists -->

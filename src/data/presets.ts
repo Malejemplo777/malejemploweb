@@ -64,21 +64,6 @@ export const presets: Preset[] = [
     recipe: { vignetteCharacter: 'anamorphic', vignetteIntensity: 0.22, vignetteRolloff: 0.45, grainStock: '16mm', grainIntensity: 0.324, contrast: 0.360, shadowLift: 0.030, protection: 'skin' },
   },
   {
-    name: 'Social 9:16', group: 'essentials', format: '9:16', blurb: 'Vertical delivery, light touch.',
-    sampleAfter: '/showcase/social-9-16-after.jpg',
-    recipe: { vignetteCharacter: 'spherical', vignetteIntensity: 0.16, vignetteRolloff: 0.60, grainStock: '35mm', grainIntensity: 0.108, contrast: 0.16, shadowLift: 0.030, protection: 'both' },
-  },
-  {
-    name: 'Social 1:1', group: 'essentials', format: '1:1', blurb: 'Square delivery, light touch.',
-    sampleAfter: '/showcase/social-1-1-after.jpg',
-    recipe: { vignetteCharacter: 'spherical', vignetteIntensity: 0.12, vignetteRolloff: 0.60, grainStock: '35mm', grainIntensity: 0.09, contrast: 0.16, shadowLift: 0.030, protection: 'both' },
-  },
-  {
-    name: 'Social 4:5', group: 'essentials', format: '4:5', blurb: 'Portrait delivery, light touch.',
-    sampleAfter: '/showcase/social-4-5-after.jpg',
-    recipe: { vignetteCharacter: 'spherical', vignetteIntensity: 0.12, vignetteRolloff: 0.60, grainStock: '35mm', grainIntensity: 0.09, contrast: 0.16, shadowLift: 0.030, protection: 'both' },
-  },
-  {
     name: 'Dusty Western', group: 'genre', format: '2.39:1', blurb: 'Dusty, heavy grain, hard vignette.',
     flagship: true, stockHint: 'desert road, dusty rural landscape, cowboy/rural scene', tint: ['#5a4326', '#1a1206'],
     sampleBefore: '/showcase/western-before.jpg', sampleAfter: '/showcase/western-after.jpg',
@@ -118,9 +103,9 @@ export const essentialsPresets = presets.filter((p) => p.group === 'essentials')
 export const genrePresets = presets.filter((p) => p.group === 'genre');
 
 // Featured in the interactive showcase slider on /gate24 -- a deliberately
-// small, thematically distinct subset, not all 13 (see GATE24_Web_Brief_v2.md
+// small, thematically distinct subset, not all 10 (see GATE24_Web_Brief_v2.md
 // section 5/12 for why: production cost of sourcing+grading real stills for
-// all 13 isn't worth it, a handful of contrasting moods tells the story).
+// all 10 isn't worth it, a handful of contrasting moods tells the story).
 export const flagshipPresets = presets.filter((p) => p.flagship);
 
 // Spanish blurbs. Preset NAMES stay in English on purpose: they're the real
@@ -131,9 +116,6 @@ const blurbsEs: Record<string, string> = {
   'Cinema 65': 'Gran formato y sobriedad, con grano de 65 mm.',
   'Editorial 4:3': 'Formato 4:3 con contraste de página impresa.',
   'Urban Editorial': 'Recorte cuadrado 1:1 con un contraste marcado que respeta la piel.',
-  'Social 9:16': 'Para vertical, con un toque suave.',
-  'Social 1:1': 'Para cuadrado, con un toque suave.',
-  'Social 4:5': 'Para retrato 4:5, con un toque suave.',
   'Dusty Western': 'Aspecto polvoriento, grano gordo y viñeta dura.',
   'Romance / Reverie': 'Resplandor tipo light leak y caída suave.',
   'Homegrown VHS': 'Cálido y suave, con ese brillo de vídeo casero.',
