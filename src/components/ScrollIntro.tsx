@@ -12,26 +12,26 @@ interface Props {
 // Scroll-driven intro for the GATE.24 page. One sticky stage; the scroll position
 // (0..1) drives every layer. Windows below are written in "vh of scrolling" and
 // converted to progress units, so a chapter can be lengthened by editing one pair.
-const TOTAL = 830;
+const TOTAL = 890;
 const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
 
 const W = {
   presetsIn: w(40, 64),
-  presets: w(64, 180),
-  presetsOut: w(180, 204),
-  grainIn: w(190, 216),
-  zoom: w(232, 280),
-  stocks: w(280, 376),
-  grainOut: w(376, 402),
-  vigIn: w(388, 414),
-  vig: w(414, 470),
-  vigOut: w(470, 496),
-  barsIn: w(484, 510),
-  bars: w(510, 606),
-  barsOut: w(606, 632),
-  moveIn: w(620, 646),
-  fx: w(646, 766),
-  cta: w(772, 806),
+  presets: w(64, 240),
+  presetsOut: w(240, 264),
+  grainIn: w(250, 276),
+  zoom: w(292, 340),
+  stocks: w(340, 436),
+  grainOut: w(436, 462),
+  vigIn: w(448, 474),
+  vig: w(474, 530),
+  vigOut: w(530, 556),
+  barsIn: w(544, 570),
+  bars: w(570, 666),
+  barsOut: w(666, 692),
+  moveIn: w(680, 706),
+  fx: w(706, 826),
+  cta: w(832, 866),
 };
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
@@ -52,6 +52,8 @@ const looks = [
   { id: 'romance', label: 'Romance / Reverie', es: 'Romance / Ensueño', src: '/intro-proto/m07_romance.webp' },
   { id: 'classichorror', label: 'Classic Horror', es: 'Terror clásico', src: '/intro-proto/m07_classichorror.webp' },
   { id: 'urban', label: 'Urban Editorial', es: 'Editorial urbano', src: '/intro-proto/m07_urban_pro.webp' },
+  // Last step: the other presets, shown without naming one.
+  { id: 'more', label: '… and more', es: '… y más', src: '/library/m07_homegrownvhs.webp' },
 ];
 
 // Coarsest grain last.
@@ -105,6 +107,7 @@ const copy = {
     flickerTag: 'Exposure pulses from frame to frame',
     off: 'Off',
     inPlugin: 'In the plugin',
+    moreSub: '10 presets in Pro, 5 in Lite',
     grain: 'Grain',
     vignette: 'Vignette',
     crop: 'Crop',
@@ -131,6 +134,7 @@ const copy = {
     flickerTag: 'La exposición pulsa de un fotograma a otro',
     off: 'Off',
     inPlugin: 'En el plugin',
+    moreSub: '10 presets en Pro, 5 en Lite',
     grain: 'Grano',
     vignette: 'Viñeta',
     crop: 'Recorte',
@@ -187,7 +191,6 @@ function Center({ inP, outP, calm, tag, title, value, sub, steps, active = 0, sw
       style={calm ? { visibility: shown > 0.5 ? 'visible' : 'hidden' } : undefined}
       aria-hidden="true"
     >
-      <div className="si-scrim" style={calm ? undefined : { transform: `translate(-50%, -50%) scaleY(${shown})` }} />
       <Mask inE={inP} outX={outP} delay={0} calm={calm}>
         <p className="si-tag">{tag}</p>
       </Mask>
@@ -350,7 +353,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   const weaveNow = weaveSteps[Math.min(fxStage, 3)];
   const flickerNow = flickerSteps[Math.max(0, fxStage - 3)];
 
-  fxRef.current = { amp: weaveNow * (stage.h / 100) * 4, flick: flickerNow };
+  fxRef.current = { amp: weaveNow * (stage.h / 100) * 2, flick: flickerNow };
   const fxActive = p >= W.moveIn[0] && !reduced && inView;
   useEffect(() => {
     if (!fxActive) {
@@ -362,8 +365,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
     // little so they read on a web page.
     const id = window.setInterval(() => {
       const { amp, flick } = fxRef.current;
-      const hop = amp > 0 && Math.random() < 0.55 ? (Math.random() * 2 - 1) * amp : 0;
-      setJitter({ y: hop, b: 1 + (Math.random() * 2 - 1) * (flick / 100) * 1.8 });
+      const hop = amp > 0 && Math.random() < 0.4 ? (Math.random() * 2 - 1) * amp : 0;
+      setJitter({ y: hop, b: 1 + (Math.random() * 2 - 1) * (flick / 100) * 0.9 });
     }, 83);
     return () => window.clearInterval(id);
   }, [fxActive]);
@@ -513,18 +516,24 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
         {/* One big, centred title per chapter */}
         <Center
           inP={ramp(p, w(52, 68))}
-          outP={ramp(p, w(190, 203))}
+          outP={ramp(p, w(250, 263))}
           calm={reduced}
           tag={t.presetsTag}
           title={lang === 'es' ? looks[lookNow].es : looks[lookNow].label}
-          sub={lang === 'es' && looks[lookNow].es !== looks[lookNow].label ? `${t.inPlugin}: ${looks[lookNow].label}` : undefined}
+          sub={
+            looks[lookNow].id === 'more'
+              ? t.moreSub
+              : lang === 'es' && looks[lookNow].es !== looks[lookNow].label
+                ? `${t.inPlugin}: ${looks[lookNow].label}`
+                : undefined
+          }
           steps={looks.length}
           active={lookNow}
           swapTitle
         />
         <Center
-          inP={ramp(p, w(203, 216))}
-          outP={ramp(p, w(388, 401))}
+          inP={ramp(p, w(263, 276))}
+          outP={ramp(p, w(448, 461))}
           calm={reduced}
           tag={t.grainTag}
           title={t.grain}
@@ -535,8 +544,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           swapValue
         />
         <Center
-          inP={ramp(p, w(401, 414))}
-          outP={ramp(p, w(484, 497))}
+          inP={ramp(p, w(461, 474))}
+          outP={ramp(p, w(544, 557))}
           calm={reduced}
           tag={t.vignetteTag}
           title={t.vignette}
@@ -544,8 +553,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           value={`${t.amount} ${Math.round(v * 100)}`}
         />
         <Center
-          inP={ramp(p, w(497, 510))}
-          outP={ramp(p, w(620, 633))}
+          inP={ramp(p, w(557, 570))}
+          outP={ramp(p, w(680, 693))}
           calm={reduced}
           tag={t.cropTag}
           title={t.crop}
@@ -555,8 +564,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           active={barStep}
         />
         <Center
-          inP={ramp(p, w(633, 646))}
-          outP={ramp(p, w(752, 780))}
+          inP={ramp(p, w(693, 706))}
+          outP={ramp(p, w(812, 840))}
           calm={reduced}
           tag={fxStage === 0 ? '' : ' '}
           title={fxTitle}
@@ -632,8 +641,7 @@ const styles = `
 .si-center { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: .5rem; padding: 1rem; text-align: center; pointer-events: none; isolation: isolate;
 }
 /* A soft neutral scrim keeps the title legible over bright skies and highlights. */
-.si-scrim { content: ''; position: absolute; left: 50%; top: 50%; width: min(92vw, 60rem); height: 70%; transform: translate(-50%, -50%) scaleY(0); position: absolute;
-  background: radial-gradient(closest-side, rgba(0,0,0,.55), rgba(0,0,0,.28) 60%, rgba(0,0,0,0)); z-index: -1; }
+.si-center { text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 28px rgba(0,0,0,.5); }
 .si-tag { margin: 0; min-height: 1em; font: 600 .8125rem/1.2 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,243,239,.9); }
 .si-big { margin: 0; font-family: var(--font-display, Georgia, serif); font-weight: 700; font-size: clamp(2.6rem, 9vw, 8rem); line-height: 1; letter-spacing: .005em; text-wrap: balance; }
 .si-value { margin: .2rem 0 0; font: 600 clamp(1.5rem, 4.4vw, 3.6rem)/1.1 ui-monospace, 'Cascadia Mono', Consolas, monospace; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
@@ -662,6 +670,5 @@ const styles = `
   a.si-btn:hover { background: #fff; border-color: #fff; }
 }
 .si-calm .si-look, .si-calm .si-swap { transition: none; animation: none; }
-.si-calm .si-scrim { transform: translate(-50%, -50%) scaleY(1); }
 .si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
 `;
