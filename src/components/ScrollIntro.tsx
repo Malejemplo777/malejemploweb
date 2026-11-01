@@ -96,6 +96,7 @@ const copy = {
     eyebrow: 'A DaVinci Resolve plugin',
     scroll: 'Scroll',
     get: 'Get GATE.24',
+    skip: 'Skip the intro',
     presetsTag: 'One click, a whole look',
     grainTag: 'Grain by film stock',
     vignetteTag: 'Darkens the edges like a real lens',
@@ -123,6 +124,7 @@ const copy = {
     eyebrow: 'Un plugin de DaVinci Resolve',
     scroll: 'Baja',
     get: 'Conseguir GATE.24',
+    skip: 'Saltar la intro',
     presetsTag: 'Un clic, un look entero',
     grainTag: 'Grano según la película',
     vignetteTag: 'Oscurece los bordes como una óptica real',
@@ -148,25 +150,70 @@ const copy = {
 };
 
 /**
- * Follows `target`, but changes at most once every `ms`, and when it changes it goes
- * straight to the latest target. A hard flick of the wheel therefore skips the steps
- * in between (one clean move instead of a pile of half-played ones), and a move that
- * is already playing is never interrupted by the next one.
+ * Follows `target` ONE STEP AT A TIME, in order, never skipping a step. If the scroll
+ * runs far ahead (a big wheel spin), the stage plays the steps one after another at a
+ * comfortable pace and catches up (a little faster while it is behind, and quicker still
+ * on the way back up). `canAdvance` lets a chapter finish its own steps before the next
+ * chapter starts. `instant` (intro off screen) jumps straight there.
  */
-function useStepper(target: number, ms: number, instant: boolean, settle = 0) {
+function useStepper(target: number, ms: number, instant: boolean, canAdvance?: () => boolean) {
   const [v, setV] = useState(target);
   const last = useRef(0);
+  const can = useRef(canAdvance);
+  can.current = canAdvance;
   useEffect(() => {
-    if (instant || v === target) return;
-    // `settle`: the target must hold still this long first, so a flick that crosses
-    // several steps in a few frames lands on the final one without showing the rest.
-    const wait = Math.max(settle, ms - (performance.now() - last.current));
-    const id = window.setTimeout(() => {
+    if (instant) {
+      if (v !== target) setV(target);
+      return;
+    }
+    if (v === target) return;
+    let dead = false;
+    let id = 0;
+    const forward = target > v;
+    const behind = Math.abs(target - v) > 1;
+    const attempt = () => {
+      if (dead) return;
+      if (forward && can.current && !can.current()) {
+        id = window.setTimeout(attempt, 90);
+        return;
+      }
       last.current = performance.now();
+      setV((x) => x + Math.sign(target - x));
+    };
+    const iv = forward ? ms * (behind ? 0.75 : 1) : ms * 0.5;
+    id = window.setTimeout(attempt, Math.max(0, iv - (performance.now() - last.current)));
+    return () => {
+      dead = true;
+      window.clearTimeout(id);
+    };
+  }, [v, target, ms, instant]);
+  return instant ? target : v;
+}
+
+/** Moves a continuous amount (the vignette) towards its target at a limited speed. */
+function useSlew(target: number, perSec: number, instant: boolean) {
+  const [v, setV] = useState(target);
+  const ref = useRef(target);
+  useEffect(() => {
+    if (instant) {
+      ref.current = target;
       setV(target);
-    }, wait);
-    return () => window.clearTimeout(id);
-  }, [v, target, ms, instant, settle]);
+      return;
+    }
+    let raf = 0;
+    let t0 = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - t0) / 1000);
+      t0 = now;
+      const d = target - ref.current;
+      const step = perSec * dt;
+      ref.current = Math.abs(d) <= step ? target : ref.current + Math.sign(d) * step;
+      setV(ref.current);
+      if (ref.current !== target) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, perSec, instant]);
   return instant ? target : v;
 }
 
@@ -188,7 +235,7 @@ interface CenterProps {
 
 /** Text that changes with the scroll. The old text slides down and out while the new
  * one slides down in from above, at the same time, so there is never an empty moment. */
-function SwapText({ text, className, tag: Tag, animate }: { text: string; className: string; tag: 'h2' | 'p'; animate: boolean }) {
+function SwapText({ text, className, tag: Tag, animate, fade = false }: { text: string; className: string; tag: 'h2' | 'p'; animate: boolean; fade?: boolean }) {
   const [cur, setCur] = useState(text);
   const [prev, setPrev] = useState<string | null>(null);
   const [n, setN] = useState(0);
@@ -199,10 +246,15 @@ function SwapText({ text, className, tag: Tag, animate }: { text: string; classN
   }
   useEffect(() => {
     if (prev === null) return;
-    const id = window.setTimeout(() => setPrev(null), 1000);
+    const id = window.setTimeout(() => setPrev(null), 650);
     return () => window.clearTimeout(id);
   }, [n]);
-  if (!animate) return <Tag className={className} translate="no">{cur}</Tag>;
+  if (!animate)
+    return (
+      <Tag key={fade ? n : 0} className={fade && n > 0 ? `${className} si-fadein` : className} translate="no">
+        {cur}
+      </Tag>
+    );
   return (
     <span className="si-swapbox">
       {prev !== null && (
@@ -236,16 +288,16 @@ function Center({ state, calm, tag, title, value, sub, steps, active = 0, swapTi
         <p className="si-tag">{tag}</p>
       </Mask>
       <Mask delay={0.07}>
-        <SwapText text={title} className="si-big" tag="h2" animate={!!swapTitle && !calm} />
+        <SwapText text={title} className="si-big" tag="h2" animate={!!swapTitle && !calm} fade={!!swapTitle && calm} />
       </Mask>
       {value && (
         <Mask delay={0.14}>
-          <SwapText text={value} className="si-value" tag="p" animate={!!swapValue && !calm} />
+          <SwapText text={value} className="si-value" tag="p" animate={!!swapValue && !calm} fade={!!swapValue && calm} />
         </Mask>
       )}
       {sub && (
         <Mask delay={0.18}>
-          <SwapText text={sub} className="si-sub" tag="p" animate={!!swapTitle && !calm} />
+          <SwapText text={sub} className="si-sub" tag="p" animate={!!swapTitle && !calm} fade={!!swapTitle && calm} />
         </Mask>
       )}
       {steps && (
@@ -277,6 +329,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   const fxRef = useRef({ amp: 0, flick: 0 });
   const lookRef = useRef(0);
   const chRef = useRef(0);
+  const cdRef = useRef(0);
 
   useEffect(() => {
     // "Reduced motion" keeps the scroll-driven chapters (the reader controls them)
@@ -353,26 +406,39 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   chRef.current = c;
   // The chapter the stage is actually showing: it follows `c`, skipping any chapters
   // that were crossed faster than a move can play.
-  const cd = useStepper(c, 1100, reduced, 180);
+  const k = reduced ? 0.6 : 1;
+  const away = !inView; // off screen: no need to play anything
+  const inner = useRef({ look: 0, grain: 0, bar: 0, fx: 0, vig: 0 });
+  const cd = useStepper(c, 900 * k, away, () => {
+    const i = inner.current;
+    if (cdRef.current === CH.presets) return i.look >= looks.length - 1;
+    if (cdRef.current === CH.grain) return i.grain >= grains.length - 1;
+    if (cdRef.current === CH.vig) return i.vig >= 0.97;
+    if (cdRef.current === CH.bars) return i.bar >= ratios.length - 1;
+    if (cdRef.current === CH.fx) return i.fx >= FX_STAGES - 1;
+    return true;
+  });
+  cdRef.current = cd;
 
   const stateOf = (k: number): ChapterState => (cd < k ? 'before' : cd === k ? 'on' : 'after');
 
   // ---- looks: a vertical strip of frames, like film in a projector gate -------
   const lookIdx = ramp(p, W.presets) * (looks.length - 1);
   if (Math.abs(lookIdx - lookRef.current) > 0.58) lookRef.current = Math.round(lookIdx);
-  const lookNow = useStepper(cd >= CH.presets ? lookRef.current : 0, 1100, reduced, 150);
+  const lookNow = useStepper(cd >= CH.presets ? lookRef.current : 0, 800 * k, away);
 
   // ---- other steps, one at a time ---------------------------------------------
   const grainTarget = Math.min(grains.length - 1, Math.floor(ramp(p, W.stocks) * (grains.length - 1) + 0.5));
-  const grainNow = useStepper(grainTarget, 1100, reduced, 150);
+  const grainNow = useStepper(grainTarget, 800 * k, away);
   const barTarget = clamp(Math.floor(ramp(p, W.bars) * ratios.length), 0, ratios.length - 1);
-  const barStep = useStepper(barTarget, 600, reduced, 100);
+  const barStep = useStepper(barTarget, 480 * k, away);
   const fxTarget = clamp(Math.floor(ramp(p, W.fx) * FX_STAGES), 0, FX_STAGES - 1);
-  const fxStage = useStepper(fxTarget, 1100, reduced, 150);
+  const fxStage = useStepper(fxTarget, 700 * k, away);
 
   const zoom = ramp(p, W.zoom);
   const g = ramp(p, W.stocks);
-  const v = ramp(p, W.vig);
+  const v = useSlew(ramp(p, W.vig), 0.55 / k, away);
+  inner.current = { look: lookNow, grain: grainNow, bar: barStep, fx: fxStage, vig: v };
 
   // A slow push-in while a shot is on screen, so there is always gentle motion.
   const drift = (a: number, b: number, amount: number): CSSProperties | undefined =>
@@ -381,7 +447,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   // Layer i (grain, vignette, crop, weave) waits below the stage and rises over the
   // previous one when its chapter starts; the previous one drifts up a little slower.
   const layerStyle = (own: number): CSSProperties => {
-    if (reduced) return { visibility: cd >= own ? 'visible' : 'hidden' };
+    if (reduced) return { opacity: cd >= own ? 1 : 0 };
     const y = cd < own ? 100 : cd > own ? -14 : 0;
     return { transform: `translate3d(0, ${y}%, 0)` };
   };
@@ -427,6 +493,15 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   const fxSub = fxStage === 0 ? undefined : fxStage <= 3 ? t.weaveTag : `${t.flickerTag} · Weave ${weaveSteps[3].toFixed(2)}`;
 
   const atTop = vh < 24;
+
+  // Straight to the information below the intro (no smooth scroll through the whole hook).
+  const skipIntro = (e: React.MouseEvent) => {
+    const target = document.getElementById('library');
+    if (!target) return;
+    e.preventDefault();
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 72, behavior: 'instant' as ScrollBehavior });
+    history.replaceState(null, '', '#library');
+  };
   const ctaOn = cd >= CH.cta;
 
   return (
@@ -456,7 +531,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
                 draggable={false}
                 style={
                   reduced
-                    ? { visibility: i === lookNow ? 'visible' : 'hidden' }
+                    ? { opacity: i === lookNow ? 1 : 0 }
                     : {
                         // The incoming frame settles from a touch larger, like film seating in the gate.
                         transform: `translate3d(0, ${(i - lookNow) * 104}%, 0) scale(${1 + 0.02 * Math.min(1, Math.abs(i - lookNow))})`,
@@ -545,14 +620,22 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
         {/* Opening title: pulled down out of the gate when the presets begin */}
         <div
           className="si-title"
-          style={reduced ? { visibility: cd === CH.open ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${cd === CH.open ? 0 : 104}%, 0)` }}
+          style={reduced ? { opacity: cd === CH.open ? 1 : 0, pointerEvents: cd === CH.open ? 'auto' : 'none' } : { transform: `translate3d(0, ${cd === CH.open ? 0 : 104}%, 0)`, pointerEvents: cd === CH.open ? 'auto' : 'none' }}
         >
           <p className="si-eyebrow">{t.eyebrow}</p>
           <h1 translate="no">GATE.24</h1>
+          <div className="si-open-actions">
+            <a className="si-btn" href={downloadHref} tabIndex={cd === CH.open ? 0 : -1}>
+              {t.get}
+            </a>
+            <a className="si-btn si-btn-ghost" href="#library" onClick={skipIntro} tabIndex={cd === CH.open ? 0 : -1}>
+              {t.skip}
+            </a>
+          </div>
         </div>
         <p
           className="si-hint"
-          style={reduced ? { visibility: atTop ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${atTop && cd === CH.open ? 0 : 400}%, 0)` }}
+          style={reduced ? { opacity: atTop && cd === CH.open ? 1 : 0 } : { transform: `translate3d(0, ${atTop && cd === CH.open ? 0 : 400}%, 0)` }}
         >
           {t.scroll} ↓
         </p>
@@ -620,7 +703,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
         <div
           className="si-cta"
           style={{
-            ...(reduced ? { visibility: ctaOn ? 'visible' : 'hidden' } : { transform: `translate3d(0, ${ctaOn ? 0 : -104}%, 0)` }),
+            ...(reduced ? { opacity: ctaOn ? 1 : 0 } : { transform: `translate3d(0, ${ctaOn ? 0 : -104}%, 0)` }),
             pointerEvents: ctaOn ? 'auto' : 'none',
           }}
         >
@@ -664,17 +747,17 @@ const styles = `
 .si-layer { position: absolute; inset: 0; transition: transform 1.5s ${EASE}, filter 1.2s ${EASE}; }
 .si-up { box-shadow: 0 -40px 80px rgba(0,0,0,.55); }
 .si-live .si-layer, .si-live .si-media { will-change: transform; }
-.si-look { transition: transform 1.4s ${EASE}; }
+.si-look { transition: transform 1.1s ${EASE}; }
 .si-live .si-look { will-change: transform; }
 .si-swapbox { display: grid; justify-items: center; }
 .si-swapbox > * { grid-area: 1 / 1; }
-.si-in { animation: si-in 1s cubic-bezier(.3,.1,.2,1) both; }
-.si-out { animation: si-out 1s cubic-bezier(.3,.1,.2,1) both; }
+.si-in { animation: si-in .62s cubic-bezier(.3,.1,.2,1) both; }
+.si-out { animation: si-out .62s cubic-bezier(.3,.1,.2,1) both; }
 @keyframes si-in { from { transform: translateY(-108%); } }
 @keyframes si-out { to { transform: translateY(108%); } }
 .si-m { display: block; overflow: hidden; padding: .06em .4em; margin: -.06em -.4em; }
-.si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform 1.05s cubic-bezier(.3,.1,.2,1) var(--d, 0s); }
-.si-center { visibility: hidden; transition: visibility 0s linear 1.5s; }
+.si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform .85s cubic-bezier(.3,.1,.2,1) var(--d, 0s); }
+.si-center { visibility: hidden; transition: visibility 0s linear 1.1s; }
 .si-center[data-s='on'] { visibility: visible; transition-delay: 0s; }
 .si-center[data-s='on'] .si-m-in { transform: none; }
 .si-center[data-s='after'] .si-m-in { transform: translate3d(0, 110%, 0); }
@@ -685,9 +768,12 @@ const styles = `
 .si-bar { position: absolute; background: #000; transition: height .6s ${EASE}, width .6s ${EASE}; }
 .si-title { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 1rem; pointer-events: none;
   background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.5)); transition: transform 1.25s ${EASE}; }
+.si-open-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1.6rem; pointer-events: auto; }
+.si-btn.si-btn-ghost { background: rgba(0,0,0,.35); color: #f5f5f3; border-color: rgba(245,245,243,.55); backdrop-filter: blur(6px); }
+@media (hover: hover) and (pointer: fine) { a.si-btn.si-btn-ghost:hover { background: #f5f5f3; color: #0a0a0a; border-color: #f5f5f3; } }
 .si-title h1 { font-family: var(--font-display, Georgia, serif); font-size: clamp(3rem, 12vw, 8rem); line-height: 1; margin: .4rem 0 0; letter-spacing: .01em; }
 .si-eyebrow { font: 600 .8125rem/1 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,245,243,.85); margin: 0; }
-.si-hint { position: absolute; left: 0; right: 0; bottom: max(1.2rem, env(safe-area-inset-bottom)); text-align: center; font: 600 .8125rem ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; margin: 0; color: rgba(245,245,243,.8); transition: transform .9s ${EASE}; }
+.si-hint { position: absolute; left: 0; right: 0; max-width: none; bottom: max(1.2rem, env(safe-area-inset-bottom)); text-align: center; font: 600 .8125rem ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; margin: 0; color: rgba(245,245,243,.8); transition: transform .9s ${EASE}; }
 
 .si-center { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: .5rem; padding: 1rem; text-align: center; pointer-events: none; isolation: isolate;
   text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 28px rgba(0,0,0,.5); }
@@ -718,10 +804,15 @@ const styles = `
   .si-top-btn:hover { background: #f5f5f3; color: #0a0a0a; }
   a.si-btn:hover { background: #fff; border-color: #fff; }
 }
-/* Calm mode (reduced motion): everything simply appears and disappears, nothing moves. */
-.si-calm .si-look, .si-calm .si-media, .si-calm .si-layer, .si-calm .si-grain, .si-calm .si-title, .si-calm .si-cta, .si-calm .si-hint { transition: none; }
-.si-calm .si-in, .si-calm .si-out { animation: none; }
-.si-calm .si-center:not([data-s='on']) { visibility: hidden; }
+/* Calm mode (reduced motion): nothing slides, zooms or shakes. Chapters, looks and
+   titles change with a short cross-dissolve instead. */
+.si-calm .si-media, .si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
+.si-calm .si-layer, .si-calm .si-look, .si-calm .si-title, .si-calm .si-cta, .si-calm .si-hint { transition: opacity .7s ease, filter .7s ease; }
+/* Titles: the old one fades out first, then the new one fades in (never two at once). */
+.si-calm .si-center { visibility: visible; opacity: 0; transition: opacity .35s ease; }
+.si-calm .si-center[data-s='on'] { opacity: 1; transition: opacity .45s ease .35s; }
 .si-calm .si-m-in { transform: none !important; transition: none; }
-.si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
+.si-calm .si-in, .si-calm .si-out { animation: none; }
+.si-fadein { animation: si-fadein .6s ease both; }
+@keyframes si-fadein { from { opacity: 0; } }
 `;
