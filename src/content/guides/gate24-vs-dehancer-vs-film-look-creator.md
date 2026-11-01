@@ -2,6 +2,7 @@
 title: "GATE.24 vs Dehancer vs Film Look Creator: Which DaVinci Resolve Film Look Plugin Is Worth It?"
 description: "A practical comparison of GATE.24, Dehancer, and Resolve's built-in Film Look Creator for colorists deciding how to get a cinematic finish."
 publishDate: 2026-08-25
+cover: m08-dustywestern
 ---
 
 If you edit in DaVinci Resolve and you're trying to get a cinematic finish on a graded clip, you've probably run into the same three names: **Dehancer**, Resolve's own **Film Look Creator**, and — if you're reading this — **GATE.24**. Here's how they actually differ, without the marketing spin.

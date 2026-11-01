@@ -2,6 +2,7 @@
 title: "Cómo conseguir un look cinematográfico en DaVinci Resolve (con un flujo gratuito)"
 description: "Un flujo paso a paso para dar el acabado a un clip ya etalonado en DaVinci Resolve: barras de recorte, viñeta según la óptica, grano de película y contraste que respeta la piel."
 publishDate: 2026-08-25
+cover: m05-cinema35
 translationOf: cinematic-film-look-davinci-resolve-tutorial
 ---
 

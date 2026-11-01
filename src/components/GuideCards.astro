@@ -1,0 +1,166 @@
+---
+import { Image } from 'astro:assets';
+import { shots, type ShotKey } from '../data/shots';
+import type { Lang } from '../i18n';
+
+interface Entry {
+  href: string;
+  title: string;
+  description: string;
+  cover?: string;
+}
+
+interface Props {
+  entries: Entry[];
+  lang?: Lang;
+  /** First card spans the full row on wide screens. */
+  featureFirst?: boolean;
+}
+
+const { entries, lang = 'en', featureFirst = false } = Astro.props;
+const read = lang === 'es' ? 'Leer la guía' : 'Read the guide';
+---
+
+<ul class:list={['cards', { feature: featureFirst }]}>
+  {entries.map((entry) => {
+    const shot = entry.cover && entry.cover in shots ? shots[entry.cover as ShotKey] : undefined;
+    return (
+      <li>
+        <a href={entry.href}>
+          {shot && (
+            <div class="thumb">
+              <Image
+                src={shot.src}
+                alt=""
+                widths={[480, 720, 1000]}
+                sizes="(min-width: 60rem) 33vw, 100vw"
+                loading="lazy"
+              />
+            </div>
+          )}
+          <div class="body">
+            <h2>{entry.title}</h2>
+            <p>{entry.description}</p>
+            <span class="more">{read} &rarr;</span>
+          </div>
+        </a>
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: 1fr;
+  }
+
+  a {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: var(--color-fg);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+    transition: border-color 0.25s ease, transform 0.25s ease;
+  }
+
+  a:hover,
+  a:focus-visible {
+    border-color: var(--color-fg);
+  }
+
+  .thumb {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  a:hover .thumb :global(img),
+  a:focus-visible .thumb :global(img) {
+    transform: scale(1.04);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: var(--space-3);
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0 0 var(--space-2);
+    font-size: 0.95rem;
+  }
+
+  .more {
+    margin-top: auto;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-fg);
+  }
+
+  @media (min-width: 60rem) {
+    .cards {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .cards.feature {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cards.feature li:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .cards.feature li:first-child a {
+      flex-direction: row;
+    }
+
+    .cards.feature li:first-child .thumb {
+      flex: 1.4;
+      aspect-ratio: auto;
+      min-height: 18rem;
+    }
+
+    .cards.feature li:first-child .body {
+      flex: 1;
+      justify-content: center;
+      padding: var(--space-4);
+    }
+
+    .cards.feature li:first-child h2 {
+      font-size: clamp(1.6rem, 2vw + 1rem, 2.25rem);
+    }
+  }
+
+  @media (min-width: 40rem) and (max-width: 59.99rem) {
+    .cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .thumb :global(img) {
+      transition: none;
+    }
+  }
+</style>

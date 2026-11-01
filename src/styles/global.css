@@ -5,10 +5,10 @@
      serif for display type, minimalist -- see 03_DISEÑO_UI_BRANDING.md */
   --color-bg: #0a0a0a;
   --color-bg-raised: #141414;
-  --color-fg: #f5f3ef;
+  --color-fg: #f5f5f3;
   --color-fg-muted: #a8a49c;
   --color-border: #2a2a2a;
-  --color-accent: #f5f3ef; /* neutral default -- the shared Malejemplo identity stays "sin
+  --color-accent: #f5f5f3; /* neutral default -- the shared Malejemplo identity stays "sin
     decoración de más"; products opt into their own accent via data-theme below */
   --color-accent-glow: transparent;
 
@@ -32,7 +32,7 @@
    identity. */
 :root[data-theme='gate24'],
 [data-theme='gate24'] {
-  --color-accent: #f5f3ef;
+  --color-accent: #f5f5f3;
   --color-accent-glow: transparent;
 }
 
@@ -46,11 +46,14 @@ html {
   background: var(--color-bg);
   scroll-behavior: smooth;
   overflow-x: hidden;
+  overflow-x: clip; /* clip, not hidden: hidden would break position: sticky */
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   overflow-x: hidden;
+  overflow-x: clip;
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-body);
@@ -71,11 +74,13 @@ h4 {
 }
 
 h1 {
-  font-size: clamp(2.5rem, 5vw + 1rem, 5rem);
+  font-size: clamp(2.25rem, 4vw + 1rem, 4.5rem);
+  text-wrap: balance;
 }
 
 h2 {
   font-size: clamp(1.75rem, 2.5vw + 1rem, 2.75rem);
+  text-wrap: balance;
 }
 
 h3 {
@@ -86,10 +91,20 @@ p {
   margin: 0 0 var(--space-2);
   color: var(--color-fg-muted);
   max-width: 60ch;
+  text-wrap: pretty;
 }
 
 a {
   color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-fg);
+  outline-offset: 3px;
+}
+
+.lede {
+  font-size: 1.15rem;
 }
 
 img,
@@ -111,7 +126,7 @@ video {
 
 .eyebrow {
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -122,7 +137,9 @@ video {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.85rem 1.75rem;
+  min-height: 2.75rem;
+  padding: 0.75rem 1.75rem;
+  touch-action: manipulation;
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.95rem;

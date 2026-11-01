@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import FilmPerforations from '../components/FilmPerforations.astro';
+import CtaBand from '../components/CtaBand.astro';
+import PageHero from '../components/PageHero.astro';
 import LetterboxCalculator from '../components/LetterboxCalculator.tsx';
 import { calcBars, ratios } from '../lib/letterbox';
 import { pagePath } from '../i18n';
@@ -65,14 +66,7 @@ const jsonLd = [
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </Fragment>
 
-  <section class="hero section">
-    <FilmPerforations />
-    <div class="container hero-inner">
-      <p class="eyebrow">Free tool &middot; by Malejemplo</p>
-      <h1>Letterbox calculator</h1>
-      <p class="lede">Pick a size and a ratio. Get the black bars in pixels.</p>
-    </div>
-  </section>
+  <PageHero eyebrow="Free tool · by Malejemplo" title="Letterbox calculator" lede="Pick a size and a ratio. Get the black bars in pixels." />
 
   <section class="calc-section">
     <div class="container">
@@ -141,36 +135,23 @@ const jsonLd = [
     </div>
   </section>
 
-  <section class="section cta">
-    <div class="container narrow">
-      <h2>Skip the maths</h2>
-      <p>GATE.24 puts the bars on for you: 6 crop formats from 2.39:1 to 1:1, inside DaVinci Resolve.</p>
-      <p><a class="btn btn-primary" href={pagePath('gate24', 'en')}>See GATE.24</a></p>
-    </div>
-  </section>
+  <CtaBand
+    lang="en"
+    title="Skip the maths"
+    text="GATE.24 puts the bars on for you: 6 crop formats from 2.39:1 to 1:1, inside DaVinci Resolve."
+    href={pagePath('gate24', 'en')}
+    label="See GATE.24"
+  />
 </BaseLayout>
 
 <style>
-  .hero {
-    padding-top: var(--space-5);
-    padding-bottom: var(--space-4);
-    text-align: center;
-  }
-  .hero-inner {
-    max-width: 44rem;
-    margin-inline: auto;
-  }
-  .hero .eyebrow {
-    margin-inline: auto;
-  }
-  .lede {
-    font-size: 1.1rem;
-    margin-inline: auto;
-  }
   .calc-section {
     padding-bottom: var(--space-5);
   }
   .narrow {
+    max-width: var(--content-width);
+  }
+  .narrow > :global(*) {
     max-width: 44rem;
   }
   .formula {
@@ -202,7 +183,7 @@ const jsonLd = [
   thead th {
     color: var(--color-fg-muted);
     font-weight: 600;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }

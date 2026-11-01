@@ -2,6 +2,7 @@
 title: "Halation vs bloom: en qué se diferencian (y por qué importa al etalonar)"
 description: "El halation y el bloom se parecen, pero en la película real tienen causas físicas distintas. Te explicamos la diferencia y por qué tratarlos con un solo slider te lleva a un equilibrio equivocado."
 publishDate: 2026-10-01
+cover: m04-original
 translationOf: halation-vs-bloom
 ---
 

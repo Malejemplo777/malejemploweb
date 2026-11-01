@@ -1,0 +1,93 @@
+---
+import PageHero from './PageHero.astro';
+import type { ShotKey } from '../data/shots';
+import type { Lang } from '../i18n';
+
+interface Props {
+  title: string;
+  description: string;
+  cover?: string;
+  lang?: Lang;
+}
+
+const { title, description, cover, lang = 'en' } = Astro.props;
+---
+
+<article>
+  <PageHero
+    compact
+    eyebrow={lang === 'es' ? 'Guía' : 'Guide'}
+    title={title}
+    lede={description}
+    cover={cover as ShotKey | undefined}
+    lang={lang}
+  />
+  <div class="section body">
+    <div class="container">
+      <div class="prose">
+        <slot />
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .body {
+    padding-top: var(--space-3);
+  }
+
+  .prose {
+    max-width: 40rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  .prose :global(h2) {
+    margin-top: var(--space-5);
+    font-size: clamp(1.5rem, 1.5vw + 1rem, 2.1rem);
+  }
+
+  .prose :global(h3) {
+    margin-top: var(--space-4);
+  }
+
+  .prose :global(p),
+  .prose :global(li) {
+    max-width: none;
+    color: var(--color-fg-muted);
+  }
+
+  .prose :global(li) {
+    margin-bottom: 0.4rem;
+  }
+
+  .prose :global(strong) {
+    color: var(--color-fg);
+  }
+
+  .prose :global(a) {
+    color: var(--color-fg);
+    text-underline-offset: 0.2em;
+  }
+
+  .prose :global(table) {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    margin: var(--space-3) 0;
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .prose :global(th) {
+    color: var(--color-fg);
+  }
+</style>

@@ -2,6 +2,7 @@
 title: "How to Get a Cinematic Film Look in DaVinci Resolve (Free Workflow)"
 description: "A step-by-step workflow for finishing a graded clip in DaVinci Resolve with crop bars, a lens-tied vignette, film grain, and skin-safe contrast."
 publishDate: 2026-08-25
+cover: m05-cinema35
 ---
 
 A "cinematic look" isn't one slider — it's usually four things stacked together: **framing**, **vignette**, **grain**, and a **final contrast pass**. Here's the order that actually works, and why.

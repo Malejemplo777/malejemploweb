@@ -7,6 +7,8 @@ const guides = defineCollection({
     title: z.string(),
     description: z.string(),
     publishDate: z.coerce.date(),
+    /** Key of a frame in src/data/shots.ts. */
+    cover: z.string().optional(),
   }),
 });
 
@@ -20,6 +22,7 @@ const guidesEs = defineCollection({
     description: z.string(),
     publishDate: z.coerce.date(),
     translationOf: z.string(),
+    cover: z.string().optional(),
   }),
 });
 

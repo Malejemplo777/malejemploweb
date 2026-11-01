@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
 import ContactForm from '../../components/ContactForm.astro';
 import { social } from '../../data/social';
+import { pagePath } from '../../i18n';
 ---
 
 <BaseLayout
@@ -9,21 +11,36 @@ import { social } from '../../data/social';
   description="Malejemplo es la marca personal de alguien que edita en DaVinci Resolve, crea contenido en YouTube y hace herramientas de acabado, empezando por GATE.24."
   alternatePath="/about/"
 >
-  <section class="section">
-    <div class="container narrow">
-      <p class="eyebrow">Sobre Malejemplo</p>
-      <h1>Malejemplo</h1>
-      <p>
-        Malejemplo es un taller de una sola persona que hace herramientas de acabado para DaVinci
-        Resolve. Son plugins pensados por alguien que edita y etalona metraje real todos los días,
-        no por un estudio que trabaja con una hoja de especificaciones. GATE.24 es el primero;
-        habrá más.
+  <PageHero
+    title="Plugins hechos por alguien que edita metraje real."
+    lede="Malejemplo es un taller de una sola persona que hace herramientas de acabado para DaVinci Resolve. No un estudio de plugins que trabaja con una hoja de especificaciones."
+    cover="m02-original"
+    caption={false}
+    lang="es"
+  />
+
+  <section class="section facts">
+    <div class="container">
+      <dl>
+        <div>
+          <dt>Qué hago</dt>
+          <dd>Herramientas de acabado para DaVinci Resolve: barras de recorte, viñeta, grano y contraste.</dd>
+        </div>
+        <div>
+          <dt>Cómo las hago</dt>
+          <dd>Edito y etalono metraje real todos los días, y construyo lo que me sigue faltando.</dd>
+        </div>
+        <div>
+          <dt>Qué viene</dt>
+          <dd>GATE.24 es el primer lanzamiento; habrá más herramientas.</dd>
+        </div>
+      </dl>
+      <p class="links">
+        <a class="btn btn-primary" href={pagePath('gate24', 'es')}>Ver GATE.24</a>
+        {social.youtube && (
+          <a class="btn btn-ghost" href={social.youtube} target="_blank" rel="noopener noreferrer">Ver el canal de YouTube</a>
+        )}
       </p>
-      {social.youtube ? (
-        <p><a class="btn btn-ghost" href={social.youtube} target="_blank" rel="noopener noreferrer">Ver el canal de YouTube</a></p>
-      ) : (
-        <p class="fine-print">Enlace de YouTube pendiente.</p>
-      )}
     </div>
   </section>
 
@@ -38,11 +55,45 @@ import { social } from '../../data/social';
 
 <style>
   .narrow {
+    max-width: var(--content-width);
+  }
+
+  .narrow > :global(*) {
     max-width: 40rem;
   }
 
-  .fine-print {
-    font-size: 0.8rem;
+  .facts {
+    padding-top: var(--space-4);
+  }
+
+  dl {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0 0 var(--space-4);
+  }
+
+  dt {
+    margin-bottom: 0.4rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0;
     color: var(--color-fg-muted);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  @media (min-width: 52rem) {
+    dl {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+    }
   }
 </style>

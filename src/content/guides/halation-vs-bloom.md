@@ -2,6 +2,7 @@
 title: "Halation vs Bloom: What's the Difference (and Why It Matters for Grading)"
 description: "Halation and bloom look similar but come from different physical causes in real film — here's the difference, and why treating them as one slider gets you the wrong trade-off."
 publishDate: 2026-10-01
+cover: m04-original
 ---
 
 "Halation" and "bloom" get used interchangeably in a lot of plugin marketing, but on real film they come from **different physical causes** — and that difference is exactly why bundling them into one slider forces a bad trade-off.

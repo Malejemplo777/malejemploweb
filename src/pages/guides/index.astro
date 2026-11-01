@@ -1,10 +1,18 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import GuideCards from '../../components/GuideCards.astro';
 import { getCollection } from 'astro:content';
 
 const entries = (await getCollection('guides')).sort(
   (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
 );
+const cards = entries.map((entry) => ({
+  href: `/guides/${entry.id}/`,
+  title: entry.data.title,
+  description: entry.data.description,
+  cover: entry.data.cover,
+}));
 ---
 
 <BaseLayout
@@ -12,57 +20,13 @@ const entries = (await getCollection('guides')).sort(
   description="Practical guides on getting a cinematic look in DaVinci Resolve, and how GATE.24 compares to other finishing tools."
   alternatePath="/es/guias/"
 >
-  <section class="section">
+  <PageHero
+    title="Practical guides for a cinematic look."
+    lede="A small, fixed set of guides: how to get a film look in DaVinci Resolve, and how GATE.24 compares to other tools."
+  />
+  <section class="section" style="padding-top: var(--space-3)">
     <div class="container">
-      <p class="eyebrow">Guides</p>
-      <h1>Guides</h1>
-      <p>Not a blog you need to check every week — a small, fixed set of practical guides.</p>
-
-      <ul class="guide-list">
-        {entries.map((entry) => (
-          <li>
-            <a href={`/guides/${entry.id}/`}>
-              <h2>{entry.data.title}</h2>
-              <p>{entry.data.description}</p>
-            </a>
-          </li>
-        ))}
-      </ul>
+      <GuideCards entries={cards} featureFirst />
     </div>
   </section>
 </BaseLayout>
-
-<style>
-  .guide-list {
-    list-style: none;
-    margin: var(--space-4) 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .guide-list a {
-    display: block;
-    text-decoration: none;
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    background: var(--color-bg-raised);
-    transition: border-color 0.2s ease;
-  }
-
-  .guide-list a:hover {
-    border-color: var(--color-fg);
-  }
-
-  .guide-list h2 {
-    font-size: 1.3rem;
-    margin-bottom: 0.4rem;
-    color: var(--color-fg);
-  }
-
-  .guide-list p {
-    margin: 0;
-    max-width: none;
-  }
-</style>

@@ -1,9 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import FilmPerforations from '../components/FilmPerforations.astro';
+import HomeHero from '../components/HomeHero.astro';
 import ProductSplit from '../components/ProductSplit.astro';
+import GuideCards from '../components/GuideCards.astro';
 import gate24Wordmark from '../assets/brand/gate24-wordmark.png';
 import { products } from '../data/products';
+import { pagePath } from '../i18n';
+import { getCollection } from 'astro:content';
 
 const wordmarks: Record<string, ImageMetadata> = {
   gate24: gate24Wordmark,
@@ -13,6 +16,15 @@ const splitProducts = products.map((product) => ({
   ...product,
   wordmark: wordmarks[product.slug],
 }));
+
+const guides = (await getCollection('guides'))
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .map((entry) => ({
+    href: `/guides/${entry.id}/`,
+    title: entry.data.title,
+    description: entry.data.description,
+    cover: entry.data.cover,
+  }));
 ---
 
 <BaseLayout
@@ -20,17 +32,7 @@ const splitProducts = products.map((product) => ({
   description="Film tools for DaVinci Resolve, made by Malejemplo. GATE.24 is out now."
   alternatePath="/es/"
 >
-  <section class="hero section">
-    <FilmPerforations />
-    <div class="container hero-inner">
-      <p class="eyebrow">Malejemplo</p>
-      <h1>Film tools, made by one person who edits too.</h1>
-      <p class="lede">
-        Malejemplo builds finishing tools for DaVinci Resolve — starting with GATE.24, a
-        one-click cinematic look plugin. More products are on the way.
-      </p>
-    </div>
-  </section>
+  <HomeHero />
 
   <section class="section products">
     <div class="container">
@@ -38,22 +40,34 @@ const splitProducts = products.map((product) => ({
       <ProductSplit products={splitProducts} />
     </div>
   </section>
+
+  <section class="section guides">
+    <div class="container">
+      <div class="row">
+        <h2>Guides</h2>
+        <a class="all" href={pagePath('guides', 'en')}>All guides &rarr;</a>
+      </div>
+      <GuideCards entries={guides} />
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .hero {
-    padding-top: var(--space-6);
+  .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
   }
 
-  .hero-inner {
-    max-width: 42rem;
+  .row h2 {
+    margin: 0;
   }
 
-  .lede {
-    font-size: 1.1rem;
-  }
-
-  .products {
-    padding-top: 0;
+  .all {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    white-space: nowrap;
   }
 </style>

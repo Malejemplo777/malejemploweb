@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
 import ContactForm from '../components/ContactForm.astro';
 import { social } from '../data/social';
+import { pagePath } from '../i18n';
 ---
 
 <BaseLayout
@@ -9,20 +11,35 @@ import { social } from '../data/social';
   description="Malejemplo is the personal brand of a DaVinci Resolve editor and YouTube creator building finishing tools, starting with GATE.24."
   alternatePath="/es/acerca/"
 >
-  <section class="section">
-    <div class="container narrow">
-      <p class="eyebrow">About</p>
-      <h1>Malejemplo</h1>
-      <p>
-        Malejemplo is a one-person shop building finishing tools for DaVinci Resolve — plugins made
-        by someone who edits and colors real footage, not a plugin studio working from a spec sheet.
-        GATE.24 is the first release; more tools are planned.
+  <PageHero
+    title="Plugins made by someone who edits real footage."
+    lede="Malejemplo is a one-person shop building finishing tools for DaVinci Resolve. Not a plugin studio working from a spec sheet."
+    cover="m02-original"
+    caption={false}
+  />
+
+  <section class="section facts">
+    <div class="container">
+      <dl>
+        <div>
+          <dt>What I make</dt>
+          <dd>Finishing tools for DaVinci Resolve: crop bars, vignette, grain, contrast.</dd>
+        </div>
+        <div>
+          <dt>How I make them</dt>
+          <dd>I cut and grade real footage every day, and build what I keep needing.</dd>
+        </div>
+        <div>
+          <dt>What's next</dt>
+          <dd>GATE.24 is the first release; more tools are planned.</dd>
+        </div>
+      </dl>
+      <p class="links">
+        <a class="btn btn-primary" href={pagePath('gate24', 'en')}>See GATE.24</a>
+        {social.youtube && (
+          <a class="btn btn-ghost" href={social.youtube} target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+        )}
       </p>
-      {social.youtube ? (
-        <p><a class="btn btn-ghost" href={social.youtube} target="_blank" rel="noopener noreferrer">Watch on YouTube</a></p>
-      ) : (
-        <p class="fine-print">YouTube link pending.</p>
-      )}
     </div>
   </section>
 
@@ -37,11 +54,45 @@ import { social } from '../data/social';
 
 <style>
   .narrow {
+    max-width: var(--content-width);
+  }
+
+  .narrow > :global(*) {
     max-width: 40rem;
   }
 
-  .fine-print {
-    font-size: 0.8rem;
+  .facts {
+    padding-top: var(--space-4);
+  }
+
+  dl {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0 0 var(--space-4);
+  }
+
+  dt {
+    margin-bottom: 0.4rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0;
     color: var(--color-fg-muted);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  @media (min-width: 52rem) {
+    dl {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+    }
   }
 </style>

@@ -1,0 +1,131 @@
+---
+import { Image } from 'astro:assets';
+import { shots, type ShotKey } from '../data/shots';
+import type { Lang } from '../i18n';
+
+interface Props {
+  title: string;
+  lede?: string;
+  eyebrow?: string;
+  /** Key of a frame in src/data/shots.ts. Omit for a text-only header. */
+  cover?: ShotKey;
+  lang?: Lang;
+  /** Smaller title, for long article titles. */
+  compact?: boolean;
+  /** Show the look name on the frame. Off when the frame is just a picture. */
+  caption?: boolean;
+}
+
+const { title, lede, eyebrow, cover, lang = 'en', compact = false, caption = true } = Astro.props;
+const shot = cover ? shots[cover] : undefined;
+---
+
+<header class:list={['page-hero', { compact }]}>
+  <div class="container">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1>{title}</h1>
+    {lede && <p class="lede">{lede}</p>}
+  </div>
+  {shot && (
+    <div class="container media-wrap">
+      <figure class="media">
+        <Image
+          src={shot.src}
+          alt={shot.alt[lang]}
+          widths={[640, 960, 1440, 2000]}
+          sizes="(min-width: 72rem) 69rem, 100vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+        {caption && <figcaption>{shot.caption[lang]}</figcaption>}
+      </figure>
+    </div>
+  )}
+</header>
+
+<style>
+  .page-hero {
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-4);
+  }
+
+  .page-hero h1 {
+    max-width: 18ch;
+  }
+
+  .page-hero.compact h1 {
+    font-size: clamp(2rem, 3vw + 1rem, 3.25rem);
+    max-width: 24ch;
+  }
+
+  .lede {
+    font-size: 1.15rem;
+    max-width: 52ch;
+    margin-bottom: 0;
+  }
+
+  .media-wrap {
+    margin-top: var(--space-4);
+  }
+
+  .media {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 2.39 / 1;
+    overflow: hidden;
+    background: #000;
+    border: 1px solid var(--color-border);
+  }
+
+  .media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  figcaption {
+    position: absolute;
+    left: var(--space-2);
+    bottom: var(--space-2);
+    padding: 0.2rem 0.55rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--color-fg);
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(4px);
+  }
+
+  /* GATE.24's own move: the crop bars open as the frame enters. Progressive
+     enhancement -- without scroll-driven animations the frame is simply shown. */
+  @supports (animation-timeline: view()) {
+    .media :global(img) {
+      animation: gate-open linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+  }
+
+  @keyframes gate-open {
+    from {
+      clip-path: inset(18% 0 18% 0);
+      transform: scale(1.06);
+    }
+    to {
+      clip-path: inset(0);
+      transform: scale(1);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .media {
+      aspect-ratio: 16 / 10;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .media :global(img) {
+      animation: none;
+    }
+  }
+</style>

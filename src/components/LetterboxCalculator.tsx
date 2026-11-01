@@ -344,7 +344,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
               <img
                 ref={imgRef}
                 className="lbx-photo"
-                src={photo ? photo.url : '/showcase/cine-35-before.jpg'}
+                src={photo ? photo.url : '/showcase/sample-beach.webp'}
                 alt={photo ? c.altOwn : c.alt}
                 draggable={false}
               />
@@ -429,7 +429,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-label {
           padding: 0;
           margin-bottom: 0.6rem;
-          font-size: 0.7rem;
+          font-size: 0.8125rem;
           font-weight: 600;
           letter-spacing: 0.16em;
           text-transform: uppercase;
@@ -461,7 +461,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         }
 
         .lbx-inputs { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.9rem; }
-        .lbx-inputs label { display: grid; gap: 0.3rem; font-size: 0.7rem; color: var(--color-fg-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+        .lbx-inputs label { display: grid; gap: 0.3rem; font-size: 0.8125rem; color: var(--color-fg-muted); letter-spacing: 0.08em; text-transform: uppercase; }
         .lbx-inputs input {
           width: 10rem;
           font: 500 1rem var(--lbx-mono);
@@ -474,13 +474,13 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         }
         .lbx-inputs input[aria-invalid='true'] { border-color: #c9694f; }
         .lbx-times { color: var(--color-fg-muted); padding-bottom: 0.55rem; }
-        .lbx-error { margin: 0.6rem 0 0; font-size: 0.8rem; color: #d8836b; }
+        .lbx-error { margin: 0.6rem 0 0; font-size: 0.8125rem; color: #d8836b; }
 
         .lbx-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
         .lbx-file:focus-visible + .lbx-upload-btn { outline: 2px solid var(--color-fg); outline-offset: 2px; }
         .lbx-upload { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; position: relative; }
         .lbx-upload-btn { display: inline-block; color: var(--color-fg); border-color: var(--color-fg-muted); }
-        .lbx-hint { flex: 1 1 100%; margin: 0.2rem 0 0; font-size: 0.78rem; color: var(--color-fg-muted); max-width: none; }
+        .lbx-hint { flex: 1 1 100%; margin: 0.2rem 0 0; font-size: 0.8125rem; color: var(--color-fg-muted); max-width: none; }
         .lbx-drop { outline: 2px dashed var(--color-fg); outline-offset: -6px; }
         .lbx-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.4rem; }
         .lbx-actions > * { flex: 1 1 11rem; text-align: center; }
@@ -650,7 +650,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           border-top: 1px dashed var(--color-border);
         }
         .lbx-k {
-          font-size: 0.68rem;
+          font-size: 0.8125rem;
           font-weight: 600;
           letter-spacing: 0.14em;
           text-transform: uppercase;
