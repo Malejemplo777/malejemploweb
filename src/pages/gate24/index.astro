@@ -1,15 +1,14 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import FilmPerforations from '../../components/FilmPerforations.astro';
-import PresetShowcase from '../../components/PresetShowcase.tsx';
+import ScrollIntro from '../../components/ScrollIntro.tsx';
+import Library from '../../components/Library.tsx';
 import LivePresetPlayground from '../../components/LivePresetPlayground.tsx';
 import PresetGallery from '../../components/PresetGallery.tsx';
 import ResolvePanel from '../../components/ResolvePanel.astro';
-import { Image } from 'astro:assets';
-import wordmark from '../../assets/brand/gate24-wordmark.png';
-import { GUMROAD_URL } from '../../data/social';
+import { GUMROAD_LITE_URL, GUMROAD_PRO_URL } from '../../data/social';
 
-const hasGumroad = GUMROAD_URL.length > 0;
+const liteHref = GUMROAD_LITE_URL.length > 0 ? GUMROAD_LITE_URL : '#get';
+const proHref = GUMROAD_PRO_URL;
 
 const comparison = [
   { feature: 'Price', dehancer: 'Paid (subscription or lifetime)', flc: 'Included with Resolve Studio', gate24: 'Pay what you want (can be free)' },
@@ -19,6 +18,14 @@ const comparison = [
   { feature: 'Skin-tone protection', dehancer: 'No dedicated tool listed', flc: 'No', gate24: 'Yes, with per-shot eyedropper' },
   { feature: 'Ready-made presets', dehancer: '60+ film profiles; you build the look', flc: '8 built-in looks + custom', gate24: '10 (Essentials + Genre)' },
   { feature: 'Learning curve', dehancer: 'High', flc: 'Medium', gate24: 'One click, still hand-adjustable' },
+];
+
+const faq = [
+  { q: 'Does it work on Mac?', a: 'Not yet. GATE.24 is Windows only for now; Mac support is blocked on hardware access, not ruled out.' },
+  { q: 'How do I install it?', a: 'Unzip, run Install.bat, restart DaVinci Resolve and find GATE.24 in OpenFX. The installer runs in English or Spanish.' },
+  { q: 'Can I have Lite and Pro installed together?', a: 'Yes. They are separate plugins and sit side by side in Resolve.' },
+  { q: 'Is a preset locked once I apply it?', a: 'No. A preset is a starting point: every parameter stays adjustable by hand.' },
+  { q: 'Why is the plugin panel in English?', a: 'The panel is English only. This site keeps the same names in every language so you can find them in Resolve.' },
 ];
 
 const jsonLd = {
@@ -49,34 +56,16 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </Fragment>
 
-  <section class="hero section">
-    <FilmPerforations />
-    <div class="container hero-inner">
-      <Image src={wordmark} alt="GATE.24" width={180} height={180} class="hero-mark" />
-      <p class="eyebrow">by Malejemplo &middot; DaVinci Resolve OFX plugin</p>
-      <h1>Everything a $500+ plugin does for your grade — without the price tag.</h1>
-      <p class="lede">
-        One effect for crop, lens-tied vignette, stock-matched grain, and skin-safe contrast —
-        10 presets included, and every parameter still adjustable by hand. Pay what you want,
-        including free.
-      </p>
-      <div class="cta-row">
-        {hasGumroad ? (
-          <a class="btn btn-primary" href={GUMROAD_URL} target="_blank" rel="noopener noreferrer">Get GATE.24</a>
-        ) : (
-          <span class="btn btn-primary" aria-disabled="true">Download link coming soon</span>
-        )}
-        <a class="btn btn-ghost" href="#comparison">See how it compares</a>
-        <a class="btn btn-text" href="/gate24/manual.html" download>Download manual</a>
-      </div>
-    </div>
-  </section>
+  <ScrollIntro client:load lang="en" downloadHref={liteHref} />
 
-  <section class="section">
+  <section class="section" id="library">
     <div class="container">
-      <h2>Pick a mood, see the difference</h2>
-      <p>Same plugin, five very different results. Choose a preset, then drag to compare.</p>
-      <PresetShowcase client:visible />
+      <h2>Eight shots, twelve looks</h2>
+      <p>
+        Real footage from one shoot, graded with GATE.24. Pick a shot, pick a look, then drag to
+        compare it with the original.
+      </p>
+      <Library client:visible lang="en" />
     </div>
   </section>
 
@@ -186,6 +175,58 @@ const jsonLd = {
     </div>
   </section>
 
+  <section class="section" id="get">
+    <div class="container">
+      <h2>Lite or Pro</h2>
+      <p>Two plugins, installable side by side. Start with Lite; Pro adds everything below.</p>
+      <div class="tiers">
+        <article class="tier">
+          <h3>GATE.24 Lite</h3>
+          <p class="tier-price">Free</p>
+          <ul>
+            <li>5 presets: Cinema 35, Cinema 65, Editorial 4:3, Urban Editorial, Romance / Reverie</li>
+            <li>Crop, vignette, grain, contrast, reframe, shadow lift and reset</li>
+            <li>Every parameter still adjustable by hand</li>
+          </ul>
+          {liteHref !== '#get' ? (
+            <a class="btn btn-primary" href={liteHref} target="_blank" rel="noopener noreferrer">Download Lite</a>
+          ) : (
+            <span class="btn btn-primary" aria-disabled="true">Download link coming soon</span>
+          )}
+        </article>
+        <article class="tier tier-pro">
+          <h3>GATE.24 Pro</h3>
+          <p class="tier-price">Coming soon</p>
+          <ul>
+            <li>All 10 presets, including the genre looks</li>
+            <li>Advanced controls and the diagnostic preview</li>
+            <li>Weave and Flicker, for gate movement and exposure drift</li>
+            <li>Skin-tone eyedropper, calibrated per shot</li>
+          </ul>
+          {proHref.length > 0 ? (
+            <a class="btn btn-primary" href={proHref} target="_blank" rel="noopener noreferrer">Get Pro</a>
+          ) : (
+            <span class="btn btn-ghost" aria-disabled="true">Not available yet</span>
+          )}
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="container">
+      <h2>Questions</h2>
+      <dl class="faq">
+        {faq.map((f) => (
+          <div>
+            <dt>{f.q}</dt>
+            <dd>{f.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
   <section class="section" id="requirements">
     <div class="container">
       <h2>Requirements</h2>
@@ -208,45 +249,8 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
-  .hero {
-    position: relative;
-    padding-top: var(--space-5);
-    text-align: center;
-  }
-
-  .hero-inner {
-    max-width: 40rem;
-    margin-inline: auto;
-  }
-
-  .hero-mark {
-    margin-inline: auto;
-    margin-bottom: var(--space-2);
-  }
-
-  /* .eyebrow (global.css) has no margin-inline: auto, since it stays
-     left-aligned everywhere else it's used (home, about, guides). Inside
-     this centered hero it needs its own centering or it hugs the left edge
-     of its max-width: 60ch box instead of the hero's true center. */
-  .hero .eyebrow {
-    margin-inline: auto;
-  }
-
-  .lede {
-    font-size: 1.1rem;
-    margin-inline: auto;
-  }
-
-  .cta-row {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: var(--space-3);
-  }
-
   .fine-print {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--color-fg-muted);
     margin-top: var(--space-2);
   }
@@ -280,7 +284,7 @@ const jsonLd = {
   thead th {
     color: var(--color-fg-muted);
     font-weight: 600;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -324,5 +328,72 @@ const jsonLd = {
     margin: 0;
     color: var(--color-fg-muted);
     max-width: 48rem;
+  }
+
+  .tiers {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  @media (min-width: 52rem) {
+    .tiers {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .tier {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+  }
+
+  .tier-pro {
+    border-color: var(--color-fg-muted);
+  }
+
+  .tier h3 {
+    margin: 0;
+  }
+
+  .tier-price {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-fg);
+  }
+
+  .tier ul {
+    margin: 0 0 var(--space-2);
+    padding-left: 1.1rem;
+    color: var(--color-fg-muted);
+    flex: 1;
+  }
+
+  .tier li {
+    margin-bottom: 0.4rem;
+  }
+
+  .faq {
+    margin-top: var(--space-3);
+    display: grid;
+    gap: var(--space-3);
+    max-width: 44rem;
+  }
+
+  .faq dt {
+    font-weight: 600;
+    color: var(--color-fg);
+    margin-bottom: 0.25rem;
+  }
+
+  .faq dd {
+    margin: 0;
+    color: var(--color-fg-muted);
   }
 </style>

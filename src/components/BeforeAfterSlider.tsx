@@ -18,9 +18,9 @@ interface Props {
 // the browser's own click-to-value math when styled, and visible native
 // track/thumb/accent-color artifacts proved impossible to fully suppress
 // across browsers; reverted 2026-08-26, see GATE24_Web_Brief_v2.md).
-// This version is the confirmed-good desktop experience. Mobile Safari drag
-// is still unreliable despite the -webkit-user-drag/touch-callout fixes
-// below -- flagged as a known open issue, not solved by this revert.
+// Touch: the track uses touch-action: pan-y (the old `none` froze page scroll
+// whenever a finger landed on it) and resets the drag on pointercancel. Not yet
+// confirmed on a real iPhone.
 export default function BeforeAfterSlider({
   beforeSrc,
   afterSrc,
@@ -46,19 +46,20 @@ export default function BeforeAfterSlider({
   }, []);
 
   const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     dragging.current = true;
-    (e.target as Element).setPointerCapture(e.pointerId);
+    // Capture on the track itself, not on whichever child was touched.
+    e.currentTarget.setPointerCapture(e.pointerId);
     updateFromClientX(e.clientX);
-    e.preventDefault();
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragging.current) return;
     updateFromClientX(e.clientX);
-    e.preventDefault();
   };
 
-  const onPointerUp = () => {
+  // Also fires when the browser takes the gesture over (e.g. a vertical page scroll on touch).
+  const endDrag = () => {
     dragging.current = false;
   };
 
@@ -73,7 +74,9 @@ export default function BeforeAfterSlider({
       ref={trackRef}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      onLostPointerCapture={endDrag}
     >
       <div className="ba-pane ba-after">
         {afterSrc ? (
@@ -122,7 +125,8 @@ export default function BeforeAfterSlider({
           overflow: hidden;
           border: 1px solid var(--color-border, #2a2a2a);
           cursor: ew-resize;
-          touch-action: none;
+          /* Horizontal drags move the slider; vertical ones still scroll the page. */
+          touch-action: pan-y;
           user-select: none;
           -webkit-user-select: none;
           -webkit-touch-callout: none;
@@ -157,7 +161,7 @@ export default function BeforeAfterSlider({
         .ba-tag {
           position: absolute;
           bottom: 0.75rem;
-          font-size: 0.7rem;
+          font-size: 0.8125rem;
           font-weight: 600;
           letter-spacing: 0.06em;
           text-transform: uppercase;

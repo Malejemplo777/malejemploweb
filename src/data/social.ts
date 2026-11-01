@@ -12,3 +12,7 @@ export const social = {
 export const NEWSLETTER_FORM_ACTION = import.meta.env.PUBLIC_NEWSLETTER_FORM_ACTION ?? '';
 export const CONTACT_FORM_ACTION = import.meta.env.PUBLIC_CONTACT_FORM_ACTION ?? '';
 export const GUMROAD_URL = import.meta.env.PUBLIC_GUMROAD_URL ?? '';
+// Two Gumroad products (Lite is free, Pro is paid). Each falls back to the single
+// legacy link until its own is set.
+export const GUMROAD_LITE_URL = import.meta.env.PUBLIC_GUMROAD_LITE_URL ?? GUMROAD_URL;
+export const GUMROAD_PRO_URL = import.meta.env.PUBLIC_GUMROAD_PRO_URL ?? '';

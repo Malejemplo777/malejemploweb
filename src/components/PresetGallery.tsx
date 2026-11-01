@@ -12,6 +12,20 @@ const copy = {
   es: { groups: 'Grupos de presets', essentials: 'Esenciales', genre: 'Por género', alt: (n: string) => `Imagen con el preset ${n} aplicado` },
 };
 
+// Same frame (shot 07) graded with each preset, from /public/library.
+const LOOK_FILE: Record<string, string> = {
+  'Cinema 35': 'cinema35',
+  'Cinema 65': 'cinema65',
+  'Editorial 4:3': 'editorial_pro',
+  'Urban Editorial': 'urban_pro',
+  'Dusty Western': 'dustywestern',
+  'Romance / Reverie': 'romance',
+  'Homegrown VHS': 'homegrownvhs',
+  'Classic Horror': 'classichorror',
+  'Worn-Out VHS': 'wornoutvhs',
+  'Terror Found Footage': 'terrorfoundfootage',
+};
+
 export default function PresetGallery({ lang = 'en' }: { lang?: Lang }) {
   const c = copy[lang];
   const tabs = tabDefs.map((t) => ({ ...t, label: c[t.key] }));
@@ -39,8 +53,8 @@ export default function PresetGallery({ lang = 'en' }: { lang?: Lang }) {
         {current.presets.map((preset) => (
           <div className="card" key={preset.name}>
             <div className="thumb">
-              {preset.sampleAfter ? (
-                <img src={preset.sampleAfter} alt={c.alt(preset.name)} loading="lazy" />
+              {LOOK_FILE[preset.name] ? (
+                <img src={`/library/m07_${LOOK_FILE[preset.name]}.webp`} alt={c.alt(preset.name)} loading="lazy" />
               ) : (
                 <svg aria-hidden="true">
                   <filter id={`grain-${preset.name.replace(/\s+/g, '-')}`}>
