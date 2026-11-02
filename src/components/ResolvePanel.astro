@@ -234,7 +234,11 @@ const panelHotspotCss = captions
   .resolve-panel:has(.r${idx}:hover) .dv-caption-default,
   .resolve-panel:has(.r${idx}:focus) .dv-caption-default { opacity: 0; }
   .resolve-panel:has(.r${idx}:hover) .c${idx},
-  .resolve-panel:has(.r${idx}:focus) .c${idx} { opacity: 1; }`,
+  .resolve-panel:has(.r${idx}:focus) .c${idx} { opacity: 1; }
+  @media (max-width: 62rem) {
+    .resolve-panel:has(.r${idx}:focus) .dv-caption-default { display: none; }
+    .resolve-panel:has(.r${idx}:focus) .c${idx} { display: block; }
+  }`,
   )
   .join('\n');
 ---
@@ -771,16 +775,34 @@ const panelHotspotCss = captions
 
   @media (max-width: 62rem) {
     .dv-layout {
-      grid-template-columns: 1fr;
+      display: block;
     }
 
-    /* On small screens the caption sticks to the top of the viewport while you tap controls. */
+    /* On phones the explanation is a card pinned to the bottom of the screen while you move through
+       the panel; it is exactly as tall as the text being shown, so nothing ever spills out of it. */
     .dv-captions {
-      order: -1;
-      top: 4.5rem;
+      position: sticky;
+      top: auto;
+      bottom: 0.75rem;
       z-index: 3;
-      min-height: 7.5rem;
+      min-height: 0;
+      max-height: 40vh;
+      overflow-y: auto;
+      margin-top: var(--space-3);
+      padding: var(--space-2);
       background: #1a1a1a;
+      box-shadow: 0 -10px 30px rgb(0 0 0 / 0.55);
+    }
+
+    .dv-captions p {
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+
+    .dv-caption {
+      position: static;
+      display: none;
+      opacity: 1;
     }
   }
 

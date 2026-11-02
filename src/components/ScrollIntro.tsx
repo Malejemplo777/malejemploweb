@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { Lang } from '../i18n';
+import { useMobile } from '../lib/useMobile';
 
 interface Props {
   lang?: Lang;
@@ -19,23 +20,41 @@ interface Props {
 // it just lands on the right state.
 // Paced for a mouse wheel: one notch is about 10vh, and every step of the intro gets about 33vh
 // (3 to 4 notches), the presets 50vh (5 notches), so a single notch never changes anything big.
-const TOTAL = 1232;
-const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
-
+const BASE_TOTAL = 1232;
 // Where each chapter starts, in vh of scrolling: opening title, presets, grain, vignette,
 // crop, weave + flicker, download.
-const TH = [0, 40, 389, 611, 755, 922, 1142];
+const BASE_TH = [0, 40, 389, 611, 755, 922, 1142];
 const CH = { open: 0, presets: 1, grain: 2, vig: 3, bars: 4, fx: 5, cta: 6 };
 
-// Scroll windows of the steps inside a chapter.
-const W = {
-  presets: w(64, 364), // 6 changes x 50vh: the presets get about 5 clicks each
-  zoom: w(414, 484),
-  stocks: w(494, 593),
-  vig: w(635, 725),
-  bars: w(777, 909),
-  fx: w(947, 1112),
-};
+// Scroll windows of the steps inside a chapter (presets: 6 changes x 50vh = about 5 clicks each).
+const BASE_W = {
+  presets: [64, 364],
+  zoom: [414, 484],
+  stocks: [494, 593],
+  vig: [635, 725],
+  bars: [777, 909],
+  fx: [947, 1112],
+} as const;
+
+/** The same intro stretched `k` times in scroll length. Phones use k = 2: a finger controls the
+ * scroll much less precisely than a wheel, so everything needs more room. */
+const PHONE_STRETCH = 3;
+function timeline(k: number) {
+  const TOTAL = Math.round(BASE_TOTAL * k);
+  const win = (a: number, b: number) => [(a * k) / TOTAL, (b * k) / TOTAL] as const;
+  return {
+    TOTAL,
+    TH: BASE_TH.map((n) => n * k),
+    W: {
+      presets: win(...BASE_W.presets),
+      zoom: win(...BASE_W.zoom),
+      stocks: win(...BASE_W.stocks),
+      vig: win(...BASE_W.vig),
+      bars: win(...BASE_W.bars),
+      fx: win(...BASE_W.fx),
+    },
+  };
+}
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
 const ramp = (p: number, win: readonly [number, number]) => clamp((p - win[0]) / (win[1] - win[0]));
@@ -220,6 +239,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const [reduced, setReduced] = useState(false);
   const [jitter, setJitter] = useState({ y: 0, b: 1 });
   const [inView, setInView] = useState(false);
+  const mobile = useMobile();
+  const { TOTAL, TH, W } = useMemo(() => timeline(mobile ? PHONE_STRETCH : 1), [mobile]);
 
   const fxRef = useRef({ amp: 0, flick: 0 });
   const lookRef = useRef(0);
@@ -408,7 +429,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
               src="/intro-proto/m08_original.webp"
               alt=""
               draggable={false}
-              style={{ transform: `scale(${reduced ? 2.2 : lerp(1, 3.2, smooth(zoom))})`, transformOrigin: '18% 88%' }}
+              style={{ transform: `scale(${reduced ? (mobile ? 5 : 2.2) : lerp(1, mobile ? 7 : 3.2, smooth(zoom))})`, transformOrigin: '18% 88%' }}
               {...imgSize.grain}
               decoding="async"
             />

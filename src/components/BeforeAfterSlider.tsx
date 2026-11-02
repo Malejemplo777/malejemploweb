@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ui, type Lang } from '../i18n';
 
 interface Props {
@@ -45,7 +45,51 @@ export default function BeforeAfterSlider({
     setPosition(Math.min(100, Math.max(0, ratio)));
   }, []);
 
+  // Fingers use touch events (reliable on iPhone): a mostly horizontal drag moves the divider
+  // and stops the page from scrolling, a mostly vertical one scrolls the page as usual, and a
+  // tap puts the divider where the finger landed. Mouse and pen use the pointer events below.
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    let sx = 0;
+    let sy = 0;
+    let mode: 'idle' | 'h' | 'v' = 'idle';
+    const start = (e: TouchEvent) => {
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+      mode = 'idle';
+    };
+    const move = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (mode === 'idle') {
+        const dx = Math.abs(t.clientX - sx);
+        const dy = Math.abs(t.clientY - sy);
+        if (dx < 6 && dy < 6) return;
+        mode = dx > dy ? 'h' : 'v';
+      }
+      if (mode === 'h') {
+        e.preventDefault();
+        updateFromClientX(t.clientX);
+      }
+    };
+    const end = (e: TouchEvent) => {
+      if (mode === 'idle' && e.changedTouches[0]) updateFromClientX(e.changedTouches[0].clientX);
+      mode = 'idle';
+    };
+    el.addEventListener('touchstart', start, { passive: true });
+    el.addEventListener('touchmove', move, { passive: false });
+    el.addEventListener('touchend', end, { passive: true });
+    el.addEventListener('touchcancel', end, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', start);
+      el.removeEventListener('touchmove', move);
+      el.removeEventListener('touchend', end);
+      el.removeEventListener('touchcancel', end);
+    };
+  }, [updateFromClientX]);
+
   const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     dragging.current = true;
     // Capture on the track itself, not on whichever child was touched.
@@ -54,7 +98,7 @@ export default function BeforeAfterSlider({
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current) return;
+    if (e.pointerType === 'touch' || !dragging.current) return;
     updateFromClientX(e.clientX);
   };
 
@@ -195,6 +239,9 @@ export default function BeforeAfterSlider({
           align-items: center;
           justify-content: center;
           font-size: 0.9rem;
+        }
+        @media (pointer: coarse) {
+          .ba-grip { width: 3rem; height: 3rem; font-size: 1.1rem; }
         }
         .ba-handle:focus-visible {
           outline: 2px solid #f5f3ef;

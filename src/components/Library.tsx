@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import BeforeAfterSlider from './BeforeAfterSlider';
 import type { Lang } from '../i18n';
+import { useMobile } from '../lib/useMobile';
 
 // The 8 master shots from the GATE.24 shoot, each graded with every look.
 // Files live in /public/library (converted from D:\GATE24_CONTENIDO\03_fotogramas).
@@ -56,6 +57,7 @@ const src = (shot: string, look: string) => `/library/${shot}_${look}.webp`;
 
 export default function Library({ lang = 'en' }: { lang?: Lang }) {
   const c = copy[lang];
+  const mobile = useMobile();
   const [shot, setShot] = useState<(typeof SHOTS)[number]>('m07');
   const [lookId, setLookId] = useState('cinema35');
   const [zoomed, setZoomed] = useState(false);
@@ -111,7 +113,7 @@ export default function Library({ lang = 'en' }: { lang?: Lang }) {
         afterSrc={src(shot, look.id)}
         afterLabel={look.name}
         lang={lang}
-        zoom={zoomed ? 2.4 : 1}
+        zoom={zoomed ? (mobile ? 6 : 2.4) : 1}
       />
 
       <div className="lib-bar">
