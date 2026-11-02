@@ -12,20 +12,20 @@ interface Props {
   forceMotion?: boolean;
 }
 
-// Scroll-driven intro for the GATE.24 page: one sticky stage. The scroll only decides
-// WHICH chapter is current and drives the amounts inside it (grain, vignette, the
-// bars, weave...). Changing chapter, look or step is never tied to the scroll
-// position: crossing a threshold starts a timed, eased move (CSS), so the stage can
-// never be left half-way between two states, however fast the wheel or trackpad is.
+// Scroll-driven intro for the GATE.24 page: one sticky stage, and everything on it is a plain
+// function of the scroll position. There are no queues, timers or waits: the scroll decides
+// which chapter and which step is current, and each change is a short CSS transition that
+// simply retargets if the reader keeps scrolling. A fast scroll therefore never builds up delay;
+// it just lands on the right state.
 const TOTAL = 902;
 const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
 
-// Where each chapter starts, in vh of scrolling: opening title, presets, grain,
-// vignette, crop, weave + flicker, download.
+// Where each chapter starts, in vh of scrolling: opening title, presets, grain, vignette,
+// crop, weave + flicker, download.
 const TH = [0, 40, 287, 437, 562, 698, 844];
 const CH = { open: 0, presets: 1, grain: 2, vig: 3, bars: 4, fx: 5, cta: 6 };
 
-// Amounts inside a chapter.
+// Scroll windows of the steps inside a chapter.
 const W = {
   presets: w(64, 270),
   zoom: w(310, 346),
@@ -38,7 +38,6 @@ const W = {
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
 const ramp = (p: number, win: readonly [number, number]) => clamp((p - win[0]) / (win[1] - win[0]));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-// Smootherstep: flatter at both ends than smoothstep.
 const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 
 // Plugin names (presets, controls) stay in English in every language.
@@ -92,6 +91,7 @@ const grainUri = (freq: number) =>
     // texture only, never the exposure of the picture underneath.
     `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n' color-interpolation-filters='sRGB'><feTurbulence type='fractalNoise' baseFrequency='${freq}' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 1'/><feComponentTransfer><feFuncR type='linear' slope='2.4' intercept='-0.7'/><feFuncG type='linear' slope='2.4' intercept='-0.7'/><feFuncB type='linear' slope='2.4' intercept='-0.7'/></feComponentTransfer></filter><rect width='220' height='220' filter='url(#n)'/></svg>`,
   )}")`;
+const grainUris = grains.map((g) => grainUri(g.freq));
 
 const copy = {
   en: {
@@ -154,85 +154,7 @@ const copy = {
   },
 };
 
-/**
- * Follows `target` ONE STEP AT A TIME, in order, never skipping a step. If the scroll
- * runs far ahead (a big wheel spin), the stage plays the steps one after another at a
- * comfortable pace and catches up (a little faster while it is behind, and quicker still
- * on the way back up). `canAdvance` lets a chapter finish its own steps before the next
- * chapter starts. `instant` (intro off screen) jumps straight there.
- */
-function useStepper(target: number, ms: number, instant: boolean, canAdvance?: () => boolean) {
-  const [v, setV] = useState(target);
-  const last = useRef(0);
-  const can = useRef(canAdvance);
-  can.current = canAdvance;
-  useEffect(() => {
-    if (instant) {
-      if (v !== target) setV(target);
-      return;
-    }
-    if (v === target) return;
-    let dead = false;
-    let id = 0;
-    const forward = target > v;
-    const behind = Math.abs(target - v) > 1;
-    const attempt = () => {
-      if (dead) return;
-      if (forward && can.current && !can.current()) {
-        id = window.setTimeout(attempt, 90);
-        return;
-      }
-      last.current = performance.now();
-      setV((x) => x + Math.sign(target - x));
-    };
-    const iv = forward ? ms * (behind ? 0.75 : 1) : ms * 0.5;
-    id = window.setTimeout(attempt, Math.max(0, iv - (performance.now() - last.current)));
-    return () => {
-      dead = true;
-      window.clearTimeout(id);
-    };
-  }, [v, target, ms, instant]);
-  return instant ? target : v;
-}
-
-/** Moves a continuous amount towards its target at a limited speed (only used while the stage is catching up). */
-function useSlew(target: number, perSec: number, instant: boolean) {
-  const [v, setV] = useState(target);
-  const ref = useRef(target);
-  useEffect(() => {
-    if (instant) {
-      ref.current = target;
-      setV(target);
-      return;
-    }
-    let raf = 0;
-    let t0 = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - t0) / 1000);
-      t0 = now;
-      const d = target - ref.current;
-      const step = perSec * dt;
-      ref.current = Math.abs(d) <= step ? target : ref.current + Math.sign(d) * step;
-      setV(ref.current);
-      if (ref.current !== target) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, perSec, instant]);
-  return instant ? target : v;
-}
-
 type ChapterState = 'before' | 'on' | 'after';
-
-interface CenterProps {
-  state: ChapterState;
-  tag: string;
-  title: string;
-  value?: string;
-  sub?: string;
-  steps?: number;
-  active?: number;
-}
 
 /** Content that slides down through a mask: in from above, out below. No fading. */
 function Mask({ delay, children }: { delay: number; children: React.ReactNode }) {
@@ -245,6 +167,16 @@ function Mask({ delay, children }: { delay: number; children: React.ReactNode })
   );
 }
 
+interface CenterProps {
+  state: ChapterState;
+  tag: string;
+  title: string;
+  value?: string;
+  sub?: string;
+  steps?: number;
+  active?: number;
+}
+
 /** The big centred title of a chapter, with a row of step dots under it. */
 function Center({ state, tag, title, value, sub, steps, active = 0 }: CenterProps) {
   return (
@@ -252,21 +184,21 @@ function Center({ state, tag, title, value, sub, steps, active = 0 }: CenterProp
       <Mask delay={0}>
         <p className="si-tag">{tag}</p>
       </Mask>
-      <Mask delay={0.07}>
+      <Mask delay={0.05}>
         <h2 className="si-big" translate="no">{title}</h2>
       </Mask>
       {value && (
-        <Mask delay={0.14}>
+        <Mask delay={0.1}>
           <p className="si-value" translate="no">{value}</p>
         </Mask>
       )}
       {sub && (
-        <Mask delay={0.18}>
+        <Mask delay={0.13}>
           <p className="si-sub">{sub}</p>
         </Mask>
       )}
       {steps && (
-        <Mask delay={0.22}>
+        <Mask delay={0.16}>
           <ul className="si-dots">
             {Array.from({ length: steps }, (_, i) => (
               <li key={i} className={i === active ? 'on' : i < active ? 'done' : undefined} />
@@ -287,40 +219,24 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const [jitter, setJitter] = useState({ y: 0, b: 1 });
   const [inView, setInView] = useState(false);
 
-  const reducedRef = useRef(false);
-  const target = useRef(0);
-  const shown = useRef(0);
-  const raf = useRef(0);
   const fxRef = useRef({ amp: 0, flick: 0 });
   const lookRef = useRef(0);
   const chRef = useRef(0);
-  const cdRef = useRef(0);
 
   useEffect(() => {
-    // "Reduced motion" keeps the scroll-driven chapters (the reader controls them)
-    // but drops the zoom, the weave/flicker jitter, the smoothing and every timed move.
-    // `?motion=full` overrides it so the prototype can be judged on a PC that has
-    // Windows animations switched off.
+    // "Reduced motion" keeps the scroll-driven chapters (the reader controls them) but
+    // swaps every slide and zoom for a short dissolve and drops the weave/flicker shake.
+    // `?motion=full` overrides it so the intro can be judged on a PC that has Windows
+    // animations switched off.
     const force = forceMotion || new URLSearchParams(window.location.search).get('motion') === 'full';
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => {
-      reducedRef.current = mq.matches && !force;
-      setReduced(reducedRef.current);
-    };
+    const apply = () => setReduced(mq.matches && !force);
     apply();
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
   }, []);
 
-  // Decode every picture ahead of time, so a layer that slides in is already ready to paint.
-  useEffect(() => {
-    const imgs = rootRef.current?.querySelectorAll('img');
-    imgs?.forEach((img) => {
-      if (typeof img.decode === 'function') img.decode().catch(() => {});
-    });
-  }, []);
-
-  // Loops and layer promotion only run while the intro is on screen.
+  // The shake only runs while the intro is on screen.
   useEffect(() => {
     const el = rootRef.current;
     if (!el || !('IntersectionObserver' in window)) {
@@ -332,124 +248,74 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
     return () => io.disconnect();
   }, []);
 
+  // Decode every picture ahead of time, so a layer that slides in is already ready to paint.
   useEffect(() => {
-    // The scroll position is used as it is: the amounts follow the wheel with no
-    // easing of their own (the browser already smooths the wheel).
-    const onScroll = () => {
+    rootRef.current?.querySelectorAll('img').forEach((img) => {
+      if (typeof img.decode === 'function') img.decode().catch(() => {});
+    });
+  }, []);
+
+  // Scroll position -> progress, once per frame.
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
       const el = rootRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
       const span = r.height - window.innerHeight;
-      target.current = shown.current = span > 0 ? clamp(-r.top / span) : 0;
-      setP(shown.current);
+      setP(span > 0 ? clamp(-r.top / span) : 0);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
     };
     const measure = () => {
       setStage({ w: window.innerWidth, h: window.innerHeight });
       onScroll();
     };
-    // First read is instant (page reloaded halfway down).
-    const el = rootRef.current;
-    if (el) {
-      const r = el.getBoundingClientRect();
-      const span = r.height - window.innerHeight;
-      shown.current = target.current = span > 0 ? clamp(-r.top / span) : 0;
-      setP(shown.current);
-    }
+    update();
     setStage({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', measure);
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', measure);
-      if (raf.current) cancelAnimationFrame(raf.current);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
-  // ---- current chapter (with a little hysteresis so it never flickers) --------
+  // ---- everything below is a plain function of the scroll position -------------------------
   const vh = p * TOTAL;
+
+  // Current chapter, with a little hysteresis so it never flickers at a threshold.
   let c = chRef.current;
   while (c < TH.length - 1 && vh >= TH[c + 1]) c++;
-  while (c > 0 && vh < TH[c] - 12) c--;
+  while (c > 0 && vh < TH[c] - 8) c--;
   chRef.current = c;
-  // The chapter the stage is actually showing: it follows `c`, skipping any chapters
-  // that were crossed faster than a move can play.
-  const k = reduced ? 0.6 : 1;
-  const away = !inView; // off screen: no need to play anything
-  const inner = useRef({ look: 0, grain: 0, bar: 0, fx: 0, vig: 0, at: 0 });
-  const cd = useStepper(c, 900 * k, away, () => {
-    const i = inner.current;
-    // The last step of a chapter stays on screen long enough to be read.
-    if (performance.now() - i.at < 600 * k) return false;
-    if (cdRef.current === CH.presets) return i.look >= looks.length - 1;
-    if (cdRef.current === CH.grain) return i.grain >= grains.length - 1;
-    if (cdRef.current === CH.vig) return i.vig >= 0.97;
-    if (cdRef.current === CH.bars) return i.bar >= ratios.length - 1;
-    if (cdRef.current === CH.fx) return i.fx >= FX_STAGES - 1;
-    return true;
-  });
-  cdRef.current = cd;
-  // A chapter's first step stays on screen for a moment before the next one starts.
-  const enteredAt = useRef(0);
-  const cdPrev = useRef(-1);
-  if (cdPrev.current !== cd) {
-    cdPrev.current = cd;
-    enteredAt.current = performance.now();
-  }
-  const settled = () => performance.now() - enteredAt.current >= 600 * k;
+  const stateOf = (k: number): ChapterState => (c < k ? 'before' : c === k ? 'on' : 'after');
 
-  const stateOf = (k: number): ChapterState => (cd < k ? 'before' : cd === k ? 'on' : 'after');
-
-  // ---- looks: a vertical strip of frames, like film in a projector gate -------
+  // Steps inside the chapters.
   const lookIdx = ramp(p, W.presets) * (looks.length - 1);
   if (Math.abs(lookIdx - lookRef.current) > 0.58) lookRef.current = Math.round(lookIdx);
-  const lookNow = useStepper(cd >= CH.presets ? lookRef.current : 0, 700 * k, away, settled);
-
-  // ---- other steps, one at a time ---------------------------------------------
-  // A chapter's own steps only play while that chapter is on screen: before it they
-  // sit at the first step, after it at the last one.
-  const gated = (own: number, now: number, last: number) => (cd < own ? 0 : cd === own ? now : last);
-  const grainTarget = gated(CH.grain, Math.min(grains.length - 1, Math.floor(ramp(p, W.stocks) * (grains.length - 1) + 0.5)), grains.length - 1);
-  const grainNow = useStepper(grainTarget, 600 * k, away, settled);
-  const barTarget = gated(CH.bars, clamp(Math.floor(ramp(p, W.bars) * ratios.length), 0, ratios.length - 1), ratios.length - 1);
-  const barStep = useStepper(barTarget, 480 * k, away, settled);
-  const fxTarget = gated(CH.fx, clamp(Math.floor(ramp(p, W.fx) * FX_STAGES), 0, FX_STAGES - 1), FX_STAGES - 1);
-  const fxStage = useStepper(fxTarget, 700 * k, away, settled);
-
+  const lookNow = lookRef.current;
+  const grainNow = clamp(Math.round(ramp(p, W.stocks) * (grains.length - 1)), 0, grains.length - 1);
+  const barStep = clamp(Math.floor(ramp(p, W.bars) * ratios.length), 0, ratios.length - 1);
+  const fxStage = clamp(Math.floor(ramp(p, W.fx) * FX_STAGES), 0, FX_STAGES - 1);
   const zoom = ramp(p, W.zoom);
   const g = ramp(p, W.stocks);
-  // Amounts inside a chapter (vignette, grain zoom) follow the scroll 1:1, no inertia.
-  const vRaw = gated(CH.vig, ramp(p, W.vig), 1);
-  const vSynced = c === CH.vig && cd === CH.vig;
-  const vSlow = useSlew(vRaw, 0.6 / k, away || vSynced);
-  const v = vSynced ? vRaw : vSlow;
-  const prevInner = inner.current;
-  const changed = prevInner.look !== lookNow || prevInner.grain !== grainNow || prevInner.bar !== barStep || prevInner.fx !== fxStage;
-  inner.current = { look: lookNow, grain: grainNow, bar: barStep, fx: fxStage, vig: v, at: changed ? performance.now() : prevInner.at };
-
-  // A slow push-in while a shot is on screen, so there is always gentle motion.
-  const drift = (a: number, b: number, amount: number): CSSProperties | undefined =>
-    reduced ? undefined : { transform: `scale(${1 + clamp((vh - a) / (b - a)) * amount})` };
-
-  // Layer i (grain, vignette, crop, weave) waits below the stage and rises over the
-  // previous one when its chapter starts; the previous one drifts up a little slower.
-  const layerStyle = (own: number): CSSProperties => {
-    if (reduced) return { opacity: cd >= own ? 1 : 0 };
-    const y = cd < own ? 100 : cd > own ? -14 : 0;
-    return { transform: `translate3d(0, ${y}%, 0)` };
-  };
+  const v = ramp(p, W.vig);
 
   const weaveNow = weaveSteps[Math.min(fxStage, 3)];
   const flickerNow = flickerSteps[Math.max(0, fxStage - 3)];
 
+  // Weave = the frame hops vertically every other frame; flicker = exposure pulses.
   fxRef.current = { amp: weaveNow * (stage.h / 100) * 2, flick: flickerNow };
-  const fxActive = cd >= CH.fx && !reduced && inView;
+  const fxActive = c === CH.fx && !reduced && inView;
   useEffect(() => {
     if (!fxActive) {
       setJitter({ y: 0, b: 1 });
       return;
     }
-    // Weave = the frame hops vertically every other frame (12 fps here);
-    // flicker = exposure pulses. Both amounts follow the stage.
     const id = window.setInterval(() => {
       const { amp, flick } = fxRef.current;
       const hop = amp > 0 && Math.random() < 0.4 ? (Math.random() * 2 - 1) * amp : 0;
@@ -466,19 +332,26 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
     return { v: 0, h: 0 };
   }, [stage, barStep]);
 
-  // Clip, don't resize: animating top/left/right/bottom would re-layout every frame.
-  // The frame around the presets opens and closes with a timed move.
-  const framed = cd === CH.presets;
-  const mediaInset: CSSProperties = {
-    clipPath: framed ? 'inset(8% 9% 10% 9%)' : 'inset(0% 0% 0% 0%)',
-  };
+  // Layer i (grain, vignette, crop, weave) waits below the stage and rises over the previous
+  // one when its chapter starts; the previous one drifts up a little slower. Transform only.
+  const layerStyle = (own: number): CSSProperties =>
+    reduced ? { opacity: c >= own ? 1 : 0 } : { transform: `translate3d(0, ${c < own ? 100 : c > own ? -12 : 0}%, 0)` };
+
+  // The presets sit inside a frame: the picture shrinks a little, leaving black margins.
+  const presetsLayer: CSSProperties | undefined = reduced
+    ? undefined
+    : { transform: `translate3d(0, ${c >= CH.grain ? -12 : 0}%, 0) scale(${c === CH.presets ? 0.88 : 1})` };
+
+  // A slow push-in while a shot is on screen, so there is always gentle motion.
+  const drift = (a: number, b: number, amount: number): CSSProperties | undefined =>
+    reduced ? undefined : { transform: `scale(${1 + clamp((vh - a) / (b - a)) * amount})` };
 
   const fxTitle = fxStage === 0 ? 'Weave · Flicker' : fxStage <= 3 ? 'Weave' : 'Flicker';
-  const fxValue =
-    fxStage === 0 ? t.off : fxStage <= 3 ? `Vertical ${weaveNow.toFixed(2)}` : `Amount ${flickerNow}%`;
+  const fxValue = fxStage === 0 ? t.off : fxStage <= 3 ? `Vertical ${weaveNow.toFixed(2)}` : `Amount ${flickerNow}%`;
   const fxSub = fxStage === 0 ? undefined : fxStage <= 3 ? t.weaveTag : `${t.flickerTag} · Weave ${weaveSteps[3].toFixed(2)}`;
 
   const atTop = vh < 24;
+  const ctaOn = c >= CH.cta;
 
   // Straight to the information below the intro (no smooth scroll through the whole hook).
   const jumpTo = (id: string) => (e: React.MouseEvent) => {
@@ -491,7 +364,6 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const skipIntro = jumpTo('library');
   // "Get GATE.24" leads to the choice (Lite or GATE.24) without scrolling through the hook.
   const getIt = downloadHref.startsWith('#') ? jumpTo(downloadHref.slice(1)) : undefined;
-  const ctaOn = cd >= CH.cta;
 
   return (
     <section
@@ -508,9 +380,9 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
             .join(', ')}. Grain: ${grains.map((x) => x.label).join(', ')}. Crop: ${ratios.map((r) => r.label).join(', ')}.`}
         </p>
 
-        <div className="si-media" style={mediaInset} aria-hidden="true">
-          {/* Hero + presets: the same plane, each look laid over the previous one */}
-          <div className="si-layer" style={reduced ? undefined : { transform: `translate3d(0, ${cd >= CH.grain ? -14 : 0}%, 0)` }}>
+        <div className="si-media" aria-hidden="true">
+          {/* Hero + presets: the same plane; each preset is applied in place */}
+          <div className="si-layer" style={presetsLayer}>
             {looks.map((l, i) => (
               <img
                 key={l.id}
@@ -518,7 +390,6 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
                 src={l.src}
                 alt=""
                 draggable={false}
-                // Changing preset just applies the next look in place: no sliding.
                 style={{ opacity: i === lookNow ? 1 : 0 }}
                 {...imgSize.wide}
                 fetchPriority={i === 0 ? 'high' : undefined}
@@ -542,7 +413,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
               <div
                 key={gr.label}
                 className="si-grain"
-                style={{ backgroundImage: grainUri(gr.freq), opacity: i === grainNow ? gr.alpha * lerp(0.4, 1, Math.max(zoom * 0.7, g)) : 0 }}
+                style={{ backgroundImage: grainUris[i], opacity: i === grainNow ? gr.alpha * lerp(0.4, 1, Math.max(zoom * 0.7, g)) : 0 }}
               />
             ))}
           </div>
@@ -584,41 +455,43 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
           </div>
 
           {/* Weave + flicker (and the closing backdrop) */}
-          <div className="si-layer si-up si-dim" style={{ ...layerStyle(CH.fx), filter: ctaOn ? 'brightness(.45)' : undefined }}>
+          <div className="si-layer si-up" style={layerStyle(CH.fx)}>
             <img
               className="si-img"
               src="/intro-proto/m05_original.webp"
               alt=""
               draggable={false}
-              style={{
-                transform: `translateY(${jitter.y}px) scale(1.04)`,
-                filter: `brightness(${jitter.b})`,
-              }}
+              style={{ transform: `translateY(${jitter.y}px) scale(1.04)`, filter: `brightness(${jitter.b * (ctaOn ? 0.45 : 1)})` }}
               {...imgSize.wide}
               decoding="async"
             />
+            <div className="si-shade" />
           </div>
         </div>
 
         {/* Opening title: pulled down out of the gate when the presets begin */}
         <div
           className="si-title"
-          style={reduced ? { opacity: cd === CH.open ? 1 : 0, pointerEvents: cd === CH.open ? 'auto' : 'none' } : { transform: `translate3d(0, ${cd === CH.open ? 0 : 104}%, 0)`, pointerEvents: cd === CH.open ? 'auto' : 'none' }}
+          style={
+            reduced
+              ? { opacity: c === CH.open ? 1 : 0, pointerEvents: c === CH.open ? 'auto' : 'none' }
+              : { transform: `translate3d(0, ${c === CH.open ? 0 : 104}%, 0)`, pointerEvents: c === CH.open ? 'auto' : 'none' }
+          }
         >
           <p className="si-eyebrow">{t.eyebrow}</p>
           <h1 translate="no">GATE.24</h1>
           <div className="si-open-actions">
-            <a className="si-btn" href={downloadHref} onClick={getIt} tabIndex={cd === CH.open ? 0 : -1}>
+            <a className="si-btn" href={downloadHref} onClick={getIt} tabIndex={c === CH.open ? 0 : -1}>
               {t.get}
             </a>
-            <a className="si-btn si-btn-ghost" href="#library" onClick={skipIntro} tabIndex={cd === CH.open ? 0 : -1}>
+            <a className="si-btn si-btn-ghost" href="#library" onClick={skipIntro} tabIndex={c === CH.open ? 0 : -1}>
               {t.skip}
             </a>
           </div>
         </div>
         <p
           className="si-hint"
-          style={reduced ? { opacity: atTop && cd === CH.open ? 1 : 0 } : { transform: `translate3d(0, ${atTop && cd === CH.open ? 0 : 400}%, 0)` }}
+          style={reduced ? { opacity: atTop ? 1 : 0 } : { transform: `translate3d(0, ${atTop && c === CH.open ? 0 : 400}%, 0)` }}
         >
           {t.scroll} ↓
         </p>
@@ -718,7 +591,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   );
 }
 
-const EASE = 'cubic-bezier(.45,0,.2,1)';
+// Short, plain transitions: every one of them retargets instantly if the scroll moves on.
+const EASE = 'cubic-bezier(.4,0,.2,1)';
 const styles = `
 .si { position: relative; background: #000; }
 .si-stage {
@@ -727,31 +601,31 @@ const styles = `
   overflow: hidden; background: #000; color: #f5f5f3;
 }
 .si-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.si-media { position: absolute; inset: 0; overflow: hidden; background: #000; transition: clip-path 1.5s ${EASE}; }
-.si-layer { position: absolute; inset: 0; background: #000; backface-visibility: hidden; transition: transform 1.5s ${EASE}, filter 1.2s ${EASE}; }
-.si-up { box-shadow: 0 -40px 80px rgba(0,0,0,.55); }
-.si-live .si-layer, .si-live .si-media { will-change: transform; }
-.si-look { transition: opacity .3s ease; }
-.si-live .si-look { will-change: opacity; }
+.si-media { position: absolute; inset: 0; overflow: hidden; background: #000; }
+.si-layer { position: absolute; inset: 0; background: #000; transition: transform .8s ${EASE}; }
+.si-up { box-shadow: 0 -24px 48px rgba(0,0,0,.5); }
+.si-live .si-layer, .si-live .si-title, .si-live .si-cta { will-change: transform; }
+.si-look { transition: opacity .25s ease; }
 .si-m { display: block; overflow: hidden; padding: .17em .4em; margin: -.17em -.4em; } /* room for accents and overshoot so big titles are never clipped */
-.si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform .85s cubic-bezier(.3,.1,.2,1) var(--d, 0s); }
-.si-center { visibility: hidden; transition: visibility 0s linear 1.1s; }
+.si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform .6s ${EASE} var(--d, 0s); }
+.si-center { visibility: hidden; transition: visibility 0s linear .9s; }
 .si-center[data-s='on'] { visibility: visible; transition-delay: 0s; }
 .si-center[data-s='on'] .si-m-in { transform: none; }
 .si-center[data-s='after'] .si-m-in { transform: translate3d(0, 110%, 0); }
-.si-live .si-m-in, .si-live .si-title, .si-live .si-cta, .si-live .si-hint { will-change: transform; }
+.si-live .si-m-in { will-change: transform; }
 .si-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
-.si-grain { position: absolute; inset: 0; mix-blend-mode: overlay; background-size: 220px 220px; transition: opacity .9s ${EASE}; }
+.si-grain { position: absolute; inset: 0; mix-blend-mode: overlay; background-size: 220px 220px; transition: opacity .3s ease; }
 .si-vig { position: absolute; inset: 0; }
-.si-bar { position: absolute; background: #000; transition: height .6s ${EASE}, width .6s ${EASE}; }
+.si-shade { position: absolute; inset: 0; background: rgba(0,0,0,.3); } /* keeps the big text readable over the bright wall */
+.si-bar { position: absolute; background: #000; transition: height .4s ${EASE}, width .4s ${EASE}; }
 .si-title { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 1rem; pointer-events: none;
-  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.5)); transition: transform 1.25s ${EASE}; }
-.si-open-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1.6rem; pointer-events: auto; }
-.si-btn.si-btn-ghost { background: rgba(0,0,0,.35); color: #f5f5f3; border-color: rgba(245,245,243,.55); backdrop-filter: blur(6px); }
-@media (hover: hover) and (pointer: fine) { a.si-btn.si-btn-ghost:hover { background: #f5f5f3; color: #0a0a0a; border-color: #f5f5f3; } }
+  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.5)); transition: transform .9s ${EASE}; }
 .si-title h1 { font-family: var(--font-display, Georgia, serif); font-size: clamp(3rem, 12vw, 8rem); line-height: 1; margin: .4rem 0 0; letter-spacing: .01em; }
+.si-open-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1.6rem; pointer-events: auto; }
+.si-btn.si-btn-ghost { background: rgba(0,0,0,.35); color: #f5f5f3; border-color: rgba(245,245,243,.55); }
+@media (hover: hover) and (pointer: fine) { a.si-btn.si-btn-ghost:hover { background: #f5f5f3; color: #0a0a0a; border-color: #f5f5f3; } }
 .si-eyebrow { font: 600 .8125rem/1 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: rgba(245,245,243,.85); margin: 0; }
-.si-hint { position: absolute; left: 0; right: 0; max-width: none; bottom: max(1.2rem, env(safe-area-inset-bottom)); text-align: center; font: 600 .8125rem ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; margin: 0; color: rgba(245,245,243,.8); transition: transform .9s ${EASE}; }
+.si-hint { position: absolute; left: 0; right: 0; max-width: none; bottom: max(1.2rem, env(safe-area-inset-bottom)); text-align: center; font: 600 .8125rem ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; margin: 0; color: rgba(245,245,243,.8); transition: transform .7s ${EASE}; }
 
 .si-center { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: .5rem; padding: 1rem; text-align: center; pointer-events: none; isolation: isolate;
   text-shadow: 0 1px 2px rgba(0,0,0,.5), 0 0 10px rgba(0,0,0,.45), 0 0 32px rgba(0,0,0,.5); }
@@ -760,11 +634,11 @@ const styles = `
 .si-value { margin: .2rem 0 0; font: 600 clamp(1.5rem, 4.4vw, 3.6rem)/1.1 ui-monospace, 'Cascadia Mono', Consolas, monospace; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
 .si-sub { margin: 0; font: 500 clamp(.8125rem, 1.6vw, 1rem)/1.3 ui-monospace, Consolas, monospace; letter-spacing: .06em; color: rgba(245,245,243,.85); text-wrap: balance; }
 .si-dots { list-style: none; display: flex; gap: .55rem; margin: 1.1rem 0 0; padding: 0; }
-.si-dots li { width: .6rem; height: .6rem; border-radius: 50%; border: 1px solid rgba(245,245,243,.7); background: rgba(0,0,0,.25); transition: background-color .3s ease, transform .3s cubic-bezier(.22,1,.36,1); }
+.si-dots li { width: .6rem; height: .6rem; border-radius: 50%; border: 1px solid rgba(245,245,243,.7); background: rgba(0,0,0,.25); transition: background-color .2s ease, transform .2s ease; }
 .si-dots li.done { background: rgba(245,245,243,.55); }
 .si-dots li.on { background: #f5f5f3; transform: scale(1.35); }
 
-.si-cta { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; padding: 1rem; text-align: center; transition: transform 1.3s ${EASE}; }
+.si-cta { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; padding: 1rem; text-align: center; transition: transform .9s ${EASE}; }
 .si-cta h2 { font-family: var(--font-display, Georgia, serif); font-size: clamp(1.8rem, 5vw, 3rem); margin: 0; }
 .si-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 18rem)); gap: 1rem; }
 @media (max-width: 640px) { .si-cards { grid-template-columns: minmax(0, 20rem); } }
@@ -772,7 +646,7 @@ const styles = `
 .si-card h3 { font-family: var(--font-display, Georgia, serif); margin: 0; font-size: 1.3rem; }
 .si-card p { margin: 0; color: rgba(245,245,243,.78); font-size: .9rem; }
 .si-btn, .si-top-btn { touch-action: manipulation; -webkit-tap-highlight-color: rgba(245,245,243,.2);
-  transition: transform .14s cubic-bezier(.22,1,.36,1), background-color .18s ease, color .18s ease, border-color .18s ease; }
+  transition: transform .14s ${EASE}, background-color .18s ease, color .18s ease, border-color .18s ease; }
 .si-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .5rem 1.1rem; border: 1px solid #f5f5f3; background: #f5f5f3; color: #0a0a0a; font-weight: 600; font-size: .85rem; text-decoration: none; }
 .si-btn-off { background: transparent; color: rgba(245,245,243,.6); border-color: rgba(245,245,243,.3); }
 .si-top-btn { position: absolute; top: max(.8rem, env(safe-area-inset-top)); right: max(.8rem, env(safe-area-inset-right)); z-index: 3; display: inline-flex; align-items: center; min-height: 44px; padding: .4rem 1rem; border: 1px solid rgba(245,245,243,.5); background: rgba(0,0,0,.6); color: #f5f5f3; font-weight: 600; font-size: .8125rem; text-decoration: none; }
@@ -782,12 +656,11 @@ const styles = `
   .si-top-btn:hover { background: #f5f5f3; color: #0a0a0a; }
   a.si-btn:hover { background: #fff; border-color: #fff; }
 }
-/* Calm mode (reduced motion): nothing slides, zooms or shakes. Chapters, looks and
-   titles change with a short cross-dissolve instead. */
-.si-calm .si-media, .si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
-.si-calm .si-layer, .si-calm .si-look, .si-calm .si-title, .si-calm .si-cta, .si-calm .si-hint { transition: opacity .7s ease, filter .7s ease; }
-/* Titles: the old one fades out first, then the new one fades in (never two at once). */
-.si-calm .si-center { visibility: visible; opacity: 0; transition: opacity .35s ease; }
-.si-calm .si-center[data-s='on'] { opacity: 1; transition: opacity .45s ease .35s; }
+/* Calm mode (reduced motion): nothing slides, zooms or shakes. Chapters and titles change with a
+   short dissolve instead: the old one fades out first, then the new one fades in. */
+.si-calm .si-bar, .si-calm .si-dots li, .si-calm .si-btn, .si-calm .si-top-btn { transition: none; }
+.si-calm .si-layer, .si-calm .si-title, .si-calm .si-cta, .si-calm .si-hint { transition: opacity .5s ease; }
+.si-calm .si-center { visibility: visible; opacity: 0; transition: opacity .25s ease; }
+.si-calm .si-center[data-s='on'] { opacity: 1; transition: opacity .35s ease .25s; }
 .si-calm .si-m-in { transform: none !important; transition: none; }
 `;
