@@ -100,6 +100,7 @@ const copy = {
     scroll: 'Scroll',
     get: 'Get GATE.24',
     skip: 'Skip the intro',
+    manual: 'Manual',
     presetsTag: 'One click, a whole look',
     grainTag: 'Grain by film stock',
     vignetteTag: 'Darkens the edges like a real lens',
@@ -129,6 +130,7 @@ const copy = {
     scroll: 'Baja',
     get: 'Conseguir GATE.24',
     skip: 'Saltar la intro',
+    manual: 'Manual',
     presetsTag: 'Un clic, un look entero',
     grainTag: 'Grano según la película',
     vignetteTag: 'Oscurece los bordes como una óptica real',
@@ -487,6 +489,9 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
             </a>
             <a className="si-btn si-btn-ghost" href="#library" onClick={skipIntro} tabIndex={c === CH.open ? 0 : -1}>
               {t.skip}
+            </a>
+            <a className="si-btn si-btn-ghost" href="/gate24/manual.html" target="_blank" rel="noopener noreferrer" tabIndex={c === CH.open ? 0 : -1}>
+              {t.manual}
             </a>
           </div>
         </div>
