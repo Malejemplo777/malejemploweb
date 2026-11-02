@@ -18,23 +18,23 @@ interface Props {
 // simply retargets if the reader keeps scrolling. A fast scroll therefore never builds up delay;
 // it just lands on the right state.
 // Paced for a mouse wheel: one notch is about 10vh, and every step of the intro gets about 33vh
-// (3 to 4 notches), so a single notch never changes anything big.
-const TOTAL = 1130;
+// (3 to 4 notches), the presets 50vh (5 notches), so a single notch never changes anything big.
+const TOTAL = 1232;
 const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
 
 // Where each chapter starts, in vh of scrolling: opening title, presets, grain, vignette,
 // crop, weave + flicker, download.
-const TH = [0, 40, 287, 509, 653, 820, 1040];
+const TH = [0, 40, 389, 611, 755, 922, 1142];
 const CH = { open: 0, presets: 1, grain: 2, vig: 3, bars: 4, fx: 5, cta: 6 };
 
 // Scroll windows of the steps inside a chapter.
 const W = {
-  presets: w(64, 262),
-  zoom: w(312, 382),
-  stocks: w(392, 491),
-  vig: w(533, 623),
-  bars: w(675, 807),
-  fx: w(845, 1010),
+  presets: w(64, 364), // 6 changes x 50vh: the presets get about 5 clicks each
+  zoom: w(414, 484),
+  stocks: w(494, 593),
+  vig: w(635, 725),
+  bars: w(777, 909),
+  fx: w(947, 1112),
 };
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
@@ -609,7 +609,7 @@ const styles = `
 .si-layer::after { content: ''; position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 1s ease; }
 .si-layer[data-covered='true']::after { opacity: .55; }
 .si-live .si-layer, .si-live .si-title, .si-live .si-cta { will-change: transform; }
-.si-look { transition: opacity .35s ease; }
+.si-look { transition: opacity .5s ease; }
 .si-m { display: block; overflow: hidden; padding: .17em .4em; margin: -.17em -.4em; } /* room for accents and overshoot so big titles are never clipped */
 .si-m-in { display: flow-root; transform: translate3d(0, -140%, 0); transition: transform .4s ${EASE} var(--d, 0s); }
 .si-center { visibility: hidden; transition: visibility 0s linear .9s; }
