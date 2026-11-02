@@ -2,7 +2,6 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ScrollIntro from '../../components/ScrollIntro.tsx';
 import Library from '../../components/Library.tsx';
-import LivePresetPlayground from '../../components/LivePresetPlayground.tsx';
 import PresetGallery from '../../components/PresetGallery.tsx';
 import ResolvePanel from '../../components/ResolvePanel.astro';
 import { GUMROAD_URL, GUMROAD_LITE_URL } from '../../data/social';
@@ -169,19 +168,6 @@ const jsonLd = {
     </div>
   </section>
 
-  <section class="section" id="playground">
-    <div class="container">
-      <h2>Try all 10 yourself</h2>
-      <p>
-        Pick a photo, pick a preset, see it live. This runs on CSS in your browser as a rough
-        <strong>approximation</strong> of the real recipe values from each preset — a quick feel for
-        the range, not GATE.24's actual color engine (that's C++/OpenCL pixel math that only runs
-        inside Resolve). For the real thing, see the before/after examples and the panel above.
-      </p>
-      <LivePresetPlayground client:visible />
-    </div>
-  </section>
-
   <section class="section" id="get">
     <div class="container">
       <h2>Lite or the full GATE.24</h2>
@@ -240,7 +226,7 @@ const jsonLd = {
       <dl class="requirements">
         <div>
           <dt>DaVinci Resolve</dt>
-          <dd>Free version works — no Studio license required.</dd>
+          <dd>The free version works. No Studio license required.</dd>
         </div>
         <div>
           <dt>Operating system</dt>
@@ -248,7 +234,14 @@ const jsonLd = {
         </div>
         <div>
           <dt>Language</dt>
-          <dd>Plugin panel is in English. Installer runs in English or Spanish.</dd>
+          <dd>The plugin panel is in English. The installer runs in English or Spanish.</dd>
+        </div>
+        <div>
+          <dt>Manual</dt>
+          <dd>
+            <a href="/gate24/manual.html">GATE.24 manual</a><br />
+            <a href="/gate24/manual-lite.html">GATE.24 Lite manual</a>
+          </dd>
         </div>
       </dl>
     </div>
@@ -321,21 +314,28 @@ const jsonLd = {
   }
 
   .requirements {
-    margin-top: var(--space-3);
+    margin: var(--space-3) 0 0;
     display: grid;
-    gap: var(--space-3);
+    gap: var(--space-4) var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   }
 
   .requirements dt {
-    font-weight: 600;
+    margin-bottom: 0.4rem;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
     color: var(--color-fg);
-    margin-bottom: 0.25rem;
   }
 
   .requirements dd {
     margin: 0;
     color: var(--color-fg-muted);
-    max-width: 48rem;
+  }
+
+  .requirements a {
+    color: var(--color-fg);
+    text-underline-offset: 0.2em;
   }
 
   .tiers {

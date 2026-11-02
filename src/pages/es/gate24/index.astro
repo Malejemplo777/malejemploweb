@@ -2,7 +2,6 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ScrollIntro from '../../../components/ScrollIntro.tsx';
 import Library from '../../../components/Library.tsx';
-import LivePresetPlayground from '../../../components/LivePresetPlayground.tsx';
 import PresetGallery from '../../../components/PresetGallery.tsx';
 import ResolvePanel from '../../../components/ResolvePanel.astro';
 import { GUMROAD_URL, GUMROAD_LITE_URL } from '../../../data/social';
@@ -171,20 +170,6 @@ const jsonLd = {
     </div>
   </section>
 
-  <section class="section" id="playground">
-    <div class="container">
-      <h2>Prueba los 10 tú mismo</h2>
-      <p>
-        Elige una foto, elige un preset y míralo en directo. Esto funciona con CSS en tu navegador y
-        es solo una <strong>aproximación</strong> de los valores reales de cada preset: sirve para
-        hacerte una idea del rango, pero no es el motor de color de GATE.24 (eso es cálculo de
-        píxeles en C++/OpenCL y solo corre dentro de Resolve). Para ver el resultado real, mira los
-        ejemplos de antes y después y el panel de más arriba.
-      </p>
-      <LivePresetPlayground client:visible lang="es" />
-    </div>
-  </section>
-
   <section class="section" id="get">
     <div class="container">
       <h2>Lite o el GATE.24 completo</h2>
@@ -243,7 +228,7 @@ const jsonLd = {
       <dl class="requirements">
         <div>
           <dt>DaVinci Resolve</dt>
-          <dd>Vale la versión gratuita; no hace falta la licencia Studio.</dd>
+          <dd>Funciona con la versión gratuita. No hace falta licencia Studio.</dd>
         </div>
         <div>
           <dt>Sistema operativo</dt>
@@ -252,6 +237,13 @@ const jsonLd = {
         <div>
           <dt>Idioma</dt>
           <dd>El panel del plugin está en inglés. El instalador funciona en inglés o en español.</dd>
+        </div>
+        <div>
+          <dt>Manual</dt>
+          <dd>
+            <a href="/gate24/manual.html">Manual de GATE.24</a> (en inglés)<br />
+            <a href="/gate24/manual-lite.html">Manual de GATE.24 Lite</a> (en inglés)
+          </dd>
         </div>
       </dl>
     </div>
@@ -324,21 +316,28 @@ const jsonLd = {
   }
 
   .requirements {
-    margin-top: var(--space-3);
+    margin: var(--space-3) 0 0;
     display: grid;
-    gap: var(--space-3);
+    gap: var(--space-4) var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   }
 
   .requirements dt {
-    font-weight: 600;
+    margin-bottom: 0.4rem;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
     color: var(--color-fg);
-    margin-bottom: 0.25rem;
   }
 
   .requirements dd {
     margin: 0;
     color: var(--color-fg-muted);
-    max-width: 48rem;
+  }
+
+  .requirements a {
+    color: var(--color-fg);
+    text-underline-offset: 0.2em;
   }
 
   .tiers {
