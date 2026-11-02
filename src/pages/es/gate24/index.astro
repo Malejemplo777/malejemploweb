@@ -16,7 +16,7 @@ const comparison = [
   { feature: 'Viñeta según el tipo de óptica', dehancer: 'Viñeta de exposición tipo película', flc: 'Solo cantidad y tamaño', gate24: 'Sí' },
   { feature: 'Grano según la película', dehancer: 'Sí (más de 60 películas)', flc: 'Sí, según el tipo de película', gate24: 'Sí (8, 16, 35 y 65 mm)' },
   { feature: 'Protección de la piel', dehancer: 'Sin herramienta específica indicada', flc: 'No', gate24: 'Sí, con cuentagotas en cada plano' },
-  { feature: 'Presets listos para usar', dehancer: 'Más de 60 perfiles de película; el look lo montas tú', flc: '8 looks integrados + uno personalizado', gate24: '10 (Essentials + Genre)' },
+  { feature: 'Presets listos para usar', dehancer: 'Más de 60 perfiles de película; el look lo montas tú', flc: '8 looks integrados + uno personalizado', gate24: '10 (Essentials + Looks)' },
   { feature: 'Curva de aprendizaje', dehancer: 'Alta', flc: 'Media', gate24: 'Un clic, y todo sigue siendo ajustable a mano' },
 ];
 
@@ -46,7 +46,7 @@ const jsonLd = {
 
 <BaseLayout
   title="GATE.24"
-  description="GATE.24 es un plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta que imita la óptica, grano de película según el negativo y contraste que respeta la piel. Incluye 10 presets."
+  description="GATE.24 es un plugin de look de cine en un clic para DaVinci Resolve: barras de recorte, viñeta, grano de película y contraste. 10 presets."
   ogImage="/og-gate24.jpg"
   theme="gate24"
   alternatePath="/gate24/"
@@ -111,7 +111,7 @@ const jsonLd = {
     <div class="container">
       <h2>10 presets en dos grupos</h2>
       <p>
-        <strong>Essentials</strong> es para el cine de uso diario y los formatos editoriales. <strong>Genre</strong> es para ambientes con una personalidad muy marcada. Cada
+        <strong>Essentials</strong> es para el cine de uso diario y los formatos editoriales. <strong>Looks</strong> es para ambientes con una personalidad muy marcada. Cada
         preset es solo un punto de partida: después de aplicarlo no queda nada bloqueado.
       </p>
       <PresetGallery client:visible lang="es" />
@@ -208,7 +208,7 @@ const jsonLd = {
           <h3>GATE.24</h3>
           <p class="tier-price">12,99 € · pago único</p>
           <ul>
-            <li>Los 10 presets, incluidos los de género</li>
+            <li>Los 10 presets, incluidos los Looks de género</li>
             <li>Controles avanzados y vista previa de diagnóstico</li>
             <li>Weave y Flicker, para el movimiento del fotograma y la deriva de exposición</li>
             <li>Cuentagotas de piel, calibrado en cada plano</li>
