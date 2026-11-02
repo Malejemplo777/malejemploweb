@@ -9,10 +9,10 @@ const SHOTS = ['m01', 'm02', 'm03', 'm04', 'm05', 'm06', 'm07', 'm08'] as const;
 interface Look {
   id: string;
   name: string;
-  tier: 'lite' | 'pro';
+  tier: 'lite' | 'full';
 }
 
-// Lite = free version (5 presets, no movement). Names stay English in every language:
+// Lite = free version (5 presets, no movement); full = GATE.24. Names stay English in every language:
 // they are what the plugin's panel shows.
 const LOOKS: Look[] = [
   { id: 'cinema35', name: 'Cinema 35', tier: 'lite' },
@@ -20,13 +20,13 @@ const LOOKS: Look[] = [
   { id: 'editorial_lite', name: 'Editorial 4:3', tier: 'lite' },
   { id: 'urban_lite', name: 'Urban Editorial', tier: 'lite' },
   { id: 'romance', name: 'Romance / Reverie', tier: 'lite' },
-  { id: 'editorial_pro', name: 'Editorial 4:3', tier: 'pro' },
-  { id: 'urban_pro', name: 'Urban Editorial', tier: 'pro' },
-  { id: 'dustywestern', name: 'Dusty Western', tier: 'pro' },
-  { id: 'homegrownvhs', name: 'Homegrown VHS', tier: 'pro' },
-  { id: 'classichorror', name: 'Classic Horror', tier: 'pro' },
-  { id: 'wornoutvhs', name: 'Worn-Out VHS', tier: 'pro' },
-  { id: 'terrorfoundfootage', name: 'Terror Found Footage', tier: 'pro' },
+  { id: 'editorial_pro', name: 'Editorial 4:3', tier: 'full' },
+  { id: 'urban_pro', name: 'Urban Editorial', tier: 'full' },
+  { id: 'dustywestern', name: 'Dusty Western', tier: 'full' },
+  { id: 'homegrownvhs', name: 'Homegrown VHS', tier: 'full' },
+  { id: 'classichorror', name: 'Classic Horror', tier: 'full' },
+  { id: 'wornoutvhs', name: 'Worn-Out VHS', tier: 'full' },
+  { id: 'terrorfoundfootage', name: 'Terror Found Footage', tier: 'full' },
 ];
 
 const copy = {
@@ -35,7 +35,7 @@ const copy = {
     shot: 'Shot',
     looks: 'Choose a look',
     lite: 'Lite · free',
-    pro: 'Pro',
+    full: 'GATE.24',
     zoomIn: '+ Zoom in on the grain',
     zoomOut: '– Zoom out',
     hint: 'Drag to compare. Every frame is a real shot, graded with the plugin.',
@@ -45,7 +45,7 @@ const copy = {
     shot: 'Plano',
     looks: 'Elige un look',
     lite: 'Lite · gratis',
-    pro: 'Pro',
+    full: 'GATE.24',
     zoomIn: '+ Acercar para ver el grano',
     zoomOut: '– Alejar',
     hint: 'Arrastra para comparar. Cada fotograma es un plano real, etalonado con el plugin.',
@@ -70,9 +70,9 @@ export default function Library({ lang = 'en' }: { lang?: Lang }) {
     else setTimeout(warm, 600);
   }, [shot]);
 
-  const group = (tier: 'lite' | 'pro') => (
+  const group = (tier: 'lite' | 'full') => (
     <div className="lib-group" key={tier}>
-      <span className="lib-tier">{tier === 'lite' ? c.lite : c.pro}</span>
+      <span className="lib-tier">{tier === 'lite' ? c.lite : c.full}</span>
       <div className="lib-chips">
         {LOOKS.filter((l) => l.tier === tier).map((l) => (
           <button
@@ -123,7 +123,7 @@ export default function Library({ lang = 'en' }: { lang?: Lang }) {
 
       <div className="lib-looks" role="group" aria-label={c.looks}>
         {group('lite')}
-        {group('pro')}
+        {group('full')}
       </div>
 
       <style>{`

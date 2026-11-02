@@ -3,8 +3,11 @@ import type { Lang } from '../i18n';
 
 interface Props {
   lang?: Lang;
-  /** Where the "get it" buttons go. */
+  /** Where the "Get GATE.24" buttons go: the section where the visitor picks Lite or GATE.24. */
   downloadHref: string;
+  /** Gumroad links of the two products (empty = not available yet). */
+  liteHref?: string;
+  fullHref?: string;
   /** Ignore the reduced-motion setting (used by the standalone preview file). */
   forceMotion?: boolean;
 }
@@ -105,7 +108,7 @@ const copy = {
     flickerTag: 'Exposure pulses from frame to frame',
     off: 'Off',
     inPlugin: 'In the plugin',
-    moreSub: '10 presets in Pro, 5 in Lite',
+    moreSub: '10 presets in GATE.24, 5 in Lite',
     grain: 'Grain',
     vignette: 'Vignette',
     crop: 'Crop',
@@ -113,9 +116,10 @@ const copy = {
     ctaTitle: 'Pick your version',
     lite: 'GATE.24 Lite',
     liteText: '5 presets. Free.',
-    pro: 'GATE.24 Pro',
-    proText: '10 presets, Weave, Flicker and Advanced.',
-    soon: 'Coming soon',
+    full: 'GATE.24',
+    fullText: '10 presets, Weave, Flicker and Advanced.',
+    getLite: 'Get Lite',
+    soon: 'Link coming soon',
     summary:
       'GATE.24 gives DaVinci Resolve film presets, grain by film stock, vignette, crop bars in cinema formats, weave and flicker.',
   },
@@ -133,7 +137,7 @@ const copy = {
     flickerTag: 'La exposición pulsa de un fotograma a otro',
     off: 'Off',
     inPlugin: 'En el plugin',
-    moreSub: '10 presets en Pro, 5 en Lite',
+    moreSub: '10 presets en GATE.24, 5 en Lite',
     grain: 'Grano',
     vignette: 'Viñeta',
     crop: 'Recorte',
@@ -141,9 +145,10 @@ const copy = {
     ctaTitle: 'Elige tu versión',
     lite: 'GATE.24 Lite',
     liteText: '5 presets. Gratis.',
-    pro: 'GATE.24 Pro',
-    proText: '10 presets, Weave, Flicker y Advanced.',
-    soon: 'Próximamente',
+    full: 'GATE.24',
+    fullText: '10 presets, Weave, Flicker y Advanced.',
+    getLite: 'Conseguir Lite',
+    soon: 'Enlace próximamente',
     summary:
       'GATE.24 añade a DaVinci Resolve presets de película, grano según la película, viñeta, barras en formatos de cine, weave y flicker.',
   },
@@ -246,7 +251,7 @@ function Center({ state, tag, title, value, sub, steps, active = 0 }: CenterProp
   );
 }
 
-export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = false }: Props) {
+export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', fullHref = '', forceMotion = false }: Props) {
   const t = copy[lang];
   const rootRef = useRef<HTMLElement>(null);
   const [p, setP] = useState(0);
@@ -438,13 +443,16 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
   const atTop = vh < 24;
 
   // Straight to the information below the intro (no smooth scroll through the whole hook).
-  const skipIntro = (e: React.MouseEvent) => {
-    const target = document.getElementById('library');
+  const jumpTo = (id: string) => (e: React.MouseEvent) => {
+    const target = document.getElementById(id);
     if (!target) return;
     e.preventDefault();
     window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 72, behavior: 'instant' as ScrollBehavior });
-    history.replaceState(null, '', '#library');
+    history.replaceState(null, '', '#' + id);
   };
+  const skipIntro = jumpTo('library');
+  // "Get GATE.24" leads to the choice (Lite or GATE.24) without scrolling through the hook.
+  const getIt = downloadHref.startsWith('#') ? jumpTo(downloadHref.slice(1)) : undefined;
   const ctaOn = cd >= CH.cta;
 
   return (
@@ -562,7 +570,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
           <p className="si-eyebrow">{t.eyebrow}</p>
           <h1 translate="no">GATE.24</h1>
           <div className="si-open-actions">
-            <a className="si-btn" href={downloadHref} tabIndex={cd === CH.open ? 0 : -1}>
+            <a className="si-btn" href={downloadHref} onClick={getIt} tabIndex={cd === CH.open ? 0 : -1}>
               {t.get}
             </a>
             <a className="si-btn si-btn-ghost" href="#library" onClick={skipIntro} tabIndex={cd === CH.open ? 0 : -1}>
@@ -640,20 +648,30 @@ export default function ScrollIntro({ lang = 'en', downloadHref, forceMotion = f
             <div className="si-card">
               <h3>{t.lite}</h3>
               <p>{t.liteText}</p>
-              <a className="si-btn" href={downloadHref} tabIndex={ctaOn ? 0 : -1}>
-                {t.get}
-              </a>
+              {liteHref ? (
+                <a className="si-btn" href={liteHref} tabIndex={ctaOn ? 0 : -1}>
+                  {t.getLite}
+                </a>
+              ) : (
+                <span className="si-btn si-btn-off">{t.soon}</span>
+              )}
             </div>
             <div className="si-card">
-              <h3>{t.pro}</h3>
-              <p>{t.proText}</p>
-              <span className="si-btn si-btn-off">{t.soon}</span>
+              <h3>{t.full}</h3>
+              <p>{t.fullText}</p>
+              {fullHref ? (
+                <a className="si-btn" href={fullHref} tabIndex={ctaOn ? 0 : -1}>
+                  {t.get}
+                </a>
+              ) : (
+                <span className="si-btn si-btn-off">{t.soon}</span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Always-there download button */}
-        <a className="si-top-btn" href={downloadHref}>
+        <a className="si-top-btn" href={downloadHref} onClick={getIt}>
           {t.get}
         </a>
       </div>

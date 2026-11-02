@@ -12,7 +12,6 @@ export const social = {
 export const NEWSLETTER_FORM_ACTION = import.meta.env.PUBLIC_NEWSLETTER_FORM_ACTION ?? '';
 export const CONTACT_FORM_ACTION = import.meta.env.PUBLIC_CONTACT_FORM_ACTION ?? '';
 export const GUMROAD_URL = import.meta.env.PUBLIC_GUMROAD_URL ?? '';
-// Two Gumroad products (Lite is free, Pro is paid). Each falls back to the single
-// legacy link until its own is set.
-export const GUMROAD_LITE_URL = import.meta.env.PUBLIC_GUMROAD_LITE_URL ?? GUMROAD_URL;
-export const GUMROAD_PRO_URL = import.meta.env.PUBLIC_GUMROAD_PRO_URL ?? '';
+// The two Gumroad products: GATE.24 (the full plugin, GUMROAD_URL above) and GATE.24 Lite
+// (free). Lite never falls back to the full product's link.
+export const GUMROAD_LITE_URL = import.meta.env.PUBLIC_GUMROAD_LITE_URL ?? '';

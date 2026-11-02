@@ -5,10 +5,10 @@ import Library from '../../../components/Library.tsx';
 import LivePresetPlayground from '../../../components/LivePresetPlayground.tsx';
 import PresetGallery from '../../../components/PresetGallery.tsx';
 import ResolvePanel from '../../../components/ResolvePanel.astro';
-import { GUMROAD_LITE_URL, GUMROAD_PRO_URL } from '../../../data/social';
+import { GUMROAD_URL, GUMROAD_LITE_URL } from '../../../data/social';
 
-const liteHref = GUMROAD_LITE_URL.length > 0 ? GUMROAD_LITE_URL : '#get';
-const proHref = GUMROAD_PRO_URL;
+const liteHref = GUMROAD_LITE_URL;
+const fullHref = GUMROAD_URL;
 
 const comparison = [
   { feature: 'Precio', dehancer: 'De pago (suscripción o licencia vitalicia)', flc: 'Incluido en Resolve Studio', gate24: 'Paga lo que quieras (puede ser gratis)' },
@@ -23,7 +23,7 @@ const comparison = [
 const faq = [
   { q: '¿Funciona en Mac?', a: 'Todavía no. GATE.24 es solo para Windows por ahora; Mac no está descartado, pero de momento no hay hardware para probarlo.' },
   { q: '¿Cómo se instala?', a: 'Descomprime, ejecuta Install.bat, reinicia DaVinci Resolve y busca GATE.24 en OpenFX. El instalador funciona en inglés o en español.' },
-  { q: '¿Puedo tener Lite y Pro instalados a la vez?', a: 'Sí. Son plugins distintos y conviven en Resolve.' },
+  { q: '¿Puedo tener Lite y GATE.24 instalados a la vez?', a: 'Sí. Son plugins distintos y conviven en Resolve.' },
   { q: '¿Un preset queda bloqueado al aplicarlo?', a: 'No. Un preset es solo un punto de partida: todos los parámetros se pueden ajustar a mano.' },
   { q: '¿Por qué el panel del plugin está en inglés?', a: 'El panel solo existe en inglés. Esta web mantiene los mismos nombres en todos los idiomas para que los encuentres en Resolve.' },
 ];
@@ -57,7 +57,7 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </Fragment>
 
-  <ScrollIntro client:load lang="es" downloadHref={liteHref} />
+  <ScrollIntro client:load lang="es" downloadHref="#get" liteHref={liteHref} fullHref={fullHref} />
 
   <section class="section" id="library">
     <div class="container">
@@ -85,7 +85,7 @@ const jsonLd = {
         preload="none"
         aria-label="Los ocho planos con Weave y Flicker de GATE.24 aplicados"
       ></video>
-      <p class="fine-print">Metraje real, renderizado desde DaVinci Resolve. Solo en Pro.</p>
+      <p class="fine-print">Metraje real, renderizado desde DaVinci Resolve. No está en Lite.</p>
     </div>
   </section>
 
@@ -183,8 +183,8 @@ const jsonLd = {
 
   <section class="section" id="get">
     <div class="container">
-      <h2>Lite o Pro</h2>
-      <p>Dos plugins que se instalan a la vez. Empieza con Lite; el Pro añade todo lo de abajo.</p>
+      <h2>Lite o el GATE.24 completo</h2>
+      <p>Dos plugins que se instalan a la vez. Empieza con Lite; el GATE.24 completo añade todo lo de abajo.</p>
       <div class="tiers">
         <article class="tier">
           <h3>GATE.24 Lite</h3>
@@ -194,25 +194,25 @@ const jsonLd = {
             <li>Crop, vignette, grain, contrast, reframe, shadow lift y reset</li>
             <li>Cada parámetro se sigue ajustando a mano</li>
           </ul>
-          {liteHref !== '#get' ? (
-            <a class="btn btn-primary" href={liteHref} target="_blank" rel="noopener noreferrer">Descargar Lite</a>
+          {liteHref.length > 0 ? (
+            <a class="btn btn-primary" href={liteHref} target="_blank" rel="noopener noreferrer">Conseguir Lite</a>
           ) : (
-            <span class="btn btn-primary" aria-disabled="true">Enlace de descarga próximamente</span>
+            <span class="btn btn-primary" aria-disabled="true">Enlace próximamente</span>
           )}
         </article>
-        <article class="tier tier-pro">
-          <h3>GATE.24 Pro</h3>
-          <p class="tier-price">Próximamente</p>
+        <article class="tier tier-full">
+          <h3>GATE.24</h3>
+          <p class="tier-price">El plugin completo</p>
           <ul>
             <li>Los 10 presets, incluidos los de género</li>
             <li>Controles avanzados y vista previa de diagnóstico</li>
             <li>Weave y Flicker, para el movimiento del fotograma y la deriva de exposición</li>
             <li>Cuentagotas de piel, calibrado en cada plano</li>
           </ul>
-          {proHref.length > 0 ? (
-            <a class="btn btn-primary" href={proHref} target="_blank" rel="noopener noreferrer">Conseguir Pro</a>
+          {fullHref.length > 0 ? (
+            <a class="btn btn-primary" href={fullHref} target="_blank" rel="noopener noreferrer">Conseguir GATE.24</a>
           ) : (
-            <span class="btn btn-ghost" aria-disabled="true">Aún no disponible</span>
+            <span class="btn btn-primary" aria-disabled="true">Enlace próximamente</span>
           )}
         </article>
       </div>
@@ -359,7 +359,7 @@ const jsonLd = {
     background: var(--color-bg-raised);
   }
 
-  .tier-pro {
+  .tier-full {
     border-color: var(--color-fg-muted);
   }
 

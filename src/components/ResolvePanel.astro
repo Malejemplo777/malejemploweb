@@ -1,138 +1,178 @@
 ---
 import type { Lang } from '../i18n';
 
-// Recreation of the real GATE.24 panel inside DaVinci Resolve, built with
-// real HTML controls instead of screenshots (crisp at any size, sliders
-// genuinely drag). Visual style, row layout, and default values matched
-// against the user's real screenshots (2026-08-25). Hint text is paraphrased
-// from the plugin's own setHint() calls in Gate24Plugin.cpp, not invented.
+// Recreation of the real GATE.24 panel inside DaVinci Resolve, built with real HTML
+// controls instead of screenshots (crisp at any size, sliders genuinely drag).
+// Layout and behaviour follow the plugin as documented in 07_ESTADO_ACTUAL_v0.9.md:
+// General (Advanced, Essentials, Looks, Reset preset, Preview), then six switchable
+// effects (CROP, WEAVE, FLICKER, VIGNETTE, GRAIN, CONTRAST), then Reframe. A switched-off
+// effect hides its controls; Simple shows each effect's main control, Advanced adds the
+// fine ones. Hint text is paraphrased from the plugin's own hints, not invented.
 type Row =
-  | { type: 'select'; label: string; value: string; options: string[]; hint: string }
-  | { type: 'check'; label: string; checked: boolean; hint: string }
-  | { type: 'slider'; label: string; value: number; min: number; max: number; step: number; hint: string }
-  | { type: 'color'; label: string; value: string; hint: string; eyedropper?: boolean };
+  | { type: 'select'; label: string; value: string; options: string[]; hint: string; adv?: boolean }
+  | { type: 'check'; label: string; checked: boolean; hint: string; adv?: boolean }
+  | { type: 'slider'; label: string; value: number; min: number; max: number; step: number; hint: string; adv?: boolean }
+  | { type: 'color'; label: string; value: string; hint: string; eyedropper?: boolean; adv?: boolean }
+  | { type: 'button'; label: string; hint: string; adv?: boolean };
 
-const essentialsPresets = ['Custom / Manual', 'Cinema 35', 'Cinema 65', 'Editorial 4:3', 'Urban Editorial'];
-const genrePresets = ['Custom / Manual', 'Dusty Western', 'Romance / Reverie', 'Homegrown VHS', 'Classic Horror', 'Worn-Out VHS', 'Terror Found Footage'];
+interface Section {
+  title: string;
+  /** Effect sections have a power switch (the dotted checkbox of the real panel). */
+  fx?: { key: string; on: boolean; hint: string };
+  open?: boolean;
+  rows: Row[];
+}
 
-const sections: { title: string; rows: Row[] }[] = [
+const essentialsPresets = ['Manual', 'Cinema 35', 'Cinema 65', 'Editorial 4:3', 'Urban Editorial'];
+const looksPresets = ['Manual', 'Dusty Western', 'Romance / Reverie', 'Homegrown VHS', 'Classic Horror', 'Worn-Out VHS', 'Terror Found Footage'];
+
+const sections: Section[] = [
   {
     title: 'General',
+    open: true,
     rows: [
-      { type: 'select', label: 'Essentials', value: 'Cinema 35', options: essentialsPresets, hint: 'Everyday presets — cinema/editorial and social platform formats. Sets Crop + Vignette + Grain + Contrast all at once. Reframe and Crop Offset are left untouched, always manual.' },
-      { type: 'select', label: 'By Genre', value: 'Custom / Manual', options: genrePresets, hint: 'Presets with a strong, deliberate genre/mood identity. Sets Crop + Vignette + Grain + Contrast all at once. Every parameter can still be tweaked by hand after applying one.' },
-      { type: 'check', label: 'Advanced', checked: true, hint: 'Off: only Preset, each section’s ‘Enable’ toggle, and its Intensity. On: every fine control in each section.' },
-      { type: 'select', label: 'Preview', value: 'Normal', options: ['Normal', 'Vignette', 'Grain', 'Skin/Midtones'], hint: 'Normal: the image as usual. Vignette: a color tint showing where/how much it darkens. Grain: neutral gray + pure grain, to judge size/texture. Skin/Midtones: shows where contrast protection is kicking in.' },
-      { type: 'check', label: 'Enable Bars', checked: false, hint: 'Turns the crop bars on or off.' },
-      { type: 'check', label: 'Enable Vignette', checked: true, hint: 'Turns on the radial vignette, calculated over the visible window (never under the bars).' },
-      { type: 'check', label: 'Enable Grain', checked: true, hint: 'Turns on the procedural film grain, limited to the visible area.' },
-      { type: 'check', label: 'Enable Contrast', checked: true, hint: 'Turns on the final contrast curve — an S-curve over Rec.709.' },
+      { type: 'check', label: 'Advanced', checked: false, hint: 'Off (Simple): each effect shows only its main control. On: every fine control appears. It is never saved with the project: a project always opens in Simple.' },
+      { type: 'select', label: 'Essentials', value: 'Cinema 35', options: essentialsPresets, hint: 'Everyday presets. Sets Crop, Vignette, Grain and Contrast at once, and switches Weave and Flicker on or off. Choosing one resets the Looks list. Reframe and Crop Offset are never touched.' },
+      { type: 'select', label: 'Looks', value: 'Manual', options: looksPresets, hint: 'Presets with a strong genre or mood. Same as Essentials, and every parameter can still be tweaked by hand afterwards. Choosing one resets the Essentials list.' },
+      { type: 'button', label: 'Reset preset', hint: 'Re-applies the last preset you chose, undoing your hand adjustments. Greyed out until you pick one. It never touches Crop Offset, Reframe, bar colour or Skin Tone.' },
+      { type: 'select', label: 'Preview', value: 'Normal', options: ['Normal', 'Vignette', 'Grain', 'Skin/Midtones'], adv: true, hint: 'Normal: the image as usual. Vignette: a colour tint showing where and how much it darkens. Grain: neutral grey plus pure grain, to judge size and texture. Skin/Midtones: shows where the contrast protection acts.' },
     ],
   },
   {
-    title: 'Crop',
+    title: 'CROP',
+    fx: { key: 'crop', on: true, hint: 'Turns the crop bars on or off.' },
     rows: [
-      { type: 'select', label: 'Format', value: '2.39:1', options: ['Custom', '2.39:1', '2.20:1', '2:1', '1.85:1', '4:3', '1:1'], hint: 'Calculates the V/H bar thickness for this aspect ratio. You can adjust the sliders by hand afterward.' },
-      { type: 'slider', label: 'V', value: 12.5, min: 0, max: 40, step: 0.01, hint: 'Thickness of the top/bottom bar (letterbox), in % of frame height.' },
-      { type: 'slider', label: 'H', value: 0, min: 0, max: 40, step: 0.01, hint: 'Thickness of the left/right bar (pillarbox), in % of frame width.' },
-      { type: 'slider', label: 'X', value: 0, min: -0.5, max: 0.5, step: 0.001, hint: 'Shifts the crop window horizontally, as a fraction of frame width (does not change the window size).' },
-      { type: 'slider', label: 'Y', value: 0, min: -0.5, max: 0.5, step: 0.001, hint: 'Shifts the crop window vertically, as a fraction of frame height (does not change the window size).' },
-      { type: 'slider', label: 'Feather', value: 0.2, min: 0, max: 5, step: 0.01, hint: 'Soft transition between the image and the bar, in % of frame height/width. 0 = hard cut.' },
-      { type: 'slider', label: 'Roundness', value: 0, min: 0, max: 100, step: 0.1, hint: 'Rounds the corners of the visible window. 0 = sharp corner; at maximum it becomes an oval/capsule shape, never breaks.' },
-      { type: 'color', label: 'Color', value: '#000000', hint: 'Color of the crop bars.' },
-      { type: 'slider', label: 'Opacity', value: 1, min: 0, max: 1, step: 0.001, hint: 'Opacity of the crop bars.' },
+      { type: 'select', label: 'Format', value: '2.39:1', options: ['Custom', '2.39:1', '2.20:1', '2:1', '1.85:1', '4:3', '1:1'], hint: 'Calculates the V and H bar thickness for this aspect ratio. You can adjust the sliders by hand afterwards.' },
+      { type: 'slider', label: 'V', value: 12.5, min: 0, max: 50, step: 0.01, adv: true, hint: 'Thickness of the top and bottom bars (letterbox), in % of the frame height.' },
+      { type: 'slider', label: 'H', value: 0, min: 0, max: 50, step: 0.01, adv: true, hint: 'Thickness of the left and right bars (pillarbox), in % of the frame width.' },
+      { type: 'slider', label: 'X', value: 0, min: -0.5, max: 0.5, step: 0.001, adv: true, hint: 'Shifts the crop window horizontally, as a fraction of the frame width. No preset ever touches it.' },
+      { type: 'slider', label: 'Y', value: 0, min: -0.5, max: 0.5, step: 0.001, adv: true, hint: 'Shifts the crop window vertically, as a fraction of the frame height. No preset ever touches it.' },
+      { type: 'slider', label: 'Feather', value: 0.2, min: 0, max: 5, step: 0.01, adv: true, hint: 'Soft transition between the image and the bar. 0 = hard cut.' },
+      { type: 'slider', label: 'Roundness', value: 0, min: 0, max: 100, step: 0.1, adv: true, hint: 'Rounds the corners of the visible window, like a vintage film gate. 0 = sharp corners.' },
+      { type: 'color', label: 'Color', value: '#000000', adv: true, hint: 'Colour of the crop bars.' },
+      { type: 'slider', label: 'Opacity', value: 1, min: 0, max: 1, step: 0.001, adv: true, hint: 'Opacity of the crop bars.' },
+    ],
+  },
+  {
+    title: 'WEAVE',
+    fx: { key: 'weave', on: false, hint: 'Turns the gate weave on or off: the frame hops a little, like film in a projector. Presets switch it on or off with their own values.' },
+    rows: [
+      { type: 'slider', label: 'Vertical', value: 0.15, min: 0, max: 0.3, step: 0.001, hint: 'How far the frame hops up and down, in % of the frame height. The character is always natural: more small hops than big ones, with the odd knock.' },
+      { type: 'slider', label: 'Horizontal', value: 0.02, min: 0, max: 0.3, step: 0.001, adv: true, hint: 'Sideways hop, in % of the frame width. Present but almost imperceptible by default.' },
+      { type: 'select', label: 'Rate', value: 'Every 2 frames', options: ['Every frame', 'Every 2 frames'], adv: true, hint: 'How often the frame moves. Every 2 frames is closer to a real projector.' },
+      { type: 'slider', label: 'Seed', value: 1, min: 0, max: 100, step: 1, adv: true, hint: 'Changes the random pattern of the hops without changing how strong they are.' },
+    ],
+  },
+  {
+    title: 'FLICKER',
+    fx: { key: 'flicker', on: false, hint: 'Turns the exposure flicker on or off: the brightness pulses from frame to frame, separate from the weave.' },
+    rows: [
+      { type: 'slider', label: 'Amount', value: 3, min: 2, max: 5, step: 0.1, hint: 'Strength of the brightness change, in % (2 to 5). Applied in linear light, before vignette, grain and contrast.' },
+      { type: 'slider', label: 'Seed', value: 1, min: 0, max: 100, step: 1, adv: true, hint: 'Changes the random pattern of the flicker without changing how strong it is.' },
+    ],
+  },
+  {
+    title: 'VIGNETTE',
+    fx: { key: 'vignette', on: true, hint: 'Turns on the radial vignette, calculated over the visible window (never under the bars).' },
+    rows: [
+      { type: 'slider', label: 'Intensity', value: 0.2, min: -0.6, max: 0.6, step: 0.001, hint: 'Positive darkens (classic vignette); negative brightens, like a light leak that lifts the edge shadows. 0 = no effect.' },
+      { type: 'select', label: 'Optics', value: 'Anamorphic / Scope', options: ['Anamorphic / Scope', 'Spherical / Standard', 'Tele / Subtle'], adv: true, hint: 'Shape and starting point of the falloff, based on the kind of optics you want to evoke.' },
+      { type: 'slider', label: 'Softness', value: 0.62, min: 0, max: 1, step: 0.001, adv: true, hint: 'Edge hardness: 0 = narrow, hard transition; 1 = wide, soft falloff.' },
+    ],
+  },
+  {
+    title: 'GRAIN',
+    fx: { key: 'grain', on: true, hint: 'Turns on the procedural film grain, limited to the visible area.' },
+    rows: [
+      { type: 'slider', label: 'Intensity', value: 0.126, min: 0, max: 0.8, step: 0.001, hint: 'How much the grain blends over the image. 0 = invisible.' },
+      { type: 'select', label: 'Stock', value: '35mm', options: ['8mm', '16mm', '35mm', '65mm'], adv: true, hint: 'A fixed recipe of size and texture for each negative format. It is not a continuous scale.' },
+      { type: 'slider', label: 'Size', value: 1, min: 0, max: 3, step: 0.001, adv: true, hint: 'Multiplier on the base grain size of the chosen stock. 1.0 = that stock’s natural size.' },
+      { type: 'slider', label: 'Color', value: 0, min: 0, max: 1, step: 0.001, adv: true, hint: '0 = monochrome grain (recommended, like a real film negative); 1 = independent colour noise per channel.' },
+      { type: 'slider', label: 'Animation', value: 1, min: 0, max: 1, step: 0.001, adv: true, hint: '0 = static grain; 1 = a new pattern every frame. In-between values change more slowly.' },
+    ],
+  },
+  {
+    title: 'CONTRAST',
+    fx: { key: 'contrast', on: true, hint: 'Turns on the final contrast curve, an S-curve over Rec.709.' },
+    rows: [
+      { type: 'slider', label: 'Intensity', value: 0.24, min: 0, max: 0.6, step: 0.001, hint: 'Strength of the S-curve: deeper shadows, more open highlights.' },
+      { type: 'slider', label: 'Shadow Lift', value: 0.035, min: 0, max: 1, step: 0.001, hint: 'Lifts the black floor for a film-like touch instead of pure digital black. Independent of Intensity: raise it gradually.' },
+      { type: 'select', label: 'Protection', value: 'Both', options: ['None', 'Midtones', 'Skin', 'Both'], adv: true, hint: 'Dampens the contrast so certain areas do not clip. Midtones: by luminance range. Skin: by hue. Both: the two together.' },
+      { type: 'color', label: 'Skin Tone', value: '#c98462', eyedropper: true, adv: true, hint: 'Use the eyedropper to sample a real skin tone from this shot; Skin detection recalibrates to it instead of assuming a generic hue.' },
+      { type: 'slider', label: 'Hue Tolerance', value: 0.3, min: 0, max: 1, step: 0.001, adv: true, hint: 'How wide the Skin detection opens around the sampled tone. Check it against Preview → Skin/Midtones.' },
+      { type: 'slider', label: 'Saturation Range', value: 0.3, min: 0, max: 1, step: 0.001, adv: true, hint: 'Same as Hue Tolerance, but for the saturation band.' },
     ],
   },
   {
     title: 'Reframe',
     rows: [
-      { type: 'slider', label: 'X', value: 0, min: -1, max: 1, step: 0.001, hint: 'Shifts the source image horizontally underneath the crop, as a fraction of frame width. The crop itself doesn’t move.' },
-      { type: 'slider', label: 'Y', value: 0, min: -1, max: 1, step: 0.001, hint: 'Shifts the source image vertically underneath the crop, as a fraction of frame height. The crop itself doesn’t move.' },
-      { type: 'slider', label: 'Zoom', value: 1, min: 1, max: 4, step: 0.001, hint: 'Zooms into the source image (magnify only), useful when panning alone isn’t enough to recompose the shot.' },
-    ],
-  },
-  {
-    title: 'Vignette',
-    rows: [
-      { type: 'select', label: 'Optics', value: 'Anamorphic / Scope', options: ['Anamorphic / Scope', 'Spherical / Standard', 'Tele / Subtle'], hint: 'Shape and starting point of the falloff, based on the type of optics you want to evoke.' },
-      { type: 'slider', label: 'Intensity', value: 0.2, min: -1, max: 1, step: 0.001, hint: 'Positive darkens (classic vignette); negative brightens — a ‘light leak’/veil effect that lifts the edge shadows far more than the highlights. 0 = no effect.' },
-      { type: 'slider', label: 'Softness', value: 0.62, min: 0, max: 1, step: 0.001, hint: 'Edge hardness: 0 = narrow/hard transition, 1 = wide/soft falloff.' },
-    ],
-  },
-  {
-    title: 'Grain',
-    rows: [
-      { type: 'select', label: 'Stock', value: '35mm', options: ['8mm', '16mm', '35mm', '65mm'], hint: 'A fixed recipe of size and texture per negative format — not a continuous scale.' },
-      { type: 'slider', label: 'Intensity', value: 0.126, min: 0, max: 1, step: 0.001, hint: 'How much the grain blends over the image. 0 = invisible, 1 = full Overlay blend.' },
-      { type: 'slider', label: 'Size', value: 1, min: 0, max: 3, step: 0.001, hint: 'Multiplier on the base grain size of the chosen stock. 1.0 = that stock’s natural size.' },
-      { type: 'slider', label: 'Color', value: 0, min: 0, max: 1, step: 0.001, hint: '0 = monochrome grain (recommended, like real film negative), 1 = grain with independent color noise per channel.' },
-      { type: 'slider', label: 'Animation', value: 1, min: 0, max: 1, step: 0.001, hint: '0 = static grain (no flicker), 1 = a new pattern every frame. In-between values change more slowly.' },
-    ],
-  },
-  {
-    title: 'Contrast',
-    rows: [
-      { type: 'slider', label: 'Intensity', value: 0.24, min: 0, max: 1, step: 0.001, hint: 'Strength of the S-curve: deeper shadows, more open highlights.' },
-      { type: 'slider', label: 'Shadow Lift', value: 0.035, min: 0, max: 1, step: 0.001, hint: 'Lifts the black floor for a negative/film-like touch instead of pure digital black. Independent of Intensity — raise it gradually.' },
-      { type: 'select', label: 'Protection', value: 'Both', options: ['None', 'Midtones (luminance)', 'Skin (hue)', 'Both'], hint: 'Dampens contrast so it doesn’t ‘clip’ certain areas. Midtones: by luminance range. Skin: by hue, isolating real skin tone. Both: combines the two.' },
-      { type: 'color', label: 'Skin Tone', value: '#c98462', eyedropper: true, hint: 'Use the eyedropper to sample a real skin tone from this shot — Skin (hue) recalibrates automatically instead of assuming a generic hue.' },
-      { type: 'slider', label: 'Hue Tolerance', value: 0.3, min: 0, max: 1, step: 0.001, hint: 'How wide the Skin detection opens around the sampled tone. Wider covers real skin variation better; narrower separates from similar colors like wood.' },
-      { type: 'slider', label: 'Saturation Range', value: 0.3, min: 0, max: 1, step: 0.001, hint: 'Same as Hue Tolerance, but for the saturation band — excludes near-neutral grays on one side and very vivid colors on the other.' },
+      { type: 'slider', label: 'X', value: 0, min: -0.05, max: 0.05, step: 0.0001, hint: 'Shifts the source image horizontally underneath the crop. The crop itself does not move. Presets never touch it.' },
+      { type: 'slider', label: 'Y', value: 0, min: -0.05, max: 0.05, step: 0.0001, hint: 'Shifts the source image vertically underneath the crop. The crop itself does not move. Presets never touch it.' },
+      { type: 'slider', label: 'Zoom', value: 1, min: 1, max: 3, step: 0.001, hint: 'Zooms into the source image (magnify only). Raise it to hide the edge when Weave moves the picture.' },
     ],
   },
 ];
 
-// Spanish explanations, keyed by `${section}/${label}`. Labels, option
-// values and section titles stay in English on purpose: they're the real
-// names in the plugin's panel, which is English-only.
+// Spanish explanations, keyed by `${section}/${label}` (effect switches use
+// `${section}/switch`). Labels, option values and section titles stay in English on
+// purpose: they're the real names in the plugin's panel, which is English-only.
 const hintsEs: Record<string, string> = {
-  "General/Essentials": "Presets para el día a día: formatos de cine, editorial y plataformas sociales. Ajustan de una vez Crop, Vignette, Grain y Contrast. Reframe y Crop Offset no se tocan nunca: son siempre manuales.",
-  "General/By Genre": "Presets con una personalidad de género muy marcada. Ajustan de una vez Crop, Vignette, Grain y Contrast, y después puedes retocar a mano cualquier parámetro.",
-  "General/Advanced": "Desactivado, solo ves Preset, el interruptor «Enable» de cada sección y su Intensity. Activado, aparecen todos los controles finos de cada sección.",
-  "General/Preview": "Normal es la imagen de siempre. Vignette muestra con un tinte de color dónde y cuánto oscurece. Grain deja un gris neutro con solo el grano, para juzgar su tamaño y su textura. Skin/Midtones enseña dónde está actuando la protección de contraste.",
-  "General/Enable Bars": "Activa o desactiva las barras de recorte.",
-  "General/Enable Vignette": "Activa la viñeta radial, calculada sobre la parte visible de la imagen (nunca por debajo de las barras).",
-  "General/Enable Grain": "Activa el grano de película procedural, solo sobre la parte visible.",
-  "General/Enable Contrast": "Activa la curva de contraste final, una curva en S sobre Rec.709.",
-  "Crop/Format": "Calcula el grosor de las barras (V/H) para esa relación de aspecto. Después puedes retocar los deslizadores a mano.",
-  "Crop/V": "Grosor de la barra superior e inferior (letterbox), en % de la altura del fotograma.",
-  "Crop/H": "Grosor de la barra izquierda y derecha (pillarbox), en % del ancho del fotograma.",
-  "Crop/X": "Mueve la ventana de recorte en horizontal, como fracción del ancho del fotograma. No cambia el tamaño de la ventana.",
-  "Crop/Y": "Mueve la ventana de recorte en vertical, como fracción de la altura del fotograma. No cambia el tamaño de la ventana.",
-  "Crop/Feather": "Suaviza la transición entre la imagen y la barra, en % de la altura o el ancho del fotograma. Con 0 el corte es seco.",
-  "Crop/Roundness": "Redondea las esquinas de la ventana visible. Con 0 son esquinas rectas; al máximo se convierte en un óvalo o una cápsula, sin romperse nunca.",
-  "Crop/Color": "Color de las barras de recorte.",
-  "Crop/Opacity": "Opacidad de las barras de recorte.",
-  "Reframe/X": "Desplaza la imagen original en horizontal por debajo del recorte, como fracción del ancho del fotograma. El recorte no se mueve.",
-  "Reframe/Y": "Desplaza la imagen original en vertical por debajo del recorte, como fracción de la altura del fotograma. El recorte no se mueve.",
-  "Reframe/Zoom": "Amplía la imagen original (solo hacia dentro). Viene bien cuando mover la imagen no basta para recomponer el plano.",
-  "Vignette/Optics": "Forma y punto de partida de la caída de la viñeta, según el tipo de óptica que quieras imitar.",
-  "Vignette/Intensity": "En positivo oscurece (la viñeta de toda la vida); en negativo aclara, como un velo o un light leak que levanta las sombras del borde mucho más que las altas luces. Con 0 no hace nada.",
-  "Vignette/Softness": "Dureza del borde: 0 es una transición corta y dura, y 1, una caída ancha y suave.",
-  "Grain/Stock": "Una receta fija de tamaño y textura para cada formato de negativo. No es una escala continua.",
-  "Grain/Intensity": "Cuánto se mezcla el grano con la imagen. 0 es invisible y 1, una mezcla Overlay completa.",
-  "Grain/Size": "Multiplicador del tamaño base del grano del negativo elegido. 1.0 es el tamaño natural de ese negativo.",
-  "Grain/Color": "0 da un grano monocromo (lo recomendable, como en un negativo real) y 1 da un grano con ruido de color independiente en cada canal.",
-  "Grain/Animation": "0 es un grano estático, sin parpadeo; 1 genera un patrón nuevo en cada fotograma. Los valores intermedios cambian más despacio.",
-  "Contrast/Intensity": "Fuerza de la curva en S: sombras más profundas y altas luces más abiertas.",
-  "Contrast/Shadow Lift": "Levanta el suelo de negros para darle un aire de negativo en vez del negro digital puro. Va aparte de Intensity, así que súbelo poco a poco.",
-  "Contrast/Protection": "Suaviza el contraste para que no queme ciertas zonas. Midtones lo hace por rango de luminancia, Skin por tono (aislando el tono de piel real) y Both combina las dos.",
-  "Contrast/Skin Tone": "Usa el cuentagotas para tomar un tono de piel real del plano: Skin (por tono) se recalibra solo en vez de dar por bueno un tono genérico.",
-  "Contrast/Hue Tolerance": "Cuánto se abre la detección de piel alrededor del tono muestreado. Más ancha cubre mejor la variación real de la piel; más estrecha la distingue de colores parecidos, como la madera.",
-  "Contrast/Saturation Range": "Lo mismo que Hue Tolerance, pero para la banda de saturación: deja fuera los grises casi neutros por un lado y los colores muy vivos por el otro."
+  'General/Advanced': 'Desactivado (Simple), cada efecto enseña solo su control principal. Activado, aparecen todos los controles finos. No se guarda con el proyecto: un proyecto siempre abre en Simple.',
+  'General/Essentials': 'Presets para el día a día. Ajustan de una vez Crop, Vignette, Grain y Contrast, y encienden o apagan Weave y Flicker. Elegir uno reinicia la lista de Looks. Reframe y Crop Offset no se tocan nunca.',
+  'General/Looks': 'Presets con una personalidad de género o de ambiente muy marcada. Igual que Essentials, y después puedes retocar a mano cualquier parámetro. Elegir uno reinicia la lista de Essentials.',
+  'General/Reset preset': 'Vuelve a aplicar el último preset que elegiste, deshaciendo tus ajustes a mano. Está en gris hasta que eliges uno. Nunca toca Crop Offset, Reframe, el color de las barras ni Skin Tone.',
+  'General/Preview': 'Normal es la imagen de siempre. Vignette muestra con un tinte de color dónde y cuánto oscurece. Grain deja un gris neutro con solo el grano, para juzgar su tamaño y su textura. Skin/Midtones enseña dónde actúa la protección del contraste.',
+  'CROP/switch': 'Activa o desactiva las barras de recorte.',
+  'CROP/Format': 'Calcula el grosor de las barras (V y H) para esa relación de aspecto. Después puedes retocar los deslizadores a mano.',
+  'CROP/V': 'Grosor de la barra superior e inferior (letterbox), en % de la altura del fotograma.',
+  'CROP/H': 'Grosor de la barra izquierda y derecha (pillarbox), en % del ancho del fotograma.',
+  'CROP/X': 'Mueve la ventana de recorte en horizontal, como fracción del ancho del fotograma. Ningún preset la toca.',
+  'CROP/Y': 'Mueve la ventana de recorte en vertical, como fracción de la altura del fotograma. Ningún preset la toca.',
+  'CROP/Feather': 'Suaviza la transición entre la imagen y la barra. Con 0 el corte es seco.',
+  'CROP/Roundness': 'Redondea las esquinas de la ventana visible, como la ventanilla de un proyector antiguo. Con 0 son esquinas rectas.',
+  'CROP/Color': 'Color de las barras de recorte.',
+  'CROP/Opacity': 'Opacidad de las barras de recorte.',
+  'WEAVE/switch': 'Activa o desactiva el temblor del fotograma: la imagen salta un poco, como la película en un proyector. Los presets lo encienden o apagan con sus propios valores.',
+  'WEAVE/Vertical': 'Cuánto salta el fotograma arriba y abajo, en % de la altura. El carácter es siempre natural: más saltos pequeños que grandes, con algún golpe de vez en cuando.',
+  'WEAVE/Horizontal': 'Salto lateral, en % del ancho. Está presente pero casi no se nota por defecto.',
+  'WEAVE/Rate': 'Cada cuánto se mueve el fotograma. Cada 2 fotogramas se parece más a un proyector real.',
+  'WEAVE/Seed': 'Cambia el patrón aleatorio de los saltos sin cambiar su fuerza.',
+  'FLICKER/switch': 'Activa o desactiva el parpadeo de exposición: el brillo pulsa de un fotograma a otro, aparte del weave.',
+  'FLICKER/Amount': 'Fuerza del cambio de brillo, en % (de 2 a 5). Se aplica en luz lineal, antes de la viñeta, el grano y el contraste.',
+  'FLICKER/Seed': 'Cambia el patrón aleatorio del parpadeo sin cambiar su fuerza.',
+  'VIGNETTE/switch': 'Activa la viñeta radial, calculada sobre la parte visible de la imagen (nunca por debajo de las barras).',
+  'VIGNETTE/Intensity': 'En positivo oscurece (la viñeta de toda la vida); en negativo aclara, como un light leak que levanta las sombras del borde. Con 0 no hace nada.',
+  'VIGNETTE/Optics': 'Forma y punto de partida de la caída de la viñeta, según el tipo de óptica que quieras imitar.',
+  'VIGNETTE/Softness': 'Dureza del borde: 0 es una transición corta y dura, y 1, una caída ancha y suave.',
+  'GRAIN/switch': 'Activa el grano de película procedural, solo sobre la parte visible.',
+  'GRAIN/Intensity': 'Cuánto se mezcla el grano con la imagen. 0 es invisible.',
+  'GRAIN/Stock': 'Una receta fija de tamaño y textura para cada formato de negativo. No es una escala continua.',
+  'GRAIN/Size': 'Multiplicador del tamaño base del grano del negativo elegido. 1.0 es el tamaño natural de ese negativo.',
+  'GRAIN/Color': '0 da un grano monocromo (lo recomendable, como en un negativo real) y 1 da ruido de color independiente en cada canal.',
+  'GRAIN/Animation': '0 es un grano estático; 1 genera un patrón nuevo en cada fotograma. Los valores intermedios cambian más despacio.',
+  'CONTRAST/switch': 'Activa la curva de contraste final, una curva en S sobre Rec.709.',
+  'CONTRAST/Intensity': 'Fuerza de la curva en S: sombras más profundas y altas luces más abiertas.',
+  'CONTRAST/Shadow Lift': 'Levanta el suelo de negros para darle un aire de película en vez del negro digital puro. Va aparte de Intensity, así que súbelo poco a poco.',
+  'CONTRAST/Protection': 'Suaviza el contraste para que no queme ciertas zonas. Midtones lo hace por rango de luminancia, Skin por tono, y Both combina las dos.',
+  'CONTRAST/Skin Tone': 'Usa el cuentagotas para tomar un tono de piel real del plano: la detección de piel se recalibra en vez de dar por bueno un tono genérico.',
+  'CONTRAST/Hue Tolerance': 'Cuánto se abre la detección de piel alrededor del tono muestreado. Compruébalo con Preview → Skin/Midtones.',
+  'CONTRAST/Saturation Range': 'Lo mismo que Hue Tolerance, pero para la banda de saturación.',
+  'Reframe/X': 'Desplaza la imagen original en horizontal por debajo del recorte. El recorte no se mueve. Los presets nunca lo tocan.',
+  'Reframe/Y': 'Desplaza la imagen original en vertical por debajo del recorte. El recorte no se mueve. Los presets nunca lo tocan.',
+  'Reframe/Zoom': 'Amplía la imagen original (solo hacia dentro). Súbelo para esconder el borde cuando Weave mueve la imagen.',
 };
 
 const { lang = 'en' } = Astro.props as { lang?: Lang };
 const hoverHint = lang === 'es' ? 'Pasa el ratón por encima de un control para ver qué hace.' : 'Hover a control to see what it does.';
-const hintFor = (section: string, row: { label: string; hint: string }) =>
-  lang === 'es' ? hintsEs[`${section}/${row.label}`] ?? row.hint : row.hint;
+const hintFor = (section: string, label: string, fallback: string) =>
+  lang === 'es' ? hintsEs[`${section}/${label}`] ?? fallback : fallback;
+const advLabel = lang === 'es' ? 'solo en Advanced' : 'Advanced only';
 
-const totalRows = sections.reduce((sum, s) => sum + s.rows.length, 0);
-
-// Generates the CSS that swaps the visible caption based on which row (by
-// global index, r0..rN) is hovered/focused within its own .dv-section
-// ancestor -- scoped per section via :has() so sections don't cross-talk.
-const panelHotspotCss = Array.from({ length: totalRows }, (_, i) => `
+// Every row (including each effect's switch) gets a global index r0..rN; the CSS
+// below swaps the visible caption by which row is hovered/focused inside its own
+// .dv-section, scoped per section via :has() so sections don't cross-talk.
+const rowCount = sections.reduce((sum, s) => sum + s.rows.length + (s.fx ? 1 : 0), 0);
+const panelHotspotCss = Array.from({ length: rowCount }, (_, i) => `
   .dv-section:has(.r${i}:hover) .dv-caption-default,
   .dv-section:has(.r${i}:focus-visible) .dv-caption-default { opacity: 0; }
   .dv-section:has(.r${i}:hover) .c${i},
@@ -142,68 +182,90 @@ const panelHotspotCss = Array.from({ length: totalRows }, (_, i) => `
 let rowCounter = 0;
 ---
 
-<div class="resolve-panel">
-  {sections.map((section, si) => (
-    <details class="dv-section" open={si === 0}>
-      <summary>
-        <span class="dv-chevron" aria-hidden="true">&rsaquo;</span>
-        {section.title}
-      </summary>
-      <div class="dv-body">
-        <div class="dv-rows">
-          {section.rows.map((row) => {
-            const idx = rowCounter++;
-            return (
-              <div class={`dv-row r${idx}`} tabindex="0">
-                <span class="dv-label">{row.type === 'check' ? '' : row.label}</span>
-                <span class="dv-control">
-                  {row.type === 'select' && (
-                    <span class="dv-select">
-                      <select aria-label={row.label}>
-                        {row.options.map((opt) => <option selected={opt === row.value}>{opt}</option>)}
-                      </select>
-                      <span class="dv-caret" aria-hidden="true">&#9662;</span>
+<div class="resolve-panel" data-advanced="false">
+  {sections.map((section) => {
+    const items: { row: Row | null; label: string; hint: string; idx: number }[] = [];
+    if (section.fx) items.push({ row: null, label: section.title, hint: hintFor(section.title, 'switch', section.fx.hint), idx: rowCounter++ });
+    section.rows.forEach((row) => items.push({ row, label: row.label, hint: hintFor(section.title, row.label, row.hint), idx: rowCounter++ }));
+    return (
+      <details class:list={['dv-section', { 'fx-off': section.fx && !section.fx.on }]} open={section.open} data-fx={section.fx?.key}>
+        <summary>
+          <span class="dv-chevron" aria-hidden="true">&rsaquo;</span>
+          {section.fx ? <span class="dv-dot" aria-hidden="true">&#9679;</span> : null}
+          {section.title}
+        </summary>
+        <div class="dv-body">
+          <div class="dv-rows">
+            {items.map(({ row, label, idx }) => {
+              if (row === null) {
+                return (
+                  <div class={`dv-row dv-switch r${idx}`} tabindex="0">
+                    <span class="dv-label"></span>
+                    <span class="dv-control">
+                      <label class="dv-check-field">
+                        <input class="dv-check dv-fx-check" type="checkbox" checked={section.fx!.on} />
+                        <span>{label}</span>
+                      </label>
                     </span>
+                  </div>
+                );
+              }
+              return (
+                <div class={`dv-row r${idx}`} tabindex="0" data-adv={row.adv ? 'true' : undefined} hidden={row.adv || (section.fx && !section.fx.on) ? true : undefined}>
+                  <span class="dv-label">{row.type === 'check' || row.type === 'button' ? '' : row.label}</span>
+                  <span class="dv-control">
+                    {row.type === 'select' && (
+                      <span class="dv-select">
+                        <select aria-label={row.label}>
+                          {row.options.map((opt) => <option selected={opt === row.value}>{opt}</option>)}
+                        </select>
+                        <span class="dv-caret" aria-hidden="true">&#9662;</span>
+                      </span>
+                    )}
+                    {row.type === 'check' && (
+                      <label class="dv-check-field">
+                        <input class="dv-check dv-advanced-check" type="checkbox" checked={row.checked} />
+                        <span>{row.label}</span>
+                      </label>
+                    )}
+                    {row.type === 'button' && (
+                      <button type="button" class="dv-button" disabled={false}>{row.label}</button>
+                    )}
+                    {row.type === 'slider' && (
+                      <span class="dv-slider">
+                        <input type="range" min={row.min} max={row.max} step={row.step} value={row.value} aria-label={row.label} />
+                        <input class="dv-value" type="text" readonly value={row.value.toFixed(row.step < 0.01 ? 3 : row.step >= 1 ? 0 : 2)} tabindex="-1" />
+                      </span>
+                    )}
+                    {row.type === 'color' && (
+                      <span class="dv-color-field">
+                        <span class="dv-swatch" style={{ background: row.value }}></span>
+                        {row.eyedropper && <span class="dv-eyedrop" aria-hidden="true">&#9711;</span>}
+                      </span>
+                    )}
+                  </span>
+                  {row.type !== 'check' && row.type !== 'button' && (
+                    <>
+                      <span class="dv-diamond" aria-hidden="true">&#9670;</span>
+                      <span class="dv-reset" aria-hidden="true">&#8635;</span>
+                    </>
                   )}
-                  {row.type === 'check' && (
-                    <label class="dv-check-field">
-                      <input class="dv-check" type="checkbox" checked={row.checked} />
-                      <span>{row.label}</span>
-                    </label>
-                  )}
-                  {row.type === 'slider' && (
-                    <span class="dv-slider">
-                      <input type="range" min={row.min} max={row.max} step={row.step} value={row.value} aria-label={row.label} />
-                      <input class="dv-value" type="text" readonly value={row.value.toFixed(row.step < 0.01 ? 3 : 2)} tabindex="-1" />
-                    </span>
-                  )}
-                  {row.type === 'color' && (
-                    <span class="dv-color-field">
-                      <span class="dv-swatch" style={{ background: row.value }}></span>
-                      {row.eyedropper && <span class="dv-eyedrop" aria-hidden="true">&#9711;</span>}
-                    </span>
-                  )}
-                </span>
-                {row.type !== 'check' && (
-                  <>
-                    <span class="dv-diamond" aria-hidden="true">&#9670;</span>
-                    <span class="dv-reset" aria-hidden="true">&#8635;</span>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
+          <div class="dv-caption-slot">
+            <p class="dv-caption-default">{hoverHint}</p>
+            {items.map(({ row, label, hint, idx }) => (
+              <p class={`dv-caption c${idx}`}>
+                <strong>{label}</strong>{row?.adv ? <em> ({advLabel})</em> : null} — {hint}
+              </p>
+            ))}
+          </div>
         </div>
-        <div class="dv-caption-slot">
-          <p class="dv-caption-default">{hoverHint}</p>
-          {section.rows.map((row, ri) => {
-            const idx = rowCounter - section.rows.length + ri;
-            return <p class={`dv-caption c${idx}`}><strong>{row.label}</strong> — {hintFor(section.title, row)}</p>;
-          })}
-        </div>
-      </div>
-    </details>
-  ))}
+      </details>
+    );
+  })}
 </div>
 
 <style set:html={panelHotspotCss}></style>
@@ -232,6 +294,15 @@ let rowCounter = 0;
 
   summary::-webkit-details-marker {
     display: none;
+  }
+
+  .dv-dot {
+    font-size: 0.6rem;
+    color: var(--color-fg-muted);
+  }
+
+  .dv-section.fx-off .dv-dot {
+    opacity: 0.35;
   }
 
   .dv-chevron {
@@ -264,17 +335,21 @@ let rowCounter = 0;
     grid-template-columns: 6.5rem 1fr 1rem 1rem;
     align-items: center;
     gap: 0.5rem;
-    height: 1.7rem;
+    min-height: 1.7rem;
     outline: none;
+  }
+
+  .dv-row[hidden] {
+    display: none;
   }
 
   .dv-row:hover,
   .dv-row:focus-visible {
-    background: rgba(245, 243, 239, 0.06);
+    background: rgba(245, 245, 243, 0.06);
   }
 
   .dv-label {
-    font-size: 0.72rem;
+    font-size: 0.8125rem;
     color: #b0b0b0;
     text-align: right;
     white-space: nowrap;
@@ -305,10 +380,10 @@ let rowCounter = 0;
     background: #2b2b2b;
     border: 1px solid #3d3d3d;
     color: #d8d8d8;
-    font-size: 0.72rem;
+    font-size: 0.8125rem;
     font-family: var(--font-body);
     padding: 0.2rem 1.4rem 0.2rem 0.5rem;
-    height: 1.4rem;
+    height: 1.5rem;
   }
 
   .dv-caret {
@@ -359,8 +434,29 @@ let rowCounter = 0;
   }
 
   .dv-check-field span {
-    font-size: 0.72rem;
+    font-size: 0.8125rem;
     color: #d8d8d8;
+  }
+
+  .dv-switch .dv-check-field span {
+    letter-spacing: 0.06em;
+  }
+
+  /* Button */
+  .dv-button {
+    width: 100%;
+    height: 1.5rem;
+    background: #2b2b2b;
+    border: 1px solid #3d3d3d;
+    color: #d8d8d8;
+    font-size: 0.8125rem;
+    font-family: var(--font-body);
+    cursor: pointer;
+  }
+
+  .dv-button:disabled {
+    color: #777;
+    cursor: default;
   }
 
   /* Slider */
@@ -402,12 +498,12 @@ let rowCounter = 0;
   }
 
   .dv-value {
-    width: 3.4rem;
+    width: 3.6rem;
     flex-shrink: 0;
     background: #232323;
     border: 1px solid #3d3d3d;
     color: #d8d8d8;
-    font-size: 0.7rem;
+    font-size: 0.8125rem;
     font-family: var(--font-body);
     text-align: right;
     padding: 0.15rem 0.35rem;
@@ -431,17 +527,17 @@ let rowCounter = 0;
     color: #999;
   }
 
-  /* Shared caption slot -- same technique as before, now anchored to real
-     rows instead of an image overlay, so alignment can't drift. */
+  /* Shared caption slot: anchored to real rows instead of an image overlay, so
+     alignment can't drift. */
   .dv-caption-slot {
     position: relative;
-    min-height: 4.5rem;
+    min-height: 6rem;
   }
 
   .dv-caption-slot p {
     margin: 0;
     max-width: none;
-    font-size: 0.9rem;
+    font-size: 0.9375rem;
     line-height: 1.5;
   }
 
@@ -461,26 +557,79 @@ let rowCounter = 0;
     color: var(--color-fg);
   }
 
-  .dv-caption strong {
+  .dv-caption strong,
+  .dv-caption em {
     color: var(--color-fg);
+  }
+
+  .dv-caption em {
+    font-style: normal;
+    color: var(--color-fg-muted);
   }
 
   @media (max-width: 720px) {
     .dv-body {
       grid-template-columns: 1fr;
     }
+
+    .dv-caption-slot {
+      min-height: 7.5rem;
+    }
   }
 </style>
 
 <script>
-  document.querySelectorAll<HTMLDivElement>('.resolve-panel .dv-row').forEach((row) => {
-    const range = row.querySelector<HTMLInputElement>('input[type="range"]');
-    const value = row.querySelector<HTMLInputElement>('.dv-value');
-    if (range && value) {
-      const decimals = Number(range.step) < 0.01 ? 3 : 2;
-      range.addEventListener('input', () => {
-        value.value = Number(range.value).toFixed(decimals);
+  const panels = document.querySelectorAll<HTMLElement>('.resolve-panel');
+
+  panels.forEach((panel) => {
+    const advancedBox = panel.querySelector<HTMLInputElement>('.dv-advanced-check');
+
+    // Rows follow two rules of the real plugin: fine controls only show in Advanced,
+    // and a switched-off effect hides all of its controls.
+    const refresh = () => {
+      const advanced = !!advancedBox?.checked;
+      panel.dataset.advanced = String(advanced);
+      panel.querySelectorAll<HTMLElement>('.dv-section').forEach((section) => {
+        const fxBox = section.querySelector<HTMLInputElement>('.dv-fx-check');
+        const on = fxBox ? fxBox.checked : true;
+        section.classList.toggle('fx-off', !on);
+        section.querySelectorAll<HTMLElement>('.dv-row:not(.dv-switch)').forEach((row) => {
+          row.hidden = (row.dataset.adv === 'true' && !advanced) || !on;
+        });
       });
-    }
+    };
+    advancedBox?.addEventListener('change', refresh);
+    panel.querySelectorAll('.dv-fx-check').forEach((b) => b.addEventListener('change', refresh));
+
+    // Choosing a preset in one list puts the other back to Manual, and arms Reset preset.
+    const selects = panel.querySelectorAll<HTMLSelectElement>('select[aria-label="Essentials"], select[aria-label="Looks"]');
+    const reset = panel.querySelector<HTMLButtonElement>('.dv-button');
+    const armReset = () => {
+      if (!reset) return;
+      reset.disabled = [...selects].every((s) => s.selectedIndex === 0);
+    };
+    selects.forEach((s) =>
+      s.addEventListener('change', () => {
+        selects.forEach((o) => {
+          if (o !== s) o.selectedIndex = 0;
+        });
+        armReset();
+      }),
+    );
+    armReset();
+
+    panel.querySelectorAll<HTMLElement>('.dv-row').forEach((row) => {
+      const range = row.querySelector<HTMLInputElement>('input[type="range"]');
+      const value = row.querySelector<HTMLInputElement>('.dv-value');
+      if (range && value) {
+        const step = Number(range.step);
+        const decimals = step < 0.01 ? 3 : step >= 1 ? 0 : 2;
+        range.addEventListener('input', () => {
+          value.value = Number(range.value).toFixed(decimals);
+        });
+      }
+    });
+
+    refresh();
   });
 </script>

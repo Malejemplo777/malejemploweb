@@ -5,10 +5,10 @@ import Library from '../../components/Library.tsx';
 import LivePresetPlayground from '../../components/LivePresetPlayground.tsx';
 import PresetGallery from '../../components/PresetGallery.tsx';
 import ResolvePanel from '../../components/ResolvePanel.astro';
-import { GUMROAD_LITE_URL, GUMROAD_PRO_URL } from '../../data/social';
+import { GUMROAD_URL, GUMROAD_LITE_URL } from '../../data/social';
 
-const liteHref = GUMROAD_LITE_URL.length > 0 ? GUMROAD_LITE_URL : '#get';
-const proHref = GUMROAD_PRO_URL;
+const liteHref = GUMROAD_LITE_URL;
+const fullHref = GUMROAD_URL;
 
 const comparison = [
   { feature: 'Price', dehancer: 'Paid (subscription or lifetime)', flc: 'Included with Resolve Studio', gate24: 'Pay what you want (can be free)' },
@@ -23,7 +23,7 @@ const comparison = [
 const faq = [
   { q: 'Does it work on Mac?', a: 'Not yet. GATE.24 is Windows only for now; Mac support is blocked on hardware access, not ruled out.' },
   { q: 'How do I install it?', a: 'Unzip, run Install.bat, restart DaVinci Resolve and find GATE.24 in OpenFX. The installer runs in English or Spanish.' },
-  { q: 'Can I have Lite and Pro installed together?', a: 'Yes. They are separate plugins and sit side by side in Resolve.' },
+  { q: 'Can I have Lite and GATE.24 installed together?', a: 'Yes. They are separate plugins and sit side by side in Resolve.' },
   { q: 'Is a preset locked once I apply it?', a: 'No. A preset is a starting point: every parameter stays adjustable by hand.' },
   { q: 'Why is the plugin panel in English?', a: 'The panel is English only. This site keeps the same names in every language so you can find them in Resolve.' },
 ];
@@ -56,7 +56,7 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </Fragment>
 
-  <ScrollIntro client:load lang="en" downloadHref={liteHref} />
+  <ScrollIntro client:load lang="en" downloadHref="#get" liteHref={liteHref} fullHref={fullHref} />
 
   <section class="section" id="library">
     <div class="container">
@@ -84,7 +84,7 @@ const jsonLd = {
         preload="none"
         aria-label="All eight shots with GATE.24 Weave and Flicker applied"
       ></video>
-      <p class="fine-print">Real footage, rendered from DaVinci Resolve. Pro only.</p>
+      <p class="fine-print">Real footage, rendered from DaVinci Resolve. Not in Lite.</p>
     </div>
   </section>
 
@@ -180,8 +180,8 @@ const jsonLd = {
 
   <section class="section" id="get">
     <div class="container">
-      <h2>Lite or Pro</h2>
-      <p>Two plugins, installable side by side. Start with Lite; Pro adds everything below.</p>
+      <h2>Lite or the full GATE.24</h2>
+      <p>Two plugins, installable side by side. Start with Lite; the full GATE.24 adds everything below.</p>
       <div class="tiers">
         <article class="tier">
           <h3>GATE.24 Lite</h3>
@@ -191,25 +191,25 @@ const jsonLd = {
             <li>Crop, vignette, grain, contrast, reframe, shadow lift and reset</li>
             <li>Every parameter still adjustable by hand</li>
           </ul>
-          {liteHref !== '#get' ? (
-            <a class="btn btn-primary" href={liteHref} target="_blank" rel="noopener noreferrer">Download Lite</a>
+          {liteHref.length > 0 ? (
+            <a class="btn btn-primary" href={liteHref} target="_blank" rel="noopener noreferrer">Get Lite</a>
           ) : (
-            <span class="btn btn-primary" aria-disabled="true">Download link coming soon</span>
+            <span class="btn btn-primary" aria-disabled="true">Link coming soon</span>
           )}
         </article>
-        <article class="tier tier-pro">
-          <h3>GATE.24 Pro</h3>
-          <p class="tier-price">Coming soon</p>
+        <article class="tier tier-full">
+          <h3>GATE.24</h3>
+          <p class="tier-price">The full plugin</p>
           <ul>
             <li>All 10 presets, including the genre looks</li>
             <li>Advanced controls and the diagnostic preview</li>
             <li>Weave and Flicker, for gate movement and exposure drift</li>
             <li>Skin-tone eyedropper, calibrated per shot</li>
           </ul>
-          {proHref.length > 0 ? (
-            <a class="btn btn-primary" href={proHref} target="_blank" rel="noopener noreferrer">Get Pro</a>
+          {fullHref.length > 0 ? (
+            <a class="btn btn-primary" href={fullHref} target="_blank" rel="noopener noreferrer">Get GATE.24</a>
           ) : (
-            <span class="btn btn-ghost" aria-disabled="true">Not available yet</span>
+            <span class="btn btn-primary" aria-disabled="true">Link coming soon</span>
           )}
         </article>
       </div>
@@ -356,7 +356,7 @@ const jsonLd = {
     background: var(--color-bg-raised);
   }
 
-  .tier-pro {
+  .tier-full {
     border-color: var(--color-fg-muted);
   }
 
