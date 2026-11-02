@@ -351,6 +351,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const fxSub = fxStage === 0 ? undefined : fxStage <= 3 ? t.weaveTag : `${t.flickerTag} · Weave ${weaveSteps[3].toFixed(2)}`;
 
   const atTop = vh < 24;
+  const barsOn = c >= CH.bars;
   const ctaOn = c >= CH.cta;
 
   // Straight to the information below the intro (no smooth scroll through the whole hook).
@@ -382,7 +383,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
 
         <div className="si-media" aria-hidden="true">
           {/* Hero + presets: the same plane; each preset is applied in place */}
-          <div className="si-layer" style={presetsLayer}>
+          <div className="si-layer" style={presetsLayer} data-covered={c >= CH.grain}>
             {looks.map((l, i) => (
               <img
                 key={l.id}
@@ -399,7 +400,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
           </div>
 
           {/* Grain: the whole frame, then a zoom, then the stock changes */}
-          <div className="si-layer si-up" style={layerStyle(CH.grain)}>
+          <div className="si-layer si-up" style={layerStyle(CH.grain)} data-covered={c > CH.grain}>
             <img
               className="si-img"
               src="/intro-proto/m08_original.webp"
@@ -419,7 +420,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
           </div>
 
           {/* Vignette */}
-          <div className="si-layer si-up" style={layerStyle(CH.vig)}>
+          <div className="si-layer si-up" style={layerStyle(CH.vig)} data-covered={c > CH.vig}>
             <img
               className="si-img"
               src="/intro-proto/m04_original.webp"
@@ -438,7 +439,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
           </div>
 
           {/* Crop bars */}
-          <div className="si-layer si-up" style={layerStyle(CH.bars)}>
+          <div className="si-layer si-up" style={layerStyle(CH.bars)} data-covered={c > CH.bars}>
             <img
               className="si-img"
               src="/intro-proto/m07_original.webp"
@@ -448,10 +449,10 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
               {...imgSize.wide}
               decoding="async"
             />
-            <div className="si-bar" style={{ top: 0, left: 0, right: 0, height: `${bars.v * 100}%` }} />
-            <div className="si-bar" style={{ bottom: 0, left: 0, right: 0, height: `${bars.v * 100}%` }} />
-            <div className="si-bar" style={{ top: 0, bottom: 0, left: 0, width: `${bars.h * 100}%` }} />
-            <div className="si-bar" style={{ top: 0, bottom: 0, right: 0, width: `${bars.h * 100}%` }} />
+            <div className="si-bar" style={{ top: 0, left: 0, right: 0, height: `${barsOn ? bars.v * 100 : 0}%` }} />
+            <div className="si-bar" style={{ bottom: 0, left: 0, right: 0, height: `${barsOn ? bars.v * 100 : 0}%` }} />
+            <div className="si-bar" style={{ top: 0, bottom: 0, left: 0, width: `${barsOn ? bars.h * 100 : 0}%` }} />
+            <div className="si-bar" style={{ top: 0, bottom: 0, right: 0, width: `${barsOn ? bars.h * 100 : 0}%` }} />
           </div>
 
           {/* Weave + flicker (and the closing backdrop) */}
@@ -593,6 +594,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
 
 // Short, plain transitions: every one of them retargets instantly if the scroll moves on.
 const EASE = 'cubic-bezier(.4,0,.2,1)';
+const SOFT = 'cubic-bezier(.33,1,.68,1)';
 const styles = `
 .si { position: relative; background: #000; }
 .si-stage {
@@ -602,24 +604,26 @@ const styles = `
 }
 .si-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .si-media { position: absolute; inset: 0; overflow: hidden; background: #000; }
-.si-layer { position: absolute; inset: 0; background: #000; transition: transform .8s ${EASE}; }
+.si-layer { position: absolute; inset: 0; background: #000; transition: transform 1.05s ${SOFT}; }
 .si-up { box-shadow: 0 -24px 48px rgba(0,0,0,.5); }
+.si-layer::after { content: ''; position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 1s ease; }
+.si-layer[data-covered='true']::after { opacity: .55; }
 .si-live .si-layer, .si-live .si-title, .si-live .si-cta { will-change: transform; }
-.si-look { transition: opacity .25s ease; }
+.si-look { transition: opacity .35s ease; }
 .si-m { display: block; overflow: hidden; padding: .17em .4em; margin: -.17em -.4em; } /* room for accents and overshoot so big titles are never clipped */
-.si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform .6s ${EASE} var(--d, 0s); }
+.si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform .4s ${EASE} var(--d, 0s); }
 .si-center { visibility: hidden; transition: visibility 0s linear .9s; }
 .si-center[data-s='on'] { visibility: visible; transition-delay: 0s; }
-.si-center[data-s='on'] .si-m-in { transform: none; }
+.si-center[data-s='on'] .si-m-in { transform: none; transition: transform .65s ${SOFT} calc(var(--d, 0s) + .18s); }
 .si-center[data-s='after'] .si-m-in { transform: translate3d(0, 110%, 0); }
 .si-live .si-m-in { will-change: transform; }
 .si-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
 .si-grain { position: absolute; inset: 0; mix-blend-mode: overlay; background-size: 220px 220px; transition: opacity .3s ease; }
 .si-vig { position: absolute; inset: 0; }
 .si-shade { position: absolute; inset: 0; background: rgba(0,0,0,.3); } /* keeps the big text readable over the bright wall */
-.si-bar { position: absolute; background: #000; transition: height .4s ${EASE}, width .4s ${EASE}; }
+.si-bar { position: absolute; background: #000; transition: height .7s ${SOFT}, width .7s ${SOFT}; }
 .si-title { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 1rem; pointer-events: none;
-  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.5)); transition: transform .9s ${EASE}; }
+  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.5)); transition: transform 1s ${SOFT}; }
 .si-title h1 { font-family: var(--font-display, Georgia, serif); font-size: clamp(3rem, 12vw, 8rem); line-height: 1; margin: .4rem 0 0; letter-spacing: .01em; }
 .si-open-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 1.6rem; pointer-events: auto; }
 .si-btn.si-btn-ghost { background: rgba(0,0,0,.35); color: #f5f5f3; border-color: rgba(245,245,243,.55); }
@@ -638,7 +642,7 @@ const styles = `
 .si-dots li.done { background: rgba(245,245,243,.55); }
 .si-dots li.on { background: #f5f5f3; transform: scale(1.35); }
 
-.si-cta { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; padding: 1rem; text-align: center; transition: transform .9s ${EASE}; }
+.si-cta { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1.2rem; padding: 1rem; text-align: center; transition: transform 1s ${SOFT}; }
 .si-cta h2 { font-family: var(--font-display, Georgia, serif); font-size: clamp(1.8rem, 5vw, 3rem); margin: 0; }
 .si-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 18rem)); gap: 1rem; }
 @media (max-width: 640px) { .si-cards { grid-template-columns: minmax(0, 20rem); } }
