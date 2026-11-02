@@ -17,22 +17,22 @@ interface Props {
 // bars, weave...). Changing chapter, look or step is never tied to the scroll
 // position: crossing a threshold starts a timed, eased move (CSS), so the stage can
 // never be left half-way between two states, however fast the wheel or trackpad is.
-const TOTAL = 920;
+const TOTAL = 902;
 const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
 
 // Where each chapter starts, in vh of scrolling: opening title, presets, grain,
 // vignette, crop, weave + flicker, download.
-const TH = [0, 40, 287, 485, 580, 716, 862];
+const TH = [0, 40, 287, 437, 562, 698, 844];
 const CH = { open: 0, presets: 1, grain: 2, vig: 3, bars: 4, fx: 5, cta: 6 };
 
 // Amounts inside a chapter.
 const W = {
   presets: w(64, 270),
-  zoom: w(322, 370),
-  stocks: w(370, 466),
-  vig: w(504, 560),
-  bars: w(600, 696),
-  fx: w(736, 856),
+  zoom: w(310, 346),
+  stocks: w(346, 418),
+  vig: w(460, 540),
+  bars: w(582, 678),
+  fx: w(718, 838),
 };
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
@@ -195,6 +195,33 @@ function useStepper(target: number, ms: number, instant: boolean, canAdvance?: (
   return instant ? target : v;
 }
 
+/** Moves a continuous amount towards its target at a limited speed (only used while the stage is catching up). */
+function useSlew(target: number, perSec: number, instant: boolean) {
+  const [v, setV] = useState(target);
+  const ref = useRef(target);
+  useEffect(() => {
+    if (instant) {
+      ref.current = target;
+      setV(target);
+      return;
+    }
+    let raf = 0;
+    let t0 = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - t0) / 1000);
+      t0 = now;
+      const d = target - ref.current;
+      const step = perSec * dt;
+      ref.current = Math.abs(d) <= step ? target : ref.current + Math.sign(d) * step;
+      setV(ref.current);
+      if (ref.current !== target) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, perSec, instant]);
+  return instant ? target : v;
+}
+
 type ChapterState = 'before' | 'on' | 'after';
 
 interface CenterProps {
@@ -285,6 +312,14 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
     return () => mq.removeEventListener('change', apply);
   }, []);
 
+  // Decode every picture ahead of time, so a layer that slides in is already ready to paint.
+  useEffect(() => {
+    const imgs = rootRef.current?.querySelectorAll('img');
+    imgs?.forEach((img) => {
+      if (typeof img.decode === 'function') img.decode().catch(() => {});
+    });
+  }, []);
+
   // Loops and layer promotion only run while the intro is on screen.
   useEffect(() => {
     const el = rootRef.current;
@@ -344,7 +379,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const cd = useStepper(c, 900 * k, away, () => {
     const i = inner.current;
     // The last step of a chapter stays on screen long enough to be read.
-    if (performance.now() - i.at < 700 * k) return false;
+    if (performance.now() - i.at < 600 * k) return false;
     if (cdRef.current === CH.presets) return i.look >= looks.length - 1;
     if (cdRef.current === CH.grain) return i.grain >= grains.length - 1;
     if (cdRef.current === CH.vig) return i.vig >= 0.97;
@@ -360,7 +395,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
     cdPrev.current = cd;
     enteredAt.current = performance.now();
   }
-  const settled = () => performance.now() - enteredAt.current >= 700 * k;
+  const settled = () => performance.now() - enteredAt.current >= 600 * k;
 
   const stateOf = (k: number): ChapterState => (cd < k ? 'before' : cd === k ? 'on' : 'after');
 
@@ -374,7 +409,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   // sit at the first step, after it at the last one.
   const gated = (own: number, now: number, last: number) => (cd < own ? 0 : cd === own ? now : last);
   const grainTarget = gated(CH.grain, Math.min(grains.length - 1, Math.floor(ramp(p, W.stocks) * (grains.length - 1) + 0.5)), grains.length - 1);
-  const grainNow = useStepper(grainTarget, 800 * k, away, settled);
+  const grainNow = useStepper(grainTarget, 600 * k, away, settled);
   const barTarget = gated(CH.bars, clamp(Math.floor(ramp(p, W.bars) * ratios.length), 0, ratios.length - 1), ratios.length - 1);
   const barStep = useStepper(barTarget, 480 * k, away, settled);
   const fxTarget = gated(CH.fx, clamp(Math.floor(ramp(p, W.fx) * FX_STAGES), 0, FX_STAGES - 1), FX_STAGES - 1);
@@ -383,7 +418,10 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const zoom = ramp(p, W.zoom);
   const g = ramp(p, W.stocks);
   // Amounts inside a chapter (vignette, grain zoom) follow the scroll 1:1, no inertia.
-  const v = gated(CH.vig, ramp(p, W.vig), 1);
+  const vRaw = gated(CH.vig, ramp(p, W.vig), 1);
+  const vSynced = c === CH.vig && cd === CH.vig;
+  const vSlow = useSlew(vRaw, 0.6 / k, away || vSynced);
+  const v = vSynced ? vRaw : vSlow;
   const prevInner = inner.current;
   const changed = prevInner.look !== lookNow || prevInner.grain !== grainNow || prevInner.bar !== barStep || prevInner.fx !== fxStage;
   inner.current = { look: lookNow, grain: grainNow, bar: barStep, fx: fxStage, vig: v, at: changed ? performance.now() : prevInner.at };
@@ -690,7 +728,7 @@ const styles = `
 }
 .si-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .si-media { position: absolute; inset: 0; overflow: hidden; background: #000; transition: clip-path 1.5s ${EASE}; }
-.si-layer { position: absolute; inset: 0; transition: transform 1.5s ${EASE}, filter 1.2s ${EASE}; }
+.si-layer { position: absolute; inset: 0; background: #000; backface-visibility: hidden; transition: transform 1.5s ${EASE}, filter 1.2s ${EASE}; }
 .si-up { box-shadow: 0 -40px 80px rgba(0,0,0,.55); }
 .si-live .si-layer, .si-live .si-media { will-change: transform; }
 .si-look { transition: opacity .3s ease; }
