@@ -196,7 +196,7 @@ export default function LivePresetPlayground({ lang = 'en' }: { lang?: Lang }) {
         .controls { display: flex; flex-direction: column; gap: 1rem; }
         .control-block { display: flex; flex-direction: column; gap: 0.5rem; }
         .label {
-          font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+          font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
           color: var(--color-fg-muted, #a8a49c); margin: 0;
         }
         .chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -206,7 +206,7 @@ export default function LivePresetPlayground({ lang = 'en' }: { lang?: Lang }) {
           padding: 0.5rem 0.9rem; background: transparent; color: var(--color-fg-muted, #a8a49c);
           border: 1px solid var(--color-border, #2a2a2a); cursor: pointer;
         }
-        .chip.small { font-size: 0.75rem; padding: 0.4rem 0.7rem; }
+        .chip.small { font-size: 0.8rem; padding: 0.4rem 0.7rem; }
         .chip.active {
           color: var(--color-bg, #0a0a0a); background: var(--color-fg, #f5f3ef); border-color: var(--color-fg, #f5f3ef);
         }
@@ -222,13 +222,13 @@ export default function LivePresetPlayground({ lang = 'en' }: { lang?: Lang }) {
           box-shadow: 0 0 0 9999px rgba(0, 0, 0, 1); pointer-events: none;
         }
         .tag {
-          position: absolute; z-index: 2; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em;
+          position: absolute; z-index: 2; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em;
           text-transform: uppercase; background: rgba(10, 10, 10, 0.75); color: #f5f3ef;
           padding: 0.35rem 0.6rem; border: 1px solid rgba(245, 243, 239, 0.2);
         }
         .tag-preset { bottom: 0.75rem; left: 0.75rem; }
         .tag-format { bottom: 0.75rem; right: 0.75rem; }
-        .caption { margin: 0; font-size: 0.78rem; color: var(--color-fg-muted, #a8a49c); max-width: none; }
+        .caption { margin: 0; font-size: 0.875rem; color: var(--color-fg-muted, #a8a49c); max-width: none; }
       `}</style>
     </div>
   );

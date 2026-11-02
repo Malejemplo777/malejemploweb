@@ -27,6 +27,8 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
       id="newsletter-email"
       name="email"
       type="email"
+      autocomplete="email"
+      spellcheck="false"
       placeholder={t.placeholder}
       required
       disabled={!isConfigured}
@@ -78,7 +80,7 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
   }
 
   .hint {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--color-fg-muted);
     max-width: none;
   }
@@ -126,7 +128,7 @@ const isConfigured = NEWSLETTER_FORM_ACTION.length > 0;
       const msg = form.dataset;
       button.disabled = true;
       status.hidden = false;
-      status.textContent = msg.msgSending ?? 'Sending...';
+      status.textContent = msg.msgSending ?? 'Sending…';
       status.removeAttribute('data-state');
 
       const fail = () => {

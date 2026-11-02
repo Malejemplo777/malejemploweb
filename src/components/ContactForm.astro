@@ -23,7 +23,7 @@ const isConfigured = CONTACT_FORM_ACTION.length > 0;
 >
   <div class="field">
     <label for="contact-email">{t.email}</label>
-    <input id="contact-email" name="email" type="email" required disabled={!isConfigured} />
+    <input id="contact-email" name="email" type="email" autocomplete="email" spellcheck="false" required disabled={!isConfigured} />
   </div>
   <div class="field">
     <label for="contact-message">{t.message}</label>
@@ -87,7 +87,7 @@ const isConfigured = CONTACT_FORM_ACTION.length > 0;
   }
 
   .hint {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--color-fg-muted);
     max-width: none;
   }

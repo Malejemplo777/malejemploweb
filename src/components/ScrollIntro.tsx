@@ -733,7 +733,7 @@ const styles = `
 .si-live .si-layer, .si-live .si-media { will-change: transform; }
 .si-look { transition: opacity .3s ease; }
 .si-live .si-look { will-change: opacity; }
-.si-m { display: block; overflow: hidden; padding: .06em .4em; margin: -.06em -.4em; }
+.si-m { display: block; overflow: hidden; padding: .17em .4em; margin: -.17em -.4em; } /* room for accents and overshoot so big titles are never clipped */
 .si-m-in { display: flow-root; transform: translate3d(0, -110%, 0); transition: transform .85s cubic-bezier(.3,.1,.2,1) var(--d, 0s); }
 .si-center { visibility: hidden; transition: visibility 0s linear 1.1s; }
 .si-center[data-s='on'] { visibility: visible; transition-delay: 0s; }

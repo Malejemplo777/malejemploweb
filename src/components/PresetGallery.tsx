@@ -113,7 +113,7 @@ export default function PresetGallery({ lang = 'en' }: { lang?: Lang }) {
           position: absolute;
           bottom: 0.5rem;
           left: 0.5rem;
-          font-size: 0.65rem;
+          font-size: 0.8rem;
           font-weight: 600;
           letter-spacing: 0.05em;
           background: rgba(10, 10, 10, 0.7);
@@ -121,7 +121,7 @@ export default function PresetGallery({ lang = 'en' }: { lang?: Lang }) {
           border: 1px solid rgba(245, 243, 239, 0.2);
         }
         .name { margin: 0; font-weight: 600; font-size: 0.9rem; color: var(--color-fg, #f5f3ef); }
-        .blurb { margin: 0; font-size: 0.78rem; color: var(--color-fg-muted, #a8a49c); max-width: none; }
+        .blurb { margin: 0; font-size: 0.875rem; color: var(--color-fg-muted, #a8a49c); max-width: none; }
       `}</style>
     </div>
   );

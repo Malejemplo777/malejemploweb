@@ -438,7 +438,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
         .lbx-chip {
-          font: 500 0.82rem var(--lbx-mono);
+          font: 500 0.8125rem var(--lbx-mono);
           letter-spacing: 0.04em;
           font-variant-numeric: tabular-nums;
           color: var(--color-fg-muted);
@@ -485,7 +485,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.4rem; }
         .lbx-actions > * { flex: 1 1 11rem; text-align: center; }
         .lbx-gate-link {
-          font: 600 0.72rem var(--lbx-mono);
+          font: 600 0.8125rem var(--lbx-mono);
           letter-spacing: 0.12em;
           text-transform: uppercase;
           text-decoration: none;
@@ -500,7 +500,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-gate-link:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
         .lbx-download {
           margin-top: 0;
-          font: 600 0.72rem var(--lbx-mono);
+          font: 600 0.8125rem var(--lbx-mono);
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--color-bg);
@@ -606,7 +606,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
           transition: height 0.55s cubic-bezier(0.65, 0, 0.2, 1), width 0.55s cubic-bezier(0.65, 0, 0.2, 1);
         }
         .lbx-bar span {
-          font: 0.68rem var(--lbx-mono);
+          font: 0.8125rem var(--lbx-mono);
           letter-spacing: 0.14em;
           text-transform: uppercase;
           color: rgba(245, 243, 239, 0.55);
@@ -669,7 +669,7 @@ export default function LetterboxCalculator({ lang = 'en' }: Props) {
         .lbx-cell-main .lbx-k { grid-column: 1 / -1; }
         .lbx-copy {
           align-self: end;
-          font: 600 0.68rem var(--lbx-mono);
+          font: 600 0.8125rem var(--lbx-mono);
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--color-fg-muted);

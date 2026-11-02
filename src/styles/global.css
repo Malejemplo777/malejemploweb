@@ -98,6 +98,10 @@ a {
   color: inherit;
 }
 
+[id] {
+  scroll-margin-top: 5rem; /* anchors never hide under the sticky header */
+}
+
 :focus-visible {
   outline: 2px solid var(--color-fg);
   outline-offset: 3px;
