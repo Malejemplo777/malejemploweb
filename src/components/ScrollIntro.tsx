@@ -17,22 +17,24 @@ interface Props {
 // which chapter and which step is current, and each change is a short CSS transition that
 // simply retargets if the reader keeps scrolling. A fast scroll therefore never builds up delay;
 // it just lands on the right state.
-const TOTAL = 902;
+// Paced for a mouse wheel: one notch is about 10vh, and every step of the intro gets about 33vh
+// (3 to 4 notches), so a single notch never changes anything big.
+const TOTAL = 1040;
 const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
 
 // Where each chapter starts, in vh of scrolling: opening title, presets, grain, vignette,
 // crop, weave + flicker, download.
-const TH = [0, 40, 287, 437, 562, 698, 844];
+const TH = [0, 40, 287, 474, 618, 785, 980];
 const CH = { open: 0, presets: 1, grain: 2, vig: 3, bars: 4, fx: 5, cta: 6 };
 
 // Scroll windows of the steps inside a chapter.
 const W = {
-  presets: w(64, 270),
-  zoom: w(310, 346),
-  stocks: w(346, 418),
-  vig: w(460, 540),
-  bars: w(582, 678),
-  fx: w(718, 838),
+  presets: w(64, 262),
+  zoom: w(305, 345),
+  stocks: w(345, 444),
+  vig: w(498, 588),
+  bars: w(640, 772),
+  fx: w(810, 975),
 };
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
@@ -50,7 +52,6 @@ const looks = [
   // 4:3 shows the side bars, the other formats show top and bottom.
   { id: 'editorial', label: 'Editorial 4:3', es: 'Editorial 4:3', src: '/library/m07_editorial_pro.webp' },
   { id: 'classichorror', label: 'Classic Horror', es: 'Terror clásico', src: '/intro-proto/m07_classichorror.webp' },
-  { id: 'urban', label: 'Urban Editorial', es: 'Editorial urbano', src: '/intro-proto/m07_urban_pro.webp' },
   // Last step: the other presets, shown without naming one.
   { id: 'more', label: '… and more', es: '… y más', src: '/library/m07_homegrownvhs.webp' },
 ];
@@ -64,20 +65,19 @@ const grains = [
 ];
 
 // The Format list of the plugin today (4:5 and 9:16 were removed 2026-10-12).
+// Four highlights of the Format list (the plugin also has 2.20:1 and 2:1).
 const ratios = [
   { label: '2.39:1', value: 2.39 },
-  { label: '2.20:1', value: 2.2 },
-  { label: '2:1', value: 2 },
   { label: '1.85:1', value: 1.85 },
   { label: '4:3', value: 4 / 3 },
   { label: '1:1', value: 1 },
 ];
 
 // Weave "Vertical" (0-0.30) and Flicker "Amount" (2-5 %), as in the plugin.
-const weaveSteps = [0, 0.1, 0.2, 0.3];
-const flickerSteps = [0, 2, 3.5, 5];
-// Stage 0 = both off, 1-3 = weave rising, 4-6 = weave at max + flicker rising.
-const FX_STAGES = 7;
+// Stage 0 = both off, 1-2 = weave rising, 3-4 = weave at max + flicker rising.
+const weaveSteps = [0, 0.15, 0.3, 0.3, 0.3];
+const flickerSteps = [0, 0, 0, 3, 5];
+const FX_STAGES = 5;
 
 // Real pixel sizes of the shipped WebP files, so the browser reserves the space.
 const imgSize = {
@@ -305,8 +305,8 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const g = ramp(p, W.stocks);
   const v = ramp(p, W.vig);
 
-  const weaveNow = weaveSteps[Math.min(fxStage, 3)];
-  const flickerNow = flickerSteps[Math.max(0, fxStage - 3)];
+  const weaveNow = weaveSteps[fxStage];
+  const flickerNow = flickerSteps[fxStage];
 
   // Weave = the frame hops vertically every other frame; flicker = exposure pulses.
   fxRef.current = { amp: weaveNow * (stage.h / 100) * 2, flick: flickerNow };
@@ -346,9 +346,9 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
   const drift = (a: number, b: number, amount: number): CSSProperties | undefined =>
     reduced ? undefined : { transform: `scale(${1 + clamp((vh - a) / (b - a)) * amount})` };
 
-  const fxTitle = fxStage === 0 ? 'Weave · Flicker' : fxStage <= 3 ? 'Weave' : 'Flicker';
-  const fxValue = fxStage === 0 ? t.off : fxStage <= 3 ? `Vertical ${weaveNow.toFixed(2)}` : `Amount ${flickerNow}%`;
-  const fxSub = fxStage === 0 ? undefined : fxStage <= 3 ? t.weaveTag : `${t.flickerTag} · Weave ${weaveSteps[3].toFixed(2)}`;
+  const fxTitle = fxStage === 0 ? 'Weave · Flicker' : fxStage <= 2 ? 'Weave' : 'Flicker';
+  const fxValue = fxStage === 0 ? t.off : fxStage <= 2 ? `Vertical ${weaveNow.toFixed(2)}` : `Amount ${flickerNow}%`;
+  const fxSub = fxStage === 0 ? undefined : fxStage <= 2 ? t.weaveTag : `${t.flickerTag} · Weave ${weaveSteps[2].toFixed(2)}`;
 
   const atTop = vh < 24;
   const barsOn = c >= CH.bars;
