@@ -12,13 +12,13 @@ Si editas en DaVinci Resolve y quieres darle un acabado cinematográfico a un cl
 
 - **Film Look Creator** viene incluido en DaVinci Resolve Studio (no está en la versión gratuita). Es un buen punto de partida: ocho looks integrados más uno personalizado, con halation, bloom, grano, gate weave y un recorte tipo film gate, todo dentro de las herramientas del propio Resolve.
 - **Dehancer** es lo más profundo: más de 60 emulaciones de películas reales y más de 130 perfiles de cámara, con un control muy fino de la densidad y la separación de color. Es de pago, con suscripción o con licencia vitalicia, y toda esa profundidad solo compensa si de verdad quieres construir un look desde cero.
-- **GATE.24** está en el punto medio: un solo efecto que reúne barras de recorte multiformato, una viñeta según la óptica, grano según la película (8, 16, 35 y 65 mm) y un pase final de contraste que protege la piel, con 10 presets listos para no empezar de cero. Es de «paga lo que quieras», incluso gratis.
+- **GATE.24** está en el punto medio: un solo efecto que reúne barras de recorte multiformato, una viñeta según la óptica, grano según la película (8, 16, 35 y 65 mm) y un pase final de contraste que protege la piel, con 10 presets listos para no empezar de cero. Cuesta 12,99 € de pago único, y hay una versión Lite gratuita con 5 presets.
 
 ## Característica por característica
 
 | | Dehancer | Film Look Creator | GATE.24 |
 |---|---|---|---|
-| Precio | De pago (suscripción o licencia vitalicia) | Incluido en Resolve Studio | Paga lo que quieras (puede ser gratis) |
+| Precio | De pago (suscripción o licencia vitalicia) | Incluido en Resolve Studio | 12,99 € de pago único (Lite es gratis) |
 | Barras de recorte multiformato | No consta (tiene Overscan) | Recorte tipo film gate | Sí |
 | Viñeta según el tipo de óptica | Viñeta de exposición tipo película | Solo cantidad y tamaño | Sí (Anamorphic / Spherical / Subtle-tele) |
 | Grano según la película | Sí, muy detallado (más de 60 películas) | Sí, según el tipo de película | Sí, simplificado (8, 16, 35 y 65 mm) |

@@ -11,7 +11,7 @@ const liteHref = GUMROAD_LITE_URL;
 const fullHref = GUMROAD_URL;
 
 const comparison = [
-  { feature: 'Precio', dehancer: 'De pago (suscripción o licencia vitalicia)', flc: 'Incluido en Resolve Studio', gate24: 'Paga lo que quieras (puede ser gratis)' },
+  { feature: 'Precio', dehancer: 'De pago (suscripción o licencia vitalicia)', flc: 'Incluido en Resolve Studio', gate24: '12,99 € de pago único (Lite es gratis)' },
   { feature: 'Barras de recorte multiformato', dehancer: 'No consta (tiene Overscan)', flc: 'Recorte tipo film gate', gate24: 'Sí' },
   { feature: 'Viñeta según el tipo de óptica', dehancer: 'Viñeta de exposición tipo película', flc: 'Solo cantidad y tamaño', gate24: 'Sí' },
   { feature: 'Grano según la película', dehancer: 'Sí (más de 60 películas)', flc: 'Sí, según el tipo de película', gate24: 'Sí (8, 16, 35 y 65 mm)' },
@@ -37,12 +37,10 @@ const jsonLd = {
   inLanguage: 'es',
   description:
     'Plugin de acabado cinematográfico en un clic para DaVinci Resolve: barras de recorte multiformato, viñeta que imita la óptica, grano de película según el negativo y contraste que respeta la piel.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-    description: 'Paga lo que quieras',
-  },
+  offers: [
+    { '@type': 'Offer', name: 'GATE.24', price: '12.99', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'GATE.24 Lite', price: '0', priceCurrency: 'EUR' },
+  ],
 };
 ---
 
@@ -202,7 +200,7 @@ const jsonLd = {
         </article>
         <article class="tier tier-full">
           <h3>GATE.24</h3>
-          <p class="tier-price">El plugin completo</p>
+          <p class="tier-price">12,99 € · pago único</p>
           <ul>
             <li>Los 10 presets, incluidos los de género</li>
             <li>Controles avanzados y vista previa de diagnóstico</li>

@@ -11,7 +11,7 @@ const liteHref = GUMROAD_LITE_URL;
 const fullHref = GUMROAD_URL;
 
 const comparison = [
-  { feature: 'Price', dehancer: 'Paid (subscription or lifetime)', flc: 'Included with Resolve Studio', gate24: 'Pay what you want (can be free)' },
+  { feature: 'Price', dehancer: 'Paid (subscription or lifetime)', flc: 'Included with Resolve Studio', gate24: '€12.99 one-time (Lite is free)' },
   { feature: 'Multi-format crop bars', dehancer: 'Not listed (it has Overscan)', flc: 'Film-gate crop', gate24: 'Yes' },
   { feature: 'Vignette tied to lens character', dehancer: 'Film-style exposure vignette', flc: 'Amount and size only', gate24: 'Yes' },
   { feature: 'Grain by camera stock', dehancer: 'Yes (60+ stocks)', flc: 'Yes, by film type', gate24: 'Yes (8/16/35/65mm)' },
@@ -36,12 +36,10 @@ const jsonLd = {
   operatingSystem: 'Windows',
   description:
     'One-click cinematic finishing plugin for DaVinci Resolve: multi-format crop bars, lens-tied vignette, film grain by camera stock, and skin-safe contrast.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-    description: 'Pay what you want',
-  },
+  offers: [
+    { '@type': 'Offer', name: 'GATE.24', price: '12.99', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'GATE.24 Lite', price: '0', priceCurrency: 'EUR' },
+  ],
 };
 ---
 
@@ -199,7 +197,7 @@ const jsonLd = {
         </article>
         <article class="tier tier-full">
           <h3>GATE.24</h3>
-          <p class="tier-price">The full plugin</p>
+          <p class="tier-price">€12.99 · one-time</p>
           <ul>
             <li>All 10 presets, including the genre looks</li>
             <li>Advanced controls and the diagnostic preview</li>
