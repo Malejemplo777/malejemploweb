@@ -19,22 +19,22 @@ interface Props {
 // it just lands on the right state.
 // Paced for a mouse wheel: one notch is about 10vh, and every step of the intro gets about 33vh
 // (3 to 4 notches), so a single notch never changes anything big.
-const TOTAL = 1040;
+const TOTAL = 1130;
 const w = (a: number, b: number) => [a / TOTAL, b / TOTAL] as const;
 
 // Where each chapter starts, in vh of scrolling: opening title, presets, grain, vignette,
 // crop, weave + flicker, download.
-const TH = [0, 40, 287, 474, 618, 785, 980];
+const TH = [0, 40, 287, 509, 653, 820, 1040];
 const CH = { open: 0, presets: 1, grain: 2, vig: 3, bars: 4, fx: 5, cta: 6 };
 
 // Scroll windows of the steps inside a chapter.
 const W = {
   presets: w(64, 262),
-  zoom: w(305, 345),
-  stocks: w(345, 444),
-  vig: w(498, 588),
-  bars: w(640, 772),
-  fx: w(810, 975),
+  zoom: w(312, 382),
+  stocks: w(392, 491),
+  vig: w(533, 623),
+  bars: w(675, 807),
+  fx: w(845, 1010),
 };
 
 const clamp = (n: number, a = 0, b = 1) => Math.min(b, Math.max(a, n));
@@ -406,7 +406,7 @@ export default function ScrollIntro({ lang = 'en', downloadHref, liteHref = '', 
               src="/intro-proto/m08_original.webp"
               alt=""
               draggable={false}
-              style={{ transform: `scale(${reduced ? 2.2 : lerp(1, 4.2, smooth(zoom))})`, transformOrigin: '18% 88%' }}
+              style={{ transform: `scale(${reduced ? 2.2 : lerp(1, 3.2, smooth(zoom))})`, transformOrigin: '18% 88%' }}
               {...imgSize.grain}
               decoding="async"
             />
