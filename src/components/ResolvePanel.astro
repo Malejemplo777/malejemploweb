@@ -1,88 +1,106 @@
 ---
 import type { Lang } from '../i18n';
 
-// Recreation of the real GATE.24 panel inside DaVinci Resolve, built with real HTML
-// controls instead of screenshots (crisp at any size, sliders genuinely drag).
-// Layout and behaviour follow the plugin as documented in 07_ESTADO_ACTUAL_v0.9.md:
-// General (Advanced, Essentials, Looks, Reset preset, Preview), then six switchable
-// effects (CROP, WEAVE, FLICKER, VIGNETTE, GRAIN, CONTRAST), then Reframe. A switched-off
+// Recreation of the real GATE.24 panel inside DaVinci Resolve (Inspector > Effects >
+// Settings), built with real HTML controls (crisp at any size, sliders genuinely drag).
+// Layout, defaults, ranges and labels were checked against real screenshots of the
+// plugin (2026-11-02): one continuous list, a General group, six switchable effects
+// (CROP, WEAVE, FLICKER, VIGNETTE, GRAIN, CONTRAST) and a Reframe group. A switched-off
 // effect hides its controls; Simple shows each effect's main control, Advanced adds the
 // fine ones. Hint text is paraphrased from the plugin's own hints, not invented.
 type Row =
   | { type: 'select'; label: string; value: string; options: string[]; hint: string; adv?: boolean }
-  | { type: 'check'; label: string; checked: boolean; hint: string; adv?: boolean }
-  | { type: 'slider'; label: string; value: number; min: number; max: number; step: number; hint: string; adv?: boolean }
+  | { type: 'check'; label: string; checked: boolean; hint: string }
+  | {
+      type: 'slider';
+      label: string;
+      value: number;
+      min: number;
+      max: number;
+      step: number;
+      hint: string;
+      adv?: boolean;
+      /** Vignette Intensity: Simple keeps the sign of the last preset (0 to max), Advanced opens the full range. */
+      simpleMin?: number;
+    }
   | { type: 'color'; label: string; value: string; hint: string; eyedropper?: boolean; adv?: boolean }
-  | { type: 'button'; label: string; hint: string; adv?: boolean };
+  | { type: 'button'; label: string; hint: string };
 
-interface Section {
+interface Effect {
   title: string;
-  /** Effect sections have a power switch (the dotted checkbox of the real panel). */
-  fx?: { key: string; on: boolean; hint: string };
-  open?: boolean;
+  key: string;
+  on: boolean;
+  hint: string;
   rows: Row[];
 }
 
 const essentialsPresets = ['Manual', 'Cinema 35', 'Cinema 65', 'Editorial 4:3', 'Urban Editorial'];
 const looksPresets = ['Manual', 'Dusty Western', 'Romance / Reverie', 'Homegrown VHS', 'Classic Horror', 'Worn-Out VHS', 'Terror Found Footage'];
 
-const sections: Section[] = [
-  {
-    title: 'General',
-    open: true,
-    rows: [
-      { type: 'check', label: 'Advanced', checked: false, hint: 'Off (Simple): each effect shows only its main control. On: every fine control appears. It is never saved with the project: a project always opens in Simple.' },
-      { type: 'select', label: 'Essentials', value: 'Cinema 35', options: essentialsPresets, hint: 'Everyday presets. Sets Crop, Vignette, Grain and Contrast at once, and switches Weave and Flicker on or off. Choosing one resets the Looks list. Reframe and Crop Offset are never touched.' },
-      { type: 'select', label: 'Looks', value: 'Manual', options: looksPresets, hint: 'Presets with a strong genre or mood. Same as Essentials, and every parameter can still be tweaked by hand afterwards. Choosing one resets the Essentials list.' },
-      { type: 'button', label: 'Reset preset', hint: 'Re-applies the last preset you chose, undoing your hand adjustments. Greyed out until you pick one. It never touches Crop Offset, Reframe, bar colour or Skin Tone.' },
-      { type: 'select', label: 'Preview', value: 'Normal', options: ['Normal', 'Vignette', 'Grain', 'Skin/Midtones'], adv: true, hint: 'Normal: the image as usual. Vignette: a colour tint showing where and how much it darkens. Grain: neutral grey plus pure grain, to judge size and texture. Skin/Midtones: shows where the contrast protection acts.' },
-    ],
-  },
+const general: Row[] = [
+  { type: 'check', label: 'Advanced', checked: false, hint: 'Off (Simple): each effect shows only its main control. On: every fine control appears. It is never saved with the project: a project always opens in Simple.' },
+  { type: 'select', label: 'Essentials', value: 'Cinema 35', options: essentialsPresets, hint: 'Everyday presets. Sets Crop, Vignette, Grain and Contrast at once, and switches Weave and Flicker on or off. Choosing one resets the Looks list. Reframe and Crop Offset are never touched.' },
+  { type: 'select', label: 'Looks', value: 'Manual', options: looksPresets, hint: 'Presets with a strong genre or mood. Same as Essentials, and every parameter can still be tweaked by hand afterwards. Choosing one resets the Essentials list.' },
+  { type: 'button', label: 'Reset preset', hint: 'Re-applies the last preset you chose, undoing your hand adjustments. Greyed out until you pick one. It never touches Crop Offset, Reframe, bar colour or Skin Tone.' },
+  { type: 'select', label: 'Preview', value: 'Normal', options: ['Normal', 'Vignette', 'Grain', 'Skin/Midtones'], adv: true, hint: 'Normal: the image as usual. Vignette: a colour tint showing where and how much it darkens. Grain: neutral grey plus pure grain, to judge size and texture. Skin/Midtones: shows where the contrast protection acts.' },
+];
+
+const effects: Effect[] = [
   {
     title: 'CROP',
-    fx: { key: 'crop', on: true, hint: 'Turns the crop bars on or off.' },
+    key: 'crop',
+    on: true,
+    hint: 'Turns the crop bars on or off.',
     rows: [
       { type: 'select', label: 'Format', value: '2.39:1', options: ['Custom', '2.39:1', '2.20:1', '2:1', '1.85:1', '4:3', '1:1'], hint: 'Calculates the V and H bar thickness for this aspect ratio. You can adjust the sliders by hand afterwards.' },
-      { type: 'slider', label: 'V', value: 12.5, min: 0, max: 50, step: 0.01, adv: true, hint: 'Thickness of the top and bottom bars (letterbox), in % of the frame height.' },
+      { type: 'slider', label: 'V', value: 12.8, min: 0, max: 50, step: 0.01, adv: true, hint: 'Thickness of the top and bottom bars (letterbox), in % of the frame height.' },
       { type: 'slider', label: 'H', value: 0, min: 0, max: 50, step: 0.01, adv: true, hint: 'Thickness of the left and right bars (pillarbox), in % of the frame width.' },
       { type: 'slider', label: 'X', value: 0, min: -0.5, max: 0.5, step: 0.001, adv: true, hint: 'Shifts the crop window horizontally, as a fraction of the frame width. No preset ever touches it.' },
       { type: 'slider', label: 'Y', value: 0, min: -0.5, max: 0.5, step: 0.001, adv: true, hint: 'Shifts the crop window vertically, as a fraction of the frame height. No preset ever touches it.' },
-      { type: 'slider', label: 'Feather', value: 0.2, min: 0, max: 5, step: 0.01, adv: true, hint: 'Soft transition between the image and the bar. 0 = hard cut.' },
-      { type: 'slider', label: 'Roundness', value: 0, min: 0, max: 100, step: 0.1, adv: true, hint: 'Rounds the corners of the visible window, like a vintage film gate. 0 = sharp corners.' },
-      { type: 'color', label: 'Color', value: '#000000', adv: true, hint: 'Colour of the crop bars.' },
+      { type: 'slider', label: 'Feather', value: 0, min: 0, max: 5, step: 0.01, adv: true, hint: 'Soft transition between the image and the bar. 0 = hard cut.' },
+      { type: 'slider', label: 'Roundness', value: 0, min: 0, max: 100, step: 0.01, adv: true, hint: 'Rounds the corners of the visible window, like a vintage film gate. 0 = sharp corners.' },
+      { type: 'color', label: 'Color', value: '#000000', eyedropper: true, adv: true, hint: 'Colour of the crop bars.' },
       { type: 'slider', label: 'Opacity', value: 1, min: 0, max: 1, step: 0.001, adv: true, hint: 'Opacity of the crop bars.' },
     ],
   },
   {
     title: 'WEAVE',
-    fx: { key: 'weave', on: false, hint: 'Turns the gate weave on or off: the frame hops a little, like film in a projector. Presets switch it on or off with their own values.' },
+    key: 'weave',
+    on: false,
+    hint: 'Turns the gate weave on or off: the frame hops a little, like film in a projector. Presets switch it on or off with their own values.',
     rows: [
       { type: 'slider', label: 'Vertical', value: 0.15, min: 0, max: 0.3, step: 0.001, hint: 'How far the frame hops up and down, in % of the frame height. The character is always natural: more small hops than big ones, with the odd knock.' },
-      { type: 'slider', label: 'Horizontal', value: 0.02, min: 0, max: 0.3, step: 0.001, adv: true, hint: 'Sideways hop, in % of the frame width. Present but almost imperceptible by default.' },
+      { type: 'slider', label: 'Horizontal', value: 0.02, min: 0, max: 0.1, step: 0.001, adv: true, hint: 'Sideways hop, in % of the frame width. Present but almost imperceptible by default.' },
       { type: 'select', label: 'Rate', value: 'Every 2 frames', options: ['Every frame', 'Every 2 frames'], adv: true, hint: 'How often the frame moves. Every 2 frames is closer to a real projector.' },
-      { type: 'slider', label: 'Seed', value: 1, min: 0, max: 100, step: 1, adv: true, hint: 'Changes the random pattern of the hops without changing how strong they are.' },
+      { type: 'slider', label: 'Seed', value: 0, min: 0, max: 100, step: 1, adv: true, hint: 'Changes the random pattern of the hops without changing how strong they are.' },
     ],
   },
   {
     title: 'FLICKER',
-    fx: { key: 'flicker', on: false, hint: 'Turns the exposure flicker on or off: the brightness pulses from frame to frame, separate from the weave.' },
+    key: 'flicker',
+    on: false,
+    hint: 'Turns the exposure flicker on or off: the brightness pulses from frame to frame, separate from the weave.',
     rows: [
-      { type: 'slider', label: 'Amount', value: 3, min: 2, max: 5, step: 0.1, hint: 'Strength of the brightness change, in % (2 to 5). Applied in linear light, before vignette, grain and contrast.' },
-      { type: 'slider', label: 'Seed', value: 1, min: 0, max: 100, step: 1, adv: true, hint: 'Changes the random pattern of the flicker without changing how strong it is.' },
+      { type: 'slider', label: 'Amount', value: 3, min: 2, max: 5, step: 0.001, hint: 'Strength of the brightness change, in % (2 to 5). Applied in linear light, before vignette, grain and contrast.' },
+      { type: 'slider', label: 'Seed', value: 0, min: 0, max: 100, step: 1, adv: true, hint: 'Changes the random pattern of the flicker without changing how strong it is.' },
     ],
   },
   {
     title: 'VIGNETTE',
-    fx: { key: 'vignette', on: true, hint: 'Turns on the radial vignette, calculated over the visible window (never under the bars).' },
+    key: 'vignette',
+    on: true,
+    hint: 'Turns on the radial vignette, calculated over the visible window (never under the bars).',
     rows: [
-      { type: 'slider', label: 'Intensity', value: 0.2, min: -0.6, max: 0.6, step: 0.001, hint: 'Positive darkens (classic vignette); negative brightens, like a light leak that lifts the edge shadows. 0 = no effect.' },
-      { type: 'select', label: 'Optics', value: 'Anamorphic / Scope', options: ['Anamorphic / Scope', 'Spherical / Standard', 'Tele / Subtle'], adv: true, hint: 'Shape and starting point of the falloff, based on the kind of optics you want to evoke.' },
-      { type: 'slider', label: 'Softness', value: 0.62, min: 0, max: 1, step: 0.001, adv: true, hint: 'Edge hardness: 0 = narrow, hard transition; 1 = wide, soft falloff.' },
+      { type: 'slider', label: 'Intensity', value: 0.2, min: -0.6, max: 0.6, step: 0.001, simpleMin: 0, hint: 'Positive darkens (classic vignette); negative brightens, like a light leak that lifts the edge shadows. In Simple it keeps the sign of the last preset; Advanced opens the full range.' },
+      { type: 'select', label: 'Optics', value: 'Spherical / Standard', options: ['Anamorphic / Scope', 'Spherical / Standard', 'Tele / Subtle'], adv: true, hint: 'Shape and starting point of the falloff, based on the kind of optics you want to evoke.' },
+      { type: 'slider', label: 'Softness', value: 0.5, min: 0, max: 1, step: 0.001, adv: true, hint: 'Edge hardness: 0 = narrow, hard transition; 1 = wide, soft falloff.' },
     ],
   },
   {
     title: 'GRAIN',
-    fx: { key: 'grain', on: true, hint: 'Turns on the procedural film grain, limited to the visible area.' },
+    key: 'grain',
+    on: true,
+    hint: 'Turns on the procedural film grain, limited to the visible area.',
     rows: [
       { type: 'slider', label: 'Intensity', value: 0.126, min: 0, max: 0.8, step: 0.001, hint: 'How much the grain blends over the image. 0 = invisible.' },
       { type: 'select', label: 'Stock', value: '35mm', options: ['8mm', '16mm', '35mm', '65mm'], adv: true, hint: 'A fixed recipe of size and texture for each negative format. It is not a continuous scale.' },
@@ -93,24 +111,24 @@ const sections: Section[] = [
   },
   {
     title: 'CONTRAST',
-    fx: { key: 'contrast', on: true, hint: 'Turns on the final contrast curve, an S-curve over Rec.709.' },
+    key: 'contrast',
+    on: true,
+    hint: 'Turns on the final contrast curve, an S-curve over Rec.709.',
     rows: [
       { type: 'slider', label: 'Intensity', value: 0.24, min: 0, max: 0.6, step: 0.001, hint: 'Strength of the S-curve: deeper shadows, more open highlights.' },
-      { type: 'slider', label: 'Shadow Lift', value: 0.035, min: 0, max: 1, step: 0.001, hint: 'Lifts the black floor for a film-like touch instead of pure digital black. Independent of Intensity: raise it gradually.' },
-      { type: 'select', label: 'Protection', value: 'Both', options: ['None', 'Midtones', 'Skin', 'Both'], adv: true, hint: 'Dampens the contrast so certain areas do not clip. Midtones: by luminance range. Skin: by hue. Both: the two together.' },
-      { type: 'color', label: 'Skin Tone', value: '#c98462', eyedropper: true, adv: true, hint: 'Use the eyedropper to sample a real skin tone from this shot; Skin detection recalibrates to it instead of assuming a generic hue.' },
-      { type: 'slider', label: 'Hue Tolerance', value: 0.3, min: 0, max: 1, step: 0.001, adv: true, hint: 'How wide the Skin detection opens around the sampled tone. Check it against Preview → Skin/Midtones.' },
-      { type: 'slider', label: 'Saturation Range', value: 0.3, min: 0, max: 1, step: 0.001, adv: true, hint: 'Same as Hue Tolerance, but for the saturation band.' },
+      { type: 'slider', label: 'Shadow Lift', value: 0.035, min: 0, max: 0.15, step: 0.001, hint: 'Lifts the black floor for a film-like touch instead of pure digital black. Independent of Intensity: raise it gradually.' },
+      { type: 'select', label: 'Protection', value: 'Both', options: ['None', 'Midtones (luminance)', 'Skin (hue)', 'Both'], adv: true, hint: 'Dampens the contrast so certain areas do not clip. Midtones: by luminance range. Skin: by hue. Both: the two together.' },
+      { type: 'color', label: 'Skin Tone', value: '#a9774f', eyedropper: true, adv: true, hint: 'Use the eyedropper to sample a real skin tone from this shot; Skin detection recalibrates to it instead of assuming a generic hue.' },
+      { type: 'slider', label: 'Hue Tolerance', value: 18, min: 0, max: 45, step: 0.01, adv: true, hint: 'How wide the Skin detection opens around the sampled tone, in degrees of hue. Check it against Preview → Skin/Midtones.' },
+      { type: 'slider', label: 'Saturation Range', value: 0.24, min: 0, max: 0.5, step: 0.001, adv: true, hint: 'Same as Hue Tolerance, but for the saturation band.' },
     ],
   },
-  {
-    title: 'Reframe',
-    rows: [
-      { type: 'slider', label: 'X', value: 0, min: -0.05, max: 0.05, step: 0.0001, hint: 'Shifts the source image horizontally underneath the crop. The crop itself does not move. Presets never touch it.' },
-      { type: 'slider', label: 'Y', value: 0, min: -0.05, max: 0.05, step: 0.0001, hint: 'Shifts the source image vertically underneath the crop. The crop itself does not move. Presets never touch it.' },
-      { type: 'slider', label: 'Zoom', value: 1, min: 1, max: 3, step: 0.001, hint: 'Zooms into the source image (magnify only). Raise it to hide the edge when Weave moves the picture.' },
-    ],
-  },
+];
+
+const reframe: Row[] = [
+  { type: 'slider', label: 'X', value: 0, min: -0.05, max: 0.05, step: 0.0001, hint: 'Shifts the source image horizontally underneath the crop. The crop itself does not move. Presets never touch it.' },
+  { type: 'slider', label: 'Y', value: 0, min: -0.05, max: 0.05, step: 0.0001, hint: 'Shifts the source image vertically underneath the crop. The crop itself does not move. Presets never touch it.' },
+  { type: 'slider', label: 'Zoom', value: 1, min: 1, max: 3, step: 0.001, hint: 'Zooms into the source image (magnify only). Raise it to hide the edge when Weave moves the picture.' },
 ];
 
 // Spanish explanations, keyed by `${section}/${label}` (effect switches use
@@ -141,7 +159,7 @@ const hintsEs: Record<string, string> = {
   'FLICKER/Amount': 'Fuerza del cambio de brillo, en % (de 2 a 5). Se aplica en luz lineal, antes de la viñeta, el grano y el contraste.',
   'FLICKER/Seed': 'Cambia el patrón aleatorio del parpadeo sin cambiar su fuerza.',
   'VIGNETTE/switch': 'Activa la viñeta radial, calculada sobre la parte visible de la imagen (nunca por debajo de las barras).',
-  'VIGNETTE/Intensity': 'En positivo oscurece (la viñeta de toda la vida); en negativo aclara, como un light leak que levanta las sombras del borde. Con 0 no hace nada.',
+  'VIGNETTE/Intensity': 'En positivo oscurece (la viñeta de toda la vida); en negativo aclara, como un light leak que levanta las sombras del borde. En Simple mantiene el signo del último preset; Advanced abre todo el rango.',
   'VIGNETTE/Optics': 'Forma y punto de partida de la caída de la viñeta, según el tipo de óptica que quieras imitar.',
   'VIGNETTE/Softness': 'Dureza del borde: 0 es una transición corta y dura, y 1, una caída ancha y suave.',
   'GRAIN/switch': 'Activa el grano de película procedural, solo sobre la parte visible.',
@@ -155,187 +173,340 @@ const hintsEs: Record<string, string> = {
   'CONTRAST/Shadow Lift': 'Levanta el suelo de negros para darle un aire de película en vez del negro digital puro. Va aparte de Intensity, así que súbelo poco a poco.',
   'CONTRAST/Protection': 'Suaviza el contraste para que no queme ciertas zonas. Midtones lo hace por rango de luminancia, Skin por tono, y Both combina las dos.',
   'CONTRAST/Skin Tone': 'Usa el cuentagotas para tomar un tono de piel real del plano: la detección de piel se recalibra en vez de dar por bueno un tono genérico.',
-  'CONTRAST/Hue Tolerance': 'Cuánto se abre la detección de piel alrededor del tono muestreado. Compruébalo con Preview → Skin/Midtones.',
+  'CONTRAST/Hue Tolerance': 'Cuánto se abre la detección de piel alrededor del tono muestreado, en grados de tono. Compruébalo con Preview → Skin/Midtones.',
   'CONTRAST/Saturation Range': 'Lo mismo que Hue Tolerance, pero para la banda de saturación.',
   'Reframe/X': 'Desplaza la imagen original en horizontal por debajo del recorte. El recorte no se mueve. Los presets nunca lo tocan.',
   'Reframe/Y': 'Desplaza la imagen original en vertical por debajo del recorte. El recorte no se mueve. Los presets nunca lo tocan.',
   'Reframe/Zoom': 'Amplía la imagen original (solo hacia dentro). Súbelo para esconder el borde cuando Weave mueve la imagen.',
 };
 
-const { lang = 'en' } = Astro.props as { lang?: Lang };
-const hoverHint = lang === 'es' ? 'Pasa el ratón por encima de un control para ver qué hace.' : 'Hover a control to see what it does.';
+const { lang = 'en', variant = 'full' } = Astro.props as { lang?: Lang; variant?: 'full' | 'lite' };
+const isLite = variant === 'lite';
+
+// GATE.24 Lite (screenshots 2026-11-02): one Essentials list with 5 presets, Reset preset,
+// and only CROP, VIGNETTE, GRAIN and CONTRAST with their main controls (no Advanced,
+// Looks, Preview, Weave or Flicker).
+const litePresets = ['Manual', 'Cinema 35', 'Cinema 65', 'Editorial 4:3', 'Urban Editorial', 'Romance / Reverie'];
+const G: Row[] = isLite
+  ? [
+      { ...(general.find((r) => r.label === 'Essentials') as Extract<Row, { type: 'select' }>), options: litePresets },
+      general.find((r) => r.label === 'Reset preset')!,
+    ]
+  : general;
+const E: Effect[] = isLite
+  ? effects
+      .filter((e) => ['crop', 'vignette', 'grain', 'contrast'].includes(e.key))
+      .map((e) => ({ ...e, rows: e.rows.filter((r) => !('adv' in r && r.adv)) }))
+  : effects;
+const hoverHint = lang === 'es' ? 'Pasa el ratón por encima de un control (o tócalo) para ver qué hace.' : 'Hover a control (or tap it) to see what it does.';
 const hintFor = (section: string, label: string, fallback: string) =>
   lang === 'es' ? hintsEs[`${section}/${label}`] ?? fallback : fallback;
 const advLabel = lang === 'es' ? 'solo en Advanced' : 'Advanced only';
+const decimals = (step: number) => (step >= 1 ? 0 : step < 0.01 ? 3 : 2);
 
-// Every row (including each effect's switch) gets a global index r0..rN; the CSS
-// below swaps the visible caption by which row is hovered/focused inside its own
-// .dv-section, scoped per section via :has() so sections don't cross-talk.
-const rowCount = sections.reduce((sum, s) => sum + s.rows.length + (s.fx ? 1 : 0), 0);
-const panelHotspotCss = Array.from({ length: rowCount }, (_, i) => `
-  .dv-section:has(.r${i}:hover) .dv-caption-default,
-  .dv-section:has(.r${i}:focus-visible) .dv-caption-default { opacity: 0; }
-  .dv-section:has(.r${i}:hover) .c${i},
-  .dv-section:has(.r${i}:focus-visible) .c${i} { opacity: 1; }
-`).join('\n');
+// One flat list of captions, one per control; the CSS below shows the one whose row
+// is hovered or focused (ids r0..rN <-> c0..cN).
+interface Caption { idx: number; label: string; hint: string; adv: boolean }
+const captions: Caption[] = [];
+let n = 0;
+const next = (label: string, hint: string, adv = false) => {
+  const idx = n++;
+  captions.push({ idx, label, hint, adv });
+  return idx;
+};
 
-let rowCounter = 0;
+const liteEssentialsHint =
+  lang === 'es'
+    ? 'Presets para el día a día. Ajustan de una vez Crop, Vignette, Grain y Contrast. En Lite hay cinco. Reframe y Crop Offset no se tocan nunca.'
+    : 'Everyday presets. Sets Crop, Vignette, Grain and Contrast at once. Lite has five of them. Reframe and Crop Offset are never touched.';
+const generalIdx = G.map((r) =>
+  next(r.label, isLite && r.label === 'Essentials' ? liteEssentialsHint : hintFor('General', r.label, r.hint), 'adv' in r && !!r.adv),
+);
+const effectIdx = E.map((e) => ({
+  sw: next(e.title, hintFor(e.title, 'switch', e.hint)),
+  rows: e.rows.map((r) => next(r.label, hintFor(e.title, r.label, r.hint), 'adv' in r && !!r.adv)),
+}));
+const reframeIdx = reframe.map((r) => next(r.label, hintFor('Reframe', r.label, r.hint)));
+
+const panelHotspotCss = captions
+  .map(
+    ({ idx }) => `
+  .resolve-panel:has(.r${idx}:hover) .dv-caption-default,
+  .resolve-panel:has(.r${idx}:focus) .dv-caption-default { opacity: 0; }
+  .resolve-panel:has(.r${idx}:hover) .c${idx},
+  .resolve-panel:has(.r${idx}:focus) .c${idx} { opacity: 1; }`,
+  )
+  .join('\n');
 ---
 
 <div class="resolve-panel" data-advanced="false">
-  {sections.map((section) => {
-    const items: { row: Row | null; label: string; hint: string; idx: number }[] = [];
-    if (section.fx) items.push({ row: null, label: section.title, hint: hintFor(section.title, 'switch', section.fx.hint), idx: rowCounter++ });
-    section.rows.forEach((row) => items.push({ row, label: row.label, hint: hintFor(section.title, row.label, row.hint), idx: rowCounter++ }));
-    return (
-      <details class:list={['dv-section', { 'fx-off': section.fx && !section.fx.on }]} open={section.open} data-fx={section.fx?.key}>
-        <summary>
-          <span class="dv-chevron" aria-hidden="true">&rsaquo;</span>
-          {section.fx ? <span class="dv-dot" aria-hidden="true">&#9679;</span> : null}
-          {section.title}
-        </summary>
-        <div class="dv-body">
-          <div class="dv-rows">
-            {items.map(({ row, label, idx }) => {
-              if (row === null) {
-                return (
-                  <div class={`dv-row dv-switch r${idx}`} tabindex="0">
-                    <span class="dv-label"></span>
-                    <span class="dv-control">
-                      <label class="dv-check-field">
-                        <input class="dv-check dv-fx-check" type="checkbox" checked={section.fx!.on} />
-                        <span>{label}</span>
-                      </label>
-                    </span>
-                  </div>
-                );
-              }
-              return (
-                <div class={`dv-row r${idx}`} tabindex="0" data-adv={row.adv ? 'true' : undefined} hidden={row.adv || (section.fx && !section.fx.on) ? true : undefined}>
-                  <span class="dv-label">{row.type === 'check' || row.type === 'button' ? '' : row.label}</span>
-                  <span class="dv-control">
-                    {row.type === 'select' && (
-                      <span class="dv-select">
-                        <select aria-label={row.label}>
-                          {row.options.map((opt) => <option selected={opt === row.value}>{opt}</option>)}
-                        </select>
-                        <span class="dv-caret" aria-hidden="true">&#9662;</span>
-                      </span>
-                    )}
-                    {row.type === 'check' && (
-                      <label class="dv-check-field">
-                        <input class="dv-check dv-advanced-check" type="checkbox" checked={row.checked} />
-                        <span>{row.label}</span>
-                      </label>
-                    )}
-                    {row.type === 'button' && (
-                      <button type="button" class="dv-button" disabled={false}>{row.label}</button>
-                    )}
-                    {row.type === 'slider' && (
-                      <span class="dv-slider">
-                        <input type="range" min={row.min} max={row.max} step={row.step} value={row.value} aria-label={row.label} />
-                        <input class="dv-value" type="text" readonly value={row.value.toFixed(row.step < 0.01 ? 3 : row.step >= 1 ? 0 : 2)} tabindex="-1" />
-                      </span>
-                    )}
-                    {row.type === 'color' && (
-                      <span class="dv-color-field">
-                        <span class="dv-swatch" style={{ background: row.value }}></span>
-                        {row.eyedropper && <span class="dv-eyedrop" aria-hidden="true">&#9711;</span>}
-                      </span>
-                    )}
+  <div class="dv-layout">
+    <div class="dv-inspector">
+      <div class="dv-head">
+        <button type="button" class="dv-power" aria-pressed="true" aria-label="Plugin on/off"><span></span></button>
+        <span class="dv-name">{isLite ? 'GATE.24 Lite' : 'GATE.24'}</span>
+        <span class="dv-head-ico" aria-hidden="true">
+          <svg viewBox="0 0 16 16"><path d="M3.5 4.5h9M6 4.5V3h4v1.5M4.5 4.5l.6 8h5.8l.6-8" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+          <svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v3h3M8 5v3.3l2 1.2" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+        </span>
+      </div>
+
+      <details class="dv-group" open>
+        <summary><span class="dv-chevron" aria-hidden="true"></span>General</summary>
+        {G.map((row, i) => {
+          const idx = generalIdx[i];
+          const kind = row.type;
+          return (
+            <div class={`dv-row r${idx}`} tabindex="0" data-adv={'adv' in row && row.adv ? 'true' : undefined} hidden={'adv' in row && row.adv ? true : undefined}>
+              <span class="dv-label">{kind === 'check' || kind === 'button' ? '' : row.label}</span>
+              <span class="dv-control">
+                {row.type === 'check' && (
+                  <label class="dv-check-field">
+                    <input class="dv-check dv-advanced-check" type="checkbox" checked={row.checked} />
+                    <span>{row.label}</span>
+                  </label>
+                )}
+                {row.type === 'select' && (
+                  <span class="dv-select">
+                    <select aria-label={row.label} data-preset={row.label === 'Essentials' || row.label === 'Looks' ? 'true' : undefined}>
+                      {row.options.map((opt) => <option selected={opt === row.value}>{opt}</option>)}
+                    </select>
                   </span>
-                  {row.type !== 'check' && row.type !== 'button' && (
-                    <>
-                      <span class="dv-diamond" aria-hidden="true">&#9670;</span>
-                      <span class="dv-reset" aria-hidden="true">&#8635;</span>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div class="dv-caption-slot">
-            <p class="dv-caption-default">{hoverHint}</p>
-            {items.map(({ row, label, hint, idx }) => (
-              <p class={`dv-caption c${idx}`}>
-                <strong>{label}</strong>{row?.adv ? <em> ({advLabel})</em> : null} — {hint}
-              </p>
-            ))}
-          </div>
-        </div>
+                )}
+                {row.type === 'button' && <button type="button" class="dv-button">{row.label}</button>}
+              </span>
+              <span class="dv-ico"></span>
+              {kind === 'button' ? <span class="dv-ico"></span> : <span class="dv-ico dv-reset" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v3h3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>}
+            </div>
+          );
+        })}
       </details>
-    );
-  })}
+
+      {E.map((effect, ei) => (
+        <div class:list={['dv-fx', { 'fx-off': !effect.on }]} data-fx={effect.key}>
+          <div class={`dv-row dv-switch r${effectIdx[ei].sw}`} tabindex="0">
+            <span class="dv-label"></span>
+            <span class="dv-control">
+              <label class="dv-check-field">
+                <input class="dv-check dv-fx-check" type="checkbox" checked={effect.on} />
+                <span><i class="dv-dot" aria-hidden="true">&#9679;</i> {effect.title}</span>
+              </label>
+            </span>
+            <span class="dv-ico dv-key" aria-hidden="true">&#9670;</span>
+            <span class="dv-ico dv-reset" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v3h3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>
+          </div>
+          {effect.rows.map((row, ri) => {
+            const idx = effectIdx[ei].rows[ri];
+            const hidden = 'adv' in row && row.adv ? true : !effect.on ? true : undefined;
+            return (
+              <div class={`dv-row r${idx}`} tabindex="0" data-adv={'adv' in row && row.adv ? 'true' : undefined} hidden={hidden}>
+                <span class="dv-label">{row.label}</span>
+                <span class="dv-control">
+                  {row.type === 'select' && (
+                    <span class="dv-select">
+                      <select aria-label={`${effect.title} ${row.label}`}>
+                        {row.options.map((opt) => <option selected={opt === row.value}>{opt}</option>)}
+                      </select>
+                    </span>
+                  )}
+                  {row.type === 'slider' && (
+                    <span class="dv-slider">
+                      <input
+                        type="range"
+                        min={row.min}
+                        max={row.max}
+                        step={row.step}
+                        value={row.value}
+                        data-simple-min={row.simpleMin}
+                        data-adv-min={row.simpleMin !== undefined ? row.min : undefined}
+                        aria-label={`${effect.title} ${row.label}`}
+                      />
+                      <input class="dv-value" type="text" readonly value={row.value.toFixed(decimals(row.step))} tabindex="-1" aria-hidden="true" />
+                    </span>
+                  )}
+                  {row.type === 'color' && (
+                    <span class="dv-color-field">
+                      <span class="dv-swatch" style={{ background: row.value }}></span>
+                      {row.eyedropper && (
+                        <svg class="dv-eyedrop" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3-2 2-3-3zM8.5 4.5l-5.5 5.5-.5 3.5 3.5-.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                      )}
+                    </span>
+                  )}
+                </span>
+                {row.type === 'select' ? <span class="dv-ico"></span> : <span class="dv-ico dv-key" aria-hidden="true">&#9670;</span>}
+                <span class="dv-ico dv-reset" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v3h3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+
+      <details class="dv-group dv-reframe">
+        <summary><span class="dv-chevron" aria-hidden="true"></span>Reframe</summary>
+        {reframe.map((row, i) => {
+          const idx = reframeIdx[i];
+          return (
+            <div class={`dv-row r${idx}`} tabindex="0">
+              <span class="dv-label">{row.label}</span>
+              <span class="dv-control">
+                {row.type === 'slider' && (
+                  <span class="dv-slider">
+                    <input type="range" min={row.min} max={row.max} step={row.step} value={row.value} aria-label={`Reframe ${row.label}`} />
+                    <input class="dv-value" type="text" readonly value={row.value.toFixed(decimals(row.step))} tabindex="-1" aria-hidden="true" />
+                  </span>
+                )}
+              </span>
+              <span class="dv-ico dv-key" aria-hidden="true">&#9670;</span>
+              <span class="dv-ico dv-reset" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v3h3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span>
+            </div>
+          );
+        })}
+      </details>
+    </div>
+
+    <aside class="dv-captions" aria-live="polite">
+      <p class="dv-caption-default">{hoverHint}</p>
+      {captions.map((c) => (
+        <p class={`dv-caption c${c.idx}`}>
+          <strong>{c.label}</strong>{c.adv ? <em> ({advLabel})</em> : null} — {c.hint}
+        </p>
+      ))}
+    </aside>
+  </div>
 </div>
 
 <style set:html={panelHotspotCss}></style>
 
 <style>
   .resolve-panel {
-    border-top: 1px solid var(--color-border);
     font-family: var(--font-body);
   }
 
-  .dv-section {
-    border-bottom: 1px solid var(--color-border);
+  .dv-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
   }
 
-  summary {
+  /* The panel itself: Resolve's dark Inspector. */
+  .dv-inspector {
+    background: #282828;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    padding: 0.4rem 0 0.9rem;
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.45);
+    transition: opacity 0.2s ease;
+  }
+
+  .dv-inspector.is-off .dv-group,
+  .dv-inspector.is-off .dv-fx {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .dv-head {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    padding: 1rem 0;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #3a3a3a;
+  }
+
+  .dv-power {
+    position: relative;
+    width: 2rem;
+    height: 1rem;
+    padding: 0;
+    border: 1px solid #4a4a4a;
+    border-radius: 1rem;
+    background: #1a1a1a;
     cursor: pointer;
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    color: var(--color-fg);
+  }
+
+  .dv-power span {
+    position: absolute;
+    top: 50%;
+    left: 0.3rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: #e5483f;
+    transform: translateY(-50%);
+    transition: left 0.18s ease, background-color 0.18s ease;
+  }
+
+  .dv-power[aria-pressed='false'] span {
+    left: 1.1rem;
+    background: #777;
+  }
+
+  .dv-name {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f2f2f2;
+  }
+
+  .dv-head-ico {
+    display: flex;
+    gap: 0.85rem;
+    color: #a8a8a8;
+  }
+
+  .dv-head-ico svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .dv-group > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1rem 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #e8e8e8;
+    cursor: pointer;
     list-style: none;
   }
 
-  summary::-webkit-details-marker {
+  .dv-group > summary::-webkit-details-marker {
     display: none;
   }
 
-  .dv-dot {
-    font-size: 0.6rem;
-    color: var(--color-fg-muted);
-  }
-
-  .dv-section.fx-off .dv-dot {
-    opacity: 0.35;
-  }
-
   .dv-chevron {
-    display: inline-block;
-    font-size: 1.3rem;
-    color: var(--color-fg-muted);
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 1.5px solid #aaa;
+    border-bottom: 1.5px solid #aaa;
+    transform: rotate(-45deg);
     transition: transform 0.15s ease;
   }
 
-  details[open] .dv-chevron {
-    transform: rotate(90deg);
+  .dv-group[open] .dv-chevron {
+    transform: rotate(45deg);
   }
 
-  .dv-body {
-    display: grid;
-    grid-template-columns: minmax(0, 22rem) 1fr;
-    gap: var(--space-3);
-    align-items: start;
-    padding-bottom: var(--space-4);
+  .dv-reframe {
+    border-top: 1px solid #3a3a3a;
+    margin-top: 0.4rem;
   }
 
-  .dv-rows {
-    background: #1c1c1c;
-    border: 1px solid #333;
-    padding: 0.5rem 0.75rem;
+  .dv-fx {
+    border-top: 1px solid #3a3a3a;
+    padding-top: 0.35rem;
+    margin-top: 0.2rem;
   }
 
+  /* Rows: label | control | keyframe | reset */
   .dv-row {
     display: grid;
-    grid-template-columns: 6.5rem 1fr 1rem 1rem;
+    grid-template-columns: 5.6rem minmax(0, 1fr) 1.2rem 1.4rem;
     align-items: center;
-    gap: 0.5rem;
-    min-height: 1.7rem;
+    gap: 0.55rem;
+    min-height: 2.15rem;
+    padding: 0 0.8rem 0 0.6rem;
     outline: none;
   }
 
@@ -344,13 +515,13 @@ let rowCounter = 0;
   }
 
   .dv-row:hover,
-  .dv-row:focus-visible {
-    background: rgba(245, 245, 243, 0.06);
+  .dv-row:focus {
+    background: rgba(255, 255, 255, 0.045);
   }
 
   .dv-label {
     font-size: 0.8125rem;
-    color: #b0b0b0;
+    color: #b4b4b4;
     text-align: right;
     white-space: nowrap;
     overflow: hidden;
@@ -361,101 +532,107 @@ let rowCounter = 0;
     min-width: 0;
   }
 
-  .dv-diamond,
-  .dv-reset {
-    font-size: 0.6rem;
-    color: #666;
-    text-align: center;
+  .dv-ico {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7d7d7d;
+    font-size: 0.7rem;
   }
 
-  /* Select */
-  .dv-select {
-    position: relative;
-    display: block;
+  .dv-reset svg {
+    width: 1rem;
+    height: 1rem;
   }
 
+  /* Dropdown */
   .dv-select select {
     width: 100%;
     appearance: none;
-    background: #2b2b2b;
+    height: 1.7rem;
+    padding: 0 1.8rem 0 0.6rem;
+    background: #1c1c1c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23aaaaaa' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
     border: 1px solid #3d3d3d;
-    color: #d8d8d8;
-    font-size: 0.8125rem;
+    border-radius: 3px;
+    color: #e6e6e6;
     font-family: var(--font-body);
-    padding: 0.2rem 1.4rem 0.2rem 0.5rem;
-    height: 1.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
   }
 
-  .dv-caret {
-    position: absolute;
-    right: 0.4rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.6rem;
-    color: #888;
-    pointer-events: none;
+  .dv-select select:focus-visible {
+    outline: 1px solid #8a8a8a;
   }
 
   /* Checkbox */
-  .dv-check {
-    appearance: none;
-    width: 0.85rem;
-    height: 0.85rem;
-    border: 1px solid #555;
-    background: #2b2b2b;
-    position: relative;
+  .dv-check-field {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     cursor: pointer;
-    margin: 0;
-    justify-self: start;
   }
 
-  .dv-check:checked {
-    background: #3d3d3d;
-    border-color: #888;
+  .dv-check-field span {
+    font-size: 0.875rem;
+    color: #e0e0e0;
+  }
+
+  .dv-switch .dv-check-field span {
+    letter-spacing: 0.02em;
+  }
+
+  .dv-dot {
+    font-style: normal;
+    font-size: 0.55rem;
+    color: #c9c9c9;
+    margin-right: 0.15rem;
+  }
+
+  .dv-check {
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    border: 1px solid #5a5a5a;
+    border-radius: 2px;
+    background: #1c1c1c;
+    position: relative;
+    cursor: pointer;
+    flex: none;
   }
 
   .dv-check:checked::after {
     content: '';
     position: absolute;
-    left: 0.18rem;
-    top: 0.02rem;
-    width: 0.22rem;
-    height: 0.42rem;
-    border: solid #e8e8e8;
+    left: 0.28rem;
+    top: 0.04rem;
+    width: 0.28rem;
+    height: 0.55rem;
+    border: solid #f0f0f0;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
   }
 
-  .dv-check-field {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    cursor: pointer;
-  }
-
-  .dv-check-field span {
-    font-size: 0.8125rem;
-    color: #d8d8d8;
-  }
-
-  .dv-switch .dv-check-field span {
-    letter-spacing: 0.06em;
+  .dv-check:focus-visible {
+    outline: 1px solid #9a9a9a;
+    outline-offset: 2px;
   }
 
   /* Button */
   .dv-button {
-    width: 100%;
-    height: 1.5rem;
-    background: #2b2b2b;
+    height: 1.7rem;
+    padding: 0 1.1rem;
+    background: #2a2a2a;
     border: 1px solid #3d3d3d;
-    color: #d8d8d8;
-    font-size: 0.8125rem;
+    border-radius: 0.85rem;
+    color: #e0e0e0;
     font-family: var(--font-body);
+    font-size: 0.8125rem;
     cursor: pointer;
   }
 
   .dv-button:disabled {
-    color: #777;
+    color: #6f6f6f;
     cursor: default;
   }
 
@@ -463,102 +640,123 @@ let rowCounter = 0;
   .dv-slider {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.6rem;
   }
 
   .dv-slider input[type='range'] {
     flex: 1;
-    appearance: none;
-    height: 1px;
-    background: #4a4a4a;
     min-width: 0;
+    height: 1.4rem;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .dv-slider input[type='range']::-webkit-slider-runnable-track {
+    height: 2px;
+    background: #565656;
+  }
+
+  .dv-slider input[type='range']::-moz-range-track {
+    height: 2px;
+    background: #565656;
   }
 
   .dv-slider input[type='range']::-webkit-slider-thumb {
     appearance: none;
-    width: 0.6rem;
-    height: 0.6rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-top: -0.35rem;
     border-radius: 50%;
-    background: #ababab;
-    cursor: grab;
+    background: #b3b3b3;
+    border: none;
   }
 
   .dv-slider input[type='range']::-moz-range-thumb {
-    width: 0.6rem;
-    height: 0.6rem;
+    width: 0.8rem;
+    height: 0.8rem;
     border-radius: 50%;
-    background: #ababab;
+    background: #b3b3b3;
     border: none;
-    cursor: grab;
   }
 
+  .dv-slider input[type='range']:hover::-webkit-slider-thumb,
   .dv-slider input[type='range']:active::-webkit-slider-thumb {
-    background: var(--color-fg);
-    cursor: grabbing;
+    background: #f0f0f0;
+  }
+
+  .dv-slider input[type='range']:focus-visible {
+    outline: 1px solid #8a8a8a;
+    outline-offset: 2px;
   }
 
   .dv-value {
-    width: 3.6rem;
-    flex-shrink: 0;
-    background: #232323;
+    width: 4.3rem;
+    flex: none;
+    height: 1.6rem;
+    padding: 0 0.5rem;
+    background: #1a1a1a;
     border: 1px solid #3d3d3d;
-    color: #d8d8d8;
-    font-size: 0.8125rem;
+    border-radius: 3px;
+    color: #f2f2f2;
     font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
     text-align: right;
-    padding: 0.15rem 0.35rem;
   }
 
-  /* Color / eyedropper */
+  /* Colour + eyedropper */
   .dv-color-field {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.6rem;
   }
 
   .dv-swatch {
-    width: 1rem;
-    height: 1rem;
+    width: 2.4rem;
+    height: 1.4rem;
     border: 1px solid #4a4a4a;
+    border-radius: 2px;
   }
 
   .dv-eyedrop {
-    font-size: 0.75rem;
-    color: #999;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: #e4e4e4;
   }
 
-  /* Shared caption slot: anchored to real rows instead of an image overlay, so
-     alignment can't drift. */
-  .dv-caption-slot {
-    position: relative;
-    min-height: 6rem;
+  /* Captions: one card next to the panel, stuck while the panel scrolls. */
+  .dv-captions {
+    position: sticky;
+    top: 5.5rem;
+    min-height: 9rem;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
   }
 
-  .dv-caption-slot p {
+  .dv-captions p {
     margin: 0;
     max-width: none;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 1rem;
+    line-height: 1.55;
   }
 
   .dv-caption-default {
-    position: absolute;
-    inset: 0;
-    opacity: 1;
     color: var(--color-fg-muted);
+    opacity: 1;
     transition: opacity 0.12s ease;
   }
 
   .dv-caption {
     position: absolute;
-    inset: 0;
+    inset: var(--space-3);
     opacity: 0;
     transition: opacity 0.12s ease;
     color: var(--color-fg);
   }
 
-  .dv-caption strong,
-  .dv-caption em {
+  .dv-caption strong {
     color: var(--color-fg);
   }
 
@@ -567,13 +765,27 @@ let rowCounter = 0;
     color: var(--color-fg-muted);
   }
 
-  @media (max-width: 720px) {
-    .dv-body {
+  @media (max-width: 62rem) {
+    .dv-layout {
       grid-template-columns: 1fr;
     }
 
-    .dv-caption-slot {
+    /* On small screens the caption sticks to the top of the viewport while you tap controls. */
+    .dv-captions {
+      order: -1;
+      top: 4.5rem;
+      z-index: 3;
       min-height: 7.5rem;
+      background: #1a1a1a;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dv-power span,
+    .dv-chevron,
+    .dv-caption,
+    .dv-caption-default {
+      transition: none;
     }
   }
 </style>
@@ -582,35 +794,46 @@ let rowCounter = 0;
   const panels = document.querySelectorAll<HTMLElement>('.resolve-panel');
 
   panels.forEach((panel) => {
+    const inspector = panel.querySelector<HTMLElement>('.dv-inspector')!;
     const advancedBox = panel.querySelector<HTMLInputElement>('.dv-advanced-check');
 
-    // Rows follow two rules of the real plugin: fine controls only show in Advanced,
-    // and a switched-off effect hides all of its controls.
+    // Two rules of the real plugin: fine controls only show in Advanced, and a
+    // switched-off effect hides all of its controls.
     const refresh = () => {
       const advanced = !!advancedBox?.checked;
       panel.dataset.advanced = String(advanced);
-      panel.querySelectorAll<HTMLElement>('.dv-section').forEach((section) => {
-        const fxBox = section.querySelector<HTMLInputElement>('.dv-fx-check');
-        const on = fxBox ? fxBox.checked : true;
-        section.classList.toggle('fx-off', !on);
-        section.querySelectorAll<HTMLElement>('.dv-row:not(.dv-switch)').forEach((row) => {
-          row.hidden = (row.dataset.adv === 'true' && !advanced) || !on;
+      panel.querySelectorAll<HTMLElement>('.dv-row[data-adv="true"]').forEach((row) => {
+        const fx = row.closest<HTMLElement>('.dv-fx');
+        const fxBox = fx?.querySelector<HTMLInputElement>('.dv-fx-check');
+        row.hidden = !advanced || (!!fxBox && !fxBox.checked);
+      });
+      panel.querySelectorAll<HTMLElement>('.dv-fx').forEach((fx) => {
+        const on = !!fx.querySelector<HTMLInputElement>('.dv-fx-check')?.checked;
+        fx.classList.toggle('fx-off', !on);
+        fx.querySelectorAll<HTMLElement>('.dv-row:not(.dv-switch)').forEach((row) => {
+          if (row.dataset.adv === 'true') row.hidden = !advanced || !on;
+          else row.hidden = !on;
         });
+      });
+      // Vignette Intensity: Simple keeps the preset's sign, Advanced opens the full range.
+      panel.querySelectorAll<HTMLInputElement>('input[data-simple-min]').forEach((range) => {
+        range.min = advanced ? (range.dataset.advMin ?? range.min) : (range.dataset.simpleMin ?? range.min);
+        const value = range.closest('.dv-row')?.querySelector<HTMLInputElement>('.dv-value');
+        if (value) value.value = Number(range.value).toFixed(3);
       });
     };
     advancedBox?.addEventListener('change', refresh);
     panel.querySelectorAll('.dv-fx-check').forEach((b) => b.addEventListener('change', refresh));
 
-    // Choosing a preset in one list puts the other back to Manual, and arms Reset preset.
-    const selects = panel.querySelectorAll<HTMLSelectElement>('select[aria-label="Essentials"], select[aria-label="Looks"]');
+    // Choosing a preset in one list puts the other back to Manual and arms Reset preset.
+    const presetSelects = panel.querySelectorAll<HTMLSelectElement>('select[data-preset="true"]');
     const reset = panel.querySelector<HTMLButtonElement>('.dv-button');
     const armReset = () => {
-      if (!reset) return;
-      reset.disabled = [...selects].every((s) => s.selectedIndex === 0);
+      if (reset) reset.disabled = [...presetSelects].every((s) => s.selectedIndex === 0);
     };
-    selects.forEach((s) =>
+    presetSelects.forEach((s) =>
       s.addEventListener('change', () => {
-        selects.forEach((o) => {
+        presetSelects.forEach((o) => {
           if (o !== s) o.selectedIndex = 0;
         });
         armReset();
@@ -618,12 +841,21 @@ let rowCounter = 0;
     );
     armReset();
 
+    // The red switch at the top turns the whole plugin off (dimmed), like Resolve's node toggle.
+    const power = panel.querySelector<HTMLButtonElement>('.dv-power');
+    power?.addEventListener('click', () => {
+      const on = power.getAttribute('aria-pressed') !== 'true';
+      power.setAttribute('aria-pressed', String(on));
+      inspector.classList.toggle('is-off', !on);
+    });
+
+    // Slider readouts follow the slider.
     panel.querySelectorAll<HTMLElement>('.dv-row').forEach((row) => {
       const range = row.querySelector<HTMLInputElement>('input[type="range"]');
       const value = row.querySelector<HTMLInputElement>('.dv-value');
       if (range && value) {
         const step = Number(range.step);
-        const decimals = step < 0.01 ? 3 : step >= 1 ? 0 : 2;
+        const decimals = step >= 1 ? 0 : step < 0.01 ? 3 : 2;
         range.addEventListener('input', () => {
           value.value = Number(range.value).toFixed(decimals);
         });
