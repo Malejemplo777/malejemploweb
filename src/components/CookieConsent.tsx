@@ -104,6 +104,10 @@ export default function CookieConsent({ lang = 'en' }: { lang?: Lang }) {
           flex-direction: column;
           gap: 0.75rem;
         }
+        /* On wide screens it sits in the bottom-left corner so it never covers a page's main buttons. */
+        @media (min-width: 720px) {
+          .cookie-banner { right: auto; margin-inline: 0; left: 1.25rem; bottom: 1.25rem; }
+        }
         .cookie-banner p {
           margin: 0;
           font-size: 0.85rem;
